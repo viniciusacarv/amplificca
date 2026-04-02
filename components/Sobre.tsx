@@ -178,9 +178,9 @@ export default function Sobre() {
         }
         .partner-top {
           display: flex;
+          flex-direction: column;
           align-items: flex-start;
-          justify-content: space-between;
-          gap: 16px;
+          gap: 14px;
           margin-bottom: 22px;
         }
         .partner-category {
@@ -190,19 +190,9 @@ export default function Sobre() {
           color: rgba(255,255,255,0.36);
           font-size: 12px;
           line-height: 1.4;
-          max-width: 120px;
-          text-align: right;
-          flex-shrink: 1;
-        }
-        @media (max-width: 420px) {
-          .partner-top {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-          .partner-category {
-            max-width: none;
-            text-align: left;
-          }
+          max-width: 100%;
+          text-align: left;
+          flex-wrap: wrap;
         }
       `}</style>
 
