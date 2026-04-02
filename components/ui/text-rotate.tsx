@@ -8,7 +8,7 @@ import {
   useMemo,
   useState,
 } from "react"
-import { AnimatePresence, motion } from "motion/react"
+import { AnimatePresence, motion } from "framer-motion"
 
 export interface TextRotateRef {
   next: () => void
@@ -31,8 +31,8 @@ const TextRotate = forwardRef<TextRotateRef, TextRotateProps>(
   (
     {
       texts,
-      rotationInterval = 2500,
-      staggerDuration = 0.03,
+      rotationInterval = 2800,
+      staggerDuration = 0.04,
       staggerFrom = "first",
       loop = true,
       auto = true,
