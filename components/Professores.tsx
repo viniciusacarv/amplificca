@@ -219,7 +219,7 @@ export default function Professores() {
       const loopWidth = firstTrack.scrollWidth + 16
 
       if (!isPausedRef.current && loopWidth > 0) {
-        container.scrollLeft += 0.25
+        container.scrollLeft += 0.2
       }
 
       if (loopWidth > 0 && container.scrollLeft >= loopWidth) {
