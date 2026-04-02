@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 64" fill="none">
+  <!-- Megafone -->
+  <g transform="translate(4, 8)">
+    <!-- Corpo do megafone -->
+    <path d="M8 20 L28 14 L28 38 L8 32 Z" fill="#7ED321" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+    <!-- Cone do megafone -->
+    <path d="M28 14 L46 6 L46 46 L28 38 Z" fill="#7ED321" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+    <!-- Bocal -->
+    <ellipse cx="46" cy="26" rx="5" ry="20" fill="#5fa818" stroke="white" stroke-width="1.5"/>
+    <!-- Handle -->
+    <rect x="4" y="22" width="6" height="10" rx="2" fill="white"/>
+    <!-- Ondas sonoras -->
+    <path d="M50 16 Q56 20 56 26 Q56 32 50 36" stroke="#7ED321" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+    <path d="M54 10 Q63 17 63 26 Q63 35 54 42" stroke="#7ED321" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.6"/>
+  </g>
+  <!-- Texto Amplifica! -->
+  <text x="78" y="42" font-family="'Arial Black', 'Impact', sans-serif" font-size="32" font-weight="900" fill="white" letter-spacing="0.5">Amplifica!</text>
+</svg>
