@@ -1,7 +1,7 @@
 'use client'
 import React, { CSSProperties, ReactNode, HTMLAttributes } from 'react'
 
-type AnimationMode = 'auto-rotate' | 'rotate-on-hover' | 'stop-rotate-on-hover'
+type AnimationMode = 'auto-rotate' | 'rotate-on-hover'
 
 interface AnimatedBorderProps extends Omit<HTMLAttributes<HTMLDivElement>, 'className'> {
   children: ReactNode
@@ -16,90 +16,63 @@ interface AnimatedBorderProps extends Omit<HTMLAttributes<HTMLDivElement>, 'clas
 const AnimatedBorder: React.FC<AnimatedBorderProps> = ({
   children,
   className = '',
-  animationMode = 'auto-rotate',
+  animationMode = 'rotate-on-hover',
   animationSpeed = 4,
   borderWidth = 1.5,
   borderRadius = 12,
   style = {},
   ...props
 }) => {
-  const animClass =
-    animationMode === 'auto-rotate' ? 'ab-auto' :
-    animationMode === 'rotate-on-hover' ? 'ab-hover' : 'ab-stop-hover'
-
-  const combined: CSSProperties = {
-    '--ab-speed': `${animationSpeed}s`,
-    '--ab-width': `${borderWidth}px`,
-    '--ab-radius': `${borderRadius}px`,
-    '--ab-primary': '#7ED321',
-    '--ab-secondary': '#5fa818',
-    '--ab-accent': '#b8ff4d',
-    '--ab-bg': '#0d0d0d',
-    position: 'relative',
-    borderRadius: `${borderRadius}px`,
-    ...style,
-  } as CSSProperties
-
   return (
-    <div className={`ab-root ${animClass} ${className}`} style={combined} {...props}>
+    <div
+      className={`ab-wrap ${animationMode === 'auto-rotate' ? 'ab-always' : 'ab-on-hover'} ${className}`}
+      style={{
+        position: 'relative',
+        borderRadius: `${borderRadius}px`,
+        padding: `${borderWidth}px`,
+        background: 'rgba(255,255,255,0.06)',
+        overflow: 'hidden',
+        ...style,
+      }}
+      {...props}
+    >
       <style>{`
-        .ab-root {
-          isolation: isolate;
+        .ab-wrap {
+          transition: background 0.3s ease;
         }
-        .ab-root::before {
+        .ab-wrap::before {
           content: '';
           position: absolute;
-          inset: calc(var(--ab-width) * -1);
-          border-radius: calc(var(--ab-radius) + var(--ab-width));
+          inset: -100%;
           background: conic-gradient(
             from 0deg,
-            var(--ab-primary),
-            var(--ab-accent),
-            transparent 40%,
-            transparent 60%,
-            var(--ab-secondary),
-            var(--ab-primary)
+            transparent 0deg,
+            transparent 270deg,
+            #7ED321 300deg,
+            #b8ff4d 330deg,
+            #7ED321 360deg
           );
-          z-index: -1;
+          z-index: 0;
           opacity: 0;
           transition: opacity 0.4s ease;
         }
-        .ab-root::after {
-          content: '';
-          position: absolute;
-          inset: var(--ab-width);
-          border-radius: calc(var(--ab-radius) - var(--ab-width) / 2);
-          background: var(--ab-bg);
-          z-index: -1;
-        }
-
-        /* auto-rotate */
-        .ab-auto::before {
+        .ab-always::before {
+          animation: ab-spin var(--ab-speed, 4s) linear infinite;
           opacity: 1;
-          animation: ab-spin var(--ab-speed) linear infinite;
         }
-
-        /* rotate-on-hover */
-        .ab-hover::before {
-          opacity: 0;
-          animation: ab-spin var(--ab-speed) linear infinite;
+        .ab-on-hover::before {
+          animation: ab-spin var(--ab-speed, 4s) linear infinite;
           animation-play-state: paused;
+          opacity: 0;
         }
-        .ab-hover:hover::before {
+        .ab-on-hover:hover::before {
           opacity: 1;
           animation-play-state: running;
         }
-
-        /* stop-rotate-on-hover */
-        .ab-stop-hover::before {
-          opacity: 1;
-          animation: ab-spin var(--ab-speed) linear infinite;
+        .ab-wrap > * {
+          position: relative;
+          z-index: 1;
         }
-        .ab-stop-hover:hover::before {
-          animation-play-state: paused;
-          opacity: 1;
-        }
-
         @keyframes ab-spin {
           from { transform: rotate(0deg); }
           to   { transform: rotate(360deg); }
