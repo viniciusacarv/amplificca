@@ -1,3 +1,4 @@
+'use client'
 export default function Inscricao() {
   return (
     <section id="inscricao" style={{ padding: '100px 0', background: '#0a0a0a', borderTop: '1px solid rgba(126,211,33,0.1)' }}>
