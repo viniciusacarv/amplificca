@@ -64,7 +64,7 @@ export default function Navbar() {
         >
           <a href="#" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
             <Image
-              src="/logo-icon.svg"
+              src="/LOGO-ICON.svg"
               alt="Amplifica"
               width={36}
               height={36}
