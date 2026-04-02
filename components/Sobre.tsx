@@ -10,7 +10,7 @@ const EQUIPE = [
     nome: 'Anne Dias',
     cargo: 'Presidente',
     desc: 'Advogada, mestranda em Ciência Política pela UFPR e comunicadora. Atua como comentarista política na Gazeta do Povo. Selecionada como contributor da rede Young Voices 2026, experiência que inspirou a criação do Amplifica.',
-    instagram: 'annediasoficial',
+    instagram: 'sigaannedias',
     foto: '/equipe/anne-dias.png',
   },
   {
