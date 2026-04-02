@@ -17,12 +17,12 @@ export default function Home() {
       <Navbar />
       <Hero />
       <Video />
+      <Professores />
       <EncontreUmFellow />
       <Artigos />
       <MapaBrasil />
       <Missao />
       <Sobre />
-      <Professores />
       <Inscricao />
       <Footer />
     </main>
