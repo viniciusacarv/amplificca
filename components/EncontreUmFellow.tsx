@@ -164,7 +164,7 @@ export default function EncontreUmFellow() {
               <div style={{ background: '#0d0d0d', borderRadius: 12, overflow: 'hidden', cursor: 'pointer' }} onClick={() => setSelected(f)}>
                 <div style={{ position: 'relative', height: 200, background: 'rgba(255,255,255,0.03)', overflow: 'hidden' }}>
                   {f.foto_url
-                    ? <Image src={f.foto_url} alt={f.nome} fill style={{ objectFit: 'cover', objectPosition: 'center top' }} />
+                    ? <Image src={f.foto_url} alt={f.nome} fill style={{ objectFit: 'cover', objectPosition: 'center 20%' }} />
                     : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, color: 'var(--verde)', fontFamily: 'var(--font-display)' }}>{f.nome.split(' ').slice(0,2).map(n=>n[0]).join('')}</div>
                   }
                   <div style={{ position: 'absolute', bottom: 12, left: 12, background: cor(f.area).bg, border: `1px solid ${cor(f.area).border}`, backdropFilter: 'blur(8px)', borderRadius: 100, padding: '4px 12px', fontSize: 11, color: cor(f.area).text, fontWeight: 500 }}>{f.area}</div>
@@ -231,19 +231,19 @@ export default function EncontreUmFellow() {
             >
 
               {/* FOTO BANNER NO TOPO */}
-              <div style={{ height: 260, position: 'relative', background: '#0a0a0a' }}>
+              <div style={{ height: 280, position: 'relative', background: '#0a0a0a' }}>
                 {selected.foto_url && (
                   <Image
                     src={selected.foto_url}
                     alt={selected.nome}
                     fill
-                    style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                    style={{ objectFit: 'cover', objectPosition: 'center 20%' }}
                   />
                 )}
-                {/* Gradiente */}
+                {/* Gradiente: só escurece a metade inferior, preserva o rosto */}
                 <div style={{
                   position: 'absolute', inset: 0,
-                  background: 'linear-gradient(to bottom, transparent 30%, #111 100%)',
+                  background: 'linear-gradient(to bottom, transparent 45%, rgba(17,17,17,0.75) 70%, #111 100%)',
                 }} />
                 {/* Botão fechar */}
                 <button
