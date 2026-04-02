@@ -1,3 +1,4 @@
+'use client'
 const EQUIPE = [
   {
     nome: 'Anne Dias',
