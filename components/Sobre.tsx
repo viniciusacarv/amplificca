@@ -80,13 +80,6 @@ const PARCEIROS = [
   },
 ]
 
-const FLOATING_BADGES = [
-  { label: 'COLABORACAO', style: { top: '4%', left: '2%', animationDelay: '0s' } },
-  { label: 'LIBERDADE', style: { top: '4%', right: '3%', animationDelay: '1.1s' } },
-  { label: 'IMPACTO', style: { bottom: '4%', left: '4%', animationDelay: '0.5s' } },
-  { label: 'REDE', style: { bottom: '4%', right: '8%', animationDelay: '1.7s' } },
-]
-
 const rotatingBorderStyle: CSSProperties & Record<'--ab-speed', string> = {
   '--ab-speed': '4s',
 }
@@ -168,41 +161,9 @@ export default function Sobre() {
   return (
     <section id="sobre" style={{ padding: '100px 0', background: '#0d0d0d' }}>
       <style>{`
-        .partners-card {
-          opacity: 0;
-          transform: translateY(18px);
-          animation: partners-enter 0.55s ease forwards;
-        }
         .partners-card:hover {
           transform: translateY(-4px);
           transition: transform 0.25s ease;
-        }
-        .partners-badge {
-          position: absolute;
-          padding: 8px 14px;
-          border-radius: 999px;
-          border: 1px solid rgba(126,211,33,0.18);
-          background: rgba(10,10,10,0.55);
-          color: rgba(255,255,255,0.28);
-          font-size: 11px;
-          letter-spacing: 2px;
-          backdrop-filter: blur(8px);
-          animation: partners-float 6.5s ease-in-out infinite;
-          z-index: 2;
-          pointer-events: none;
-        }
-        @keyframes partners-enter {
-          from { opacity: 0; transform: translateY(18px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes partners-float {
-          0%, 100% { transform: translate3d(0, 0, 0); }
-          50% { transform: translate3d(0, -10px, 0); }
-        }
-        @media (max-width: 768px) {
-          .partners-badge {
-            display: none;
-          }
         }
       `}</style>
 
@@ -278,31 +239,21 @@ export default function Sobre() {
           <div
             style={{
               position: 'relative',
-              overflow: 'hidden',
               borderRadius: 20,
-              padding: '28px 0 0',
+              padding: '20px',
               background: 'radial-gradient(circle at top left, rgba(126,211,33,0.14), transparent 32%), linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))',
               border: '1px solid rgba(126,211,33,0.12)',
             }}
           >
-            {FLOATING_BADGES.map((badge) => (
-              <div key={badge.label} className="partners-badge" style={badge.style}>
-                {badge.label}
-              </div>
-            ))}
-
             <div
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
                 gap: 16,
-                position: 'relative',
-                zIndex: 1,
-                padding: '0 20px 20px',
               }}
             >
-                {PARCEIROS.map((parceiro, index) => (
-                <div key={parceiro.nome} className="partners-card" style={{ animationDelay: `${index * 0.08}s`, position: 'relative', zIndex: 1 }}>
+              {PARCEIROS.map((parceiro, index) => (
+                <div key={parceiro.nome} className="partners-card" style={{ position: 'relative' }}>
                   <AnimatedBorder animationMode="rotate-on-hover" animationSpeed={5} style={partnerBorderStyle} borderRadius={16} borderWidth={1.5}>
                     <a
                       href={parceiro.url}
