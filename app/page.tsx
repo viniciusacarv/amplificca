@@ -7,6 +7,7 @@ import Artigos from '@/components/Artigos'
 import MapaBrasil from '@/components/MapaBrasil'
 import Missao from '@/components/Missao'
 import Sobre from '@/components/Sobre'
+import Professores from '@/components/Professores'
 import Inscricao from '@/components/Inscricao'
 import Footer from '@/components/Footer'
 
@@ -21,6 +22,7 @@ export default function Home() {
       <MapaBrasil />
       <Missao />
       <Sobre />
+      <Professores />
       <Inscricao />
       <Footer />
     </main>
