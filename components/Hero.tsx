@@ -1,5 +1,6 @@
 'use client'
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
+import TextRotate from '@/components/ui/text-rotate'
 
 const METRICAS = [
   { numero: '15', label: 'Fellows ativos' },
@@ -38,10 +39,31 @@ export default function Hero() {
           <span style={{ color: 'var(--verde)', fontSize: 12, fontWeight: 500, letterSpacing: 1 }}>1ª TURMA ATIVA</span>
         </div>
 
-        {/* Headline */}
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(64px, 10vw, 140px)', lineHeight: 0.9, letterSpacing: 2, color: '#fff', marginBottom: 32 }}>
+        {/* Headline com TextRotate */}
+        <h1 style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 'clamp(64px, 10vw, 140px)',
+          lineHeight: 0.9,
+          letterSpacing: 2,
+          color: '#fff',
+          marginBottom: 32,
+        }}>
           VOZES QUE<br />
-          <span style={{ color: 'var(--verde)', WebkitTextStroke: '0px' }}>DEFENDEM</span><br />
+          <TextRotate
+            texts={['DEFENDEM', 'AMPLIFICAM']}
+            rotationInterval={2800}
+            staggerDuration={0.04}
+            staggerFrom="first"
+            style={{
+              color: 'var(--verde)',
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(64px, 10vw, 140px)',
+              letterSpacing: 2,
+              lineHeight: 0.9,
+              display: 'inline-flex',
+              overflow: 'hidden',
+            }}
+          /><br />
           LIBERDADE
         </h1>
 
