@@ -9,13 +9,13 @@ const EQUIPE = [
   {
     nome: 'Anne Dias',
     cargo: 'Presidente',
-    desc: 'Advogada, mestranda em Ciencia Politica pela UFPR e comunicadora. Atua como comentarista politica na Gazeta do Povo. Selecionada como contributor da rede Young Voices 2026, experiencia que inspirou a criacao do Amplifica.',
+    desc: 'Advogada, mestranda em Ciência Política pela UFPR e comunicadora. Atua como comentarista política na Gazeta do Povo. Selecionada como contributor da rede Young Voices 2026, experiência que inspirou a criação do Amplifica.',
     instagram: 'annediasoficial',
     foto: '/equipe/anne-dias.png',
   },
   {
     nome: 'Sara Ganime',
-    cargo: 'Head de Comunicacao',
+    cargo: 'Head de Comunicação',
     desc: 'Jornalista e editora-chefe do Boletim da Liberdade. Protagonizou o placar do Boletim que ajudou a barrar o "PL da Censura" em 2023. Colunista do Pleno.News e presidente do IFL Rio de Janeiro.',
     instagram: 'saraganime',
     foto: '/equipe/sara-ganime.png',
@@ -36,7 +36,7 @@ const PARCEIROS = [
     url: 'https://ladiesofliberty.org/',
     site: 'ladiesofliberty.org',
     categoria: 'Rede internacional',
-    desc: 'Comunidade voltada ao fortalecimento de liderancas femininas comprometidas com liberdade, educacao e impacto civico.',
+    desc: 'Comunidade voltada ao fortalecimento de lideranças femininas comprometidas com liberdade, educação e impacto cívico.',
   },
   {
     nome: 'Instituto Liberal',
@@ -44,23 +44,23 @@ const PARCEIROS = [
     url: 'https://www.institutoliberal.org.br/',
     site: 'institutoliberal.org.br',
     categoria: 'Think tank',
-    desc: 'Instituicao historica do pensamento liberal brasileiro, com atuacao em formacao, publicacoes e debate publico.',
+    desc: 'Instituição histórica do pensamento liberal brasileiro, com atuação em formação, publicações e debate público.',
   },
   {
     nome: 'Instituto Sivis',
     logo: '/SIVIS-LOGO.png',
     url: 'https://www.sivis.org.br/',
     site: 'sivis.org.br',
-    categoria: 'Impacto civico',
-    desc: 'Organizacao focada em cidadania, cultura politica e fortalecimento de liderancas para transformar a esfera publica.',
+    categoria: 'Impacto cívico',
+    desc: 'Organização focada em cidadania, cultura política e fortalecimento de lideranças para transformar a esfera pública.',
   },
   {
-    nome: 'Instituto Liberal de Sao Paulo',
+    nome: 'Instituto Liberal de São Paulo',
     logo: '/ILISP-LOGO.png',
     url: 'https://www.ilisp.org/',
     site: 'ilisp.org',
-    categoria: 'Formacao e debate',
-    desc: 'Centro de articulacao liberal em Sao Paulo, com conteudo, eventos e dialogo permanente com a sociedade civil.',
+    categoria: 'Formação e debate',
+    desc: 'Centro de articulação liberal em São Paulo, com conteúdo, eventos e diálogo permanente com a sociedade civil.',
   },
   {
     nome: 'SFL Brasil',
@@ -68,23 +68,23 @@ const PARCEIROS = [
     url: 'https://studentsforliberty.org/brazil/',
     site: 'studentsforliberty.org/brazil',
     categoria: 'Juventude',
-    desc: 'Rede estudantil internacional que desenvolve jovens liderancas em defesa da liberdade por meio de programas e comunidades.',
+    desc: 'Rede estudantil internacional que desenvolve jovens lideranças em defesa da liberdade por meio de programas e comunidades.',
   },
   {
     nome: 'Boletim da Liberdade',
     logo: '/BOLETIM-LIBERDADE-LOGO.png',
     url: 'https://www.boletimdaliberdade.com.br/home-2/',
     site: 'boletimdaliberdade.com.br',
-    categoria: 'Midia e jornalismo',
-    desc: 'Portal jornalistico dedicado a cobertura politica, economica e de liberdades civis, com foco em analises e noticias do ecossistema liberal.',
+    categoria: 'Mídia e jornalismo',
+    desc: 'Portal jornalístico dedicado à cobertura política, econômica e de liberdades civis, com foco em análises e notícias do ecossistema liberal.',
   },
   {
     nome: 'Brasil Paralelo',
     logo: '/BRASILPARALELO-LOGO.png',
     url: 'https://www.brasilparalelo.com.br/',
     site: 'brasilparalelo.com.br',
-    categoria: 'Midia e educacao',
-    desc: 'Plataforma de conteudo e formacao cultural com grande alcance, dedicada a narrativas, cursos e analises aprofundadas.',
+    categoria: 'Mídia e educação',
+    desc: 'Plataforma de conteúdo e formação cultural com grande alcance, dedicada a narrativas, cursos e análises aprofundadas.',
   },
 ]
 
@@ -176,6 +176,34 @@ export default function Sobre() {
           transform: translateY(-4px);
           transition: transform 0.25s ease;
         }
+        .partner-top {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 22px;
+        }
+        .partner-category {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: rgba(255,255,255,0.36);
+          font-size: 12px;
+          line-height: 1.4;
+          max-width: 120px;
+          text-align: right;
+          flex-shrink: 1;
+        }
+        @media (max-width: 420px) {
+          .partner-top {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .partner-category {
+            max-width: none;
+            text-align: left;
+          }
+        }
       `}</style>
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem' }}>
@@ -212,7 +240,7 @@ export default function Sobre() {
         </div>
 
         <div>
-          <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: 2 }}>CONSELHO ESTRATEGICO</span>
+          <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: 2 }}>CONSELHO ESTRATÉGICO</span>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16, marginTop: 20 }}>
             {CONSELHO.map((conselheiro) => (
               <AnimatedBorder key={conselheiro.nome} animationMode="rotate-on-hover" animationSpeed={4} style={rotatingBorderStyle} borderRadius={10} borderWidth={1.5}>
@@ -242,7 +270,7 @@ export default function Sobre() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'rgba(255,255,255,0.55)', fontSize: 13, maxWidth: 360 }}>
               <Handshake size={18} color="var(--verde)" />
               <p style={{ lineHeight: 1.6 }}>
-                Organizacoes alinhadas a formacao, liberdade, cultura civica e impacto publico.
+                Organizações alinhadas à formação, liberdade, cultura cívica e impacto público.
               </p>
             </div>
           </div>
@@ -283,11 +311,11 @@ export default function Sobre() {
                       }}
                     >
                       <div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 22 }}>
+                        <div className="partner-top">
                           <PartnerLogo nome={parceiro.nome} logo={parceiro.logo} />
 
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.36)', fontSize: 12 }}>
-                            <Globe2 size={14} />
+                          <div className="partner-category">
+                            <Globe2 size={14} style={{ flexShrink: 0, marginTop: 1 }} />
                             <span>{parceiro.categoria}</span>
                           </div>
                         </div>
