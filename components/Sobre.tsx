@@ -2,10 +2,8 @@
 
 import type { CSSProperties } from 'react'
 import Image from 'next/image'
-import { motion } from 'motion/react'
 import { ArrowUpRight, Globe2, Handshake, Sparkles } from 'lucide-react'
 import AnimatedBorder from '@/components/AnimatedBorder'
-import Floating, { FloatingElement } from '@/components/ui/parallax-floating'
 
 const EQUIPE = [
   {
@@ -77,10 +75,10 @@ const PARCEIROS = [
 ]
 
 const FLOATING_BADGES = [
-  { label: 'COLABORACAO', className: 'top-[10%] left-[3%]', depth: 0.7 },
-  { label: 'LIBERDADE', className: 'top-[14%] right-[8%]', depth: 1.2 },
-  { label: 'IMPACTO', className: 'bottom-[26%] left-[10%]', depth: 1.5 },
-  { label: 'REDE', className: 'bottom-[12%] right-[14%]', depth: 0.9 },
+  { label: 'COLABORACAO', style: { top: '10%', left: '3%', animationDelay: '0s' } },
+  { label: 'LIBERDADE', style: { top: '14%', right: '8%', animationDelay: '1.1s' } },
+  { label: 'IMPACTO', style: { bottom: '26%', left: '10%', animationDelay: '0.5s' } },
+  { label: 'REDE', style: { bottom: '12%', right: '14%', animationDelay: '1.7s' } },
 ]
 
 const rotatingBorderStyle: CSSProperties & Record<'--ab-speed', string> = {
@@ -108,6 +106,43 @@ function getPartnerInitials(name: string) {
 export default function Sobre() {
   return (
     <section id="sobre" style={{ padding: '100px 0', background: '#0d0d0d' }}>
+      <style>{`
+        .partners-card {
+          opacity: 0;
+          transform: translateY(18px);
+          animation: partners-enter 0.55s ease forwards;
+        }
+        .partners-card:hover {
+          transform: translateY(-4px);
+          transition: transform 0.25s ease;
+        }
+        .partners-badge {
+          position: absolute;
+          padding: 8px 14px;
+          border-radius: 999px;
+          border: 1px solid rgba(126,211,33,0.18);
+          background: rgba(10,10,10,0.55);
+          color: rgba(255,255,255,0.28);
+          font-size: 11px;
+          letter-spacing: 2px;
+          backdrop-filter: blur(8px);
+          animation: partners-float 6.5s ease-in-out infinite;
+        }
+        @keyframes partners-enter {
+          from { opacity: 0; transform: translateY(18px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes partners-float {
+          0%, 100% { transform: translate3d(0, 0, 0); }
+          50% { transform: translate3d(0, -10px, 0); }
+        }
+        @media (max-width: 768px) {
+          .partners-badge {
+            display: none;
+          }
+        }
+      `}</style>
+
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem' }}>
         <span style={{ color: 'var(--verde)', fontSize: 12, letterSpacing: 2, fontWeight: 500 }}>QUEM SOMOS</span>
         <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(48px, 7vw, 80px)', color: '#fff', lineHeight: 0.95, marginTop: 12, marginBottom: 60 }}>
@@ -187,26 +222,11 @@ export default function Sobre() {
               border: '1px solid rgba(126,211,33,0.12)',
             }}
           >
-            <Floating sensitivity={-0.35} easingFactor={0.035} className="pointer-events-none hidden md:block overflow-hidden">
-              {FLOATING_BADGES.map((badge) => (
-                <FloatingElement key={badge.label} depth={badge.depth} className={badge.className}>
-                  <div
-                    style={{
-                      padding: '8px 14px',
-                      borderRadius: 999,
-                      border: '1px solid rgba(126,211,33,0.18)',
-                      background: 'rgba(10,10,10,0.55)',
-                      color: 'rgba(255,255,255,0.28)',
-                      fontSize: 11,
-                      letterSpacing: 2,
-                      backdropFilter: 'blur(8px)',
-                    }}
-                  >
-                    {badge.label}
-                  </div>
-                </FloatingElement>
-              ))}
-            </Floating>
+            {FLOATING_BADGES.map((badge) => (
+              <div key={badge.label} className="partners-badge" style={badge.style}>
+                {badge.label}
+              </div>
+            ))}
 
             <div
               style={{
@@ -219,13 +239,7 @@ export default function Sobre() {
               }}
             >
               {PARCEIROS.map((parceiro, index) => (
-                <motion.div
-                  key={parceiro.nome}
-                  initial={{ opacity: 0, y: 18 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={{ duration: 0.45, delay: index * 0.05 }}
-                >
+                <div key={parceiro.nome} className="partners-card" style={{ animationDelay: `${index * 0.08}s` }}>
                   <AnimatedBorder animationMode="rotate-on-hover" animationSpeed={5} style={partnerBorderStyle} borderRadius={16} borderWidth={1.5}>
                     <a
                       href={parceiro.url}
@@ -301,7 +315,7 @@ export default function Sobre() {
                       </div>
                     </a>
                   </AnimatedBorder>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
