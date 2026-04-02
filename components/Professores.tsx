@@ -28,6 +28,7 @@ const PROFESSORES: Professor[] = [
     cargo: 'Jornalista, escritor e editor da Revista Crusoé',
     bio: 'Autor de livros como O Livro Vermelho de Lula e STF: Como Chegamos até Aqui, escreve sobre política nacional com foco em instituições e nos bastidores do poder.',
     link: 'https://www.instagram.com/duda_teixeira_du/',
+    foto: '/DUDA_TEIXEIRA.png',
     canal: 'instagram',
   },
   {
@@ -35,6 +36,7 @@ const PROFESSORES: Professor[] = [
     cargo: 'Cientista político, escritor e comentarista',
     bio: 'Presidente do CLP - Centro de Liderança Pública, participa de análises em veículos como CNN Brasil e GloboNews.',
     link: 'https://www.instagram.com/felipedavilaoficial/',
+    foto: '/FELIPE-DAVILA.png',
     canal: 'instagram',
   },
   {
@@ -42,18 +44,21 @@ const PROFESSORES: Professor[] = [
     cargo: 'Jornalista e Head de Audiovisual do Lance!',
     bio: 'Jornalista com mais de 18 anos de experiência em TV aberta e produção audiovisual, com passagens pela TV Globo e Band. Atualmente, é Head de Audiovisual do Lance!.',
     link: 'https://www.instagram.com/fernandodavid/',
+    foto: '/FERNANDO-DAVID.png',
     canal: 'instagram',
   },
   {
     nome: 'Guilherme Cunha Pereira',
     cargo: 'Jornalista, empresário e presidente da Gazeta do Povo',
     bio: 'Atua na defesa da liberdade de expressão e do jornalismo independente.',
+    foto: '/GUILHERME-CPEREIRA.png',
   },
   {
     nome: 'Guilherme Waltenberg',
     cargo: 'Jornalista e editor sênior no Poder360',
     bio: 'Tem experiência em política e economia. Atuou como repórter no Correio Braziliense e na Agência Estado, e como editor de Política no Metrópoles.',
     link: 'https://www.poder360.com.br/author/guilherme-waltenberg/?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQMMjU2MjgxMDQwNTU4AAGnTCiUDWikdKzEetFNJvFaUiZMn_DtkegBRU-1uufHH0hn5FMq7NwhyfmoQdI_aem_gFtmBQ3oxEwWM_FJNrJwPQ',
+    foto: '/Guilherme-Waltenberg.png',
     canal: 'site',
   },
   {
@@ -61,6 +66,7 @@ const PROFESSORES: Professor[] = [
     cargo: 'Professor de oratória, retórica e comunicação',
     bio: 'Com formação pela University of Minnesota, atua no ensino de speech e linguagem aplicada à comunicação pública.',
     link: 'https://www.instagram.com/lucasstudartoficial/',
+    foto: '/LUCAS-STUDART.png',
     canal: 'instagram',
   },
   {
