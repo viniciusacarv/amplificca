@@ -26,6 +26,8 @@ const ARCS = [
   { from: [-30.0, -51.2] as [number, number], to: [-25.4, -49.3] as [number, number] },
 ]
 
+type GlobeInstance = { destroy: () => void; update: (state: Record<string, number>) => void }
+
 export default function MapaBrasil() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const pointerInteracting = useRef<{ x: number; y: number } | null>(null)
@@ -33,6 +35,7 @@ export default function MapaBrasil() {
   const phiOffsetRef = useRef(0)
   const thetaOffsetRef = useRef(0)
   const isPausedRef = useRef(false)
+  const phiRef = useRef(0.87)
   const [loaded, setLoaded] = useState(false)
 
   const handlePointerUp = useCallback(() => {
@@ -66,29 +69,29 @@ export default function MapaBrasil() {
   useEffect(() => {
     if (!canvasRef.current) return
     const canvas = canvasRef.current
-    let globe: any = null
+    let globe: GlobeInstance | null = null
     let animationId: number
-    // Brasil centralizado: phi aponta para longitude ~-50°, theta para latitude ~-15°
-    let phi = 0.87 // ~50° oeste em radianos
-    const thetaBase = 0.26 // ~15° sul em radianos
+    const thetaBase = 0.26
 
     async function init() {
       const width = canvas.offsetWidth
       if (width === 0 || globe) return
-      const { default: createGlobe } = await import('cobe')
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const createGlobe = (await import('cobe')).default as (canvas: HTMLCanvasElement, config: Record<string, unknown>) => GlobeInstance
 
       globe = createGlobe(canvas, {
         devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
         width,
         height: width,
-        phi,
+        phi: phiRef.current,
         theta: thetaBase,
         dark: 1,
         diffuse: 1.2,
         mapSamples: 20000,
         mapBrightness: 4,
         baseColor: [0.05, 0.05, 0.05],
-        markerColor: [0.494, 0.827, 0.129], // verde #7ED321
+        markerColor: [0.494, 0.827, 0.129],
         glowColor: [0.2, 0.45, 0.05],
         markerElevation: 0.03,
         markers: FELLOWS_LOCATIONS.map(m => ({ location: m.location, size: 0.045 })),
@@ -97,9 +100,9 @@ export default function MapaBrasil() {
         arcWidth: 1.5,
         arcHeight: 0.2,
         opacity: 0.85,
-        onRender: (state: any) => {
-          if (!isPausedRef.current) phi += 0.002
-          state.phi = phi + phiOffsetRef.current + dragOffset.current.phi
+        onRender: (state: Record<string, number>) => {
+          if (!isPausedRef.current) phiRef.current += 0.002
+          state.phi = phiRef.current + phiOffsetRef.current + dragOffset.current.phi
           state.theta = thetaBase + thetaOffsetRef.current + dragOffset.current.theta
         },
       })
@@ -120,6 +123,7 @@ export default function MapaBrasil() {
         }
       })
       ro.observe(canvas)
+      return () => ro.disconnect()
     }
 
     return () => {
@@ -133,7 +137,6 @@ export default function MapaBrasil() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
 
-          {/* Texto esquerdo */}
           <div>
             <span style={{ color: 'var(--verde)', fontSize: 12, letterSpacing: 2, fontWeight: 500 }}>PRESENÇA NACIONAL</span>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(48px, 6vw, 72px)', color: '#fff', lineHeight: 0.95, marginTop: 12, marginBottom: 24 }}>
@@ -142,8 +145,6 @@ export default function MapaBrasil() {
             <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, marginBottom: 40 }}>
               O Amplifica reúne fellows de {FELLOWS_LOCATIONS.length} estados brasileiros, garantindo que as ideias de liberdade cheguem a todos os cantos do país.
             </p>
-
-            {/* Lista de estados */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 24px' }}>
               {FELLOWS_LOCATIONS.map(f => (
                 <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -154,10 +155,7 @@ export default function MapaBrasil() {
             </div>
           </div>
 
-          {/* Globo direito */}
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-
-            {/* Glow verde atrás do globo */}
             <div style={{
               position: 'absolute', inset: 0, zIndex: 0,
               background: 'radial-gradient(circle at center, rgba(126,211,33,0.12) 0%, transparent 65%)',
@@ -180,20 +178,16 @@ export default function MapaBrasil() {
                   touchAction: 'none',
                 }}
               />
-
-              {/* Label de interação */}
               {loaded && (
                 <div style={{
                   position: 'absolute', bottom: -32, left: '50%', transform: 'translateX(-50%)',
-                  fontSize: 11, color: 'rgba(255,255,255,0.25)', letterSpacing: 1,
-                  whiteSpace: 'nowrap',
+                  fontSize: 11, color: 'rgba(255,255,255,0.25)', letterSpacing: 1, whiteSpace: 'nowrap',
                 }}>
                   arraste para girar
                 </div>
               )}
             </div>
 
-            {/* Contador de estados */}
             <div style={{
               position: 'absolute', top: 16, right: 0,
               background: 'rgba(126,211,33,0.08)', border: '1px solid rgba(126,211,33,0.2)',
