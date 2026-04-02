@@ -8,9 +8,9 @@ const VALORES = [
   { icon: '🔍', titulo: 'Transparência e Ética', desc: 'O poder público deve ser transparente e ético — sem negociatas, sem opacidade.' },
 ]
 
-export default function Missao() {
+export default function Missão() {
   return (
-    <section id="missao" style={{ padding: '100px 0', background: '#0a0a0a' }}>
+    <section id="missão" style={{ padding: '100px 0', background: '#0a0a0a' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem' }}>
 
         {/* Missão statement */}
