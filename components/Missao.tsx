@@ -1,3 +1,4 @@
+'use client'
 const VALORES = [
   { icon: '⚖', titulo: 'Livre Mercado', desc: 'Acreditamos que a liberdade econômica é a base para a prosperidade individual e coletiva.' },
   { icon: '🏠', titulo: 'Propriedade Privada', desc: 'O direito à propriedade é fundamento da autonomia individual e do progresso social.' },
