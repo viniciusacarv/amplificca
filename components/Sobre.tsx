@@ -9,6 +9,8 @@ const EQUIPE = [
 const CONSELHO = [
   { nome: 'Mariana Braga', cargo: 'Jornalista — Gazeta do Povo', foto: '/equipe/mariana-braga.png' },
   { nome: 'Leandro Narloch', cargo: 'Jornalista e Escritor', foto: '/equipe/leandro-narloch.png' },
+  { nome: 'Carlo Cauti', cargo: 'Jornalista — Revista Oeste', foto: '/equipe/carlo-cauti.png' },
+  { nome: 'Madeleine Lasko', cargo: 'Jornalista e Escritora — O Antagonista', foto: '/equipe/madeleine-lasko.png' },
 ]
 
 function getInitials(nome: string) {
