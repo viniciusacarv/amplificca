@@ -177,7 +177,7 @@ export default function Sobre() {
         </div>
 
         <div>
-          <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: 2 }}>CONSELHO ESTRATEGICO</span>
+          <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: 2 }}>CONSELHO ESTRATÉGICO</span>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16, marginTop: 20 }}>
             {CONSELHO.map((conselheiro) => (
               <AnimatedBorder key={conselheiro.nome} animationMode="rotate-on-hover" animationSpeed={4} style={rotatingBorderStyle} borderRadius={10} borderWidth={1.5}>
@@ -207,7 +207,7 @@ export default function Sobre() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'rgba(255,255,255,0.55)', fontSize: 13, maxWidth: 360 }}>
               <Handshake size={18} color="var(--verde)" />
               <p style={{ lineHeight: 1.6 }}>
-                Organizacoes alinhadas a formacao, liberdade, cultura civica e impacto publico.
+                Organizações alinhadas à formação, liberdade, cultura cívica e impacto público.
               </p>
             </div>
           </div>
