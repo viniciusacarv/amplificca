@@ -38,6 +38,13 @@ const ESTADOS_NOME: Record<string,string> = {
   'SC':'Santa Catarina','SE':'Sergipe','SP':'São Paulo','TO':'Tocantins'
 }
 
+// Fellows que têm artigos publicados
+const FELLOWS_COM_ARTIGOS = new Set([
+  'Wesley Reis', 'Yuri Quadros', 'William A. Clavijo Vitto',
+  'Davi de Souza', 'Anne Dias', 'Letícia Barros',
+  'Zizi Martins', 'Germano Laube',
+])
+
 const FELLOWS_DEMO: Fellow[] = [
   { id:1,  nome:'Amanda Caixeta',                    bio:'Jornalista por formação, chefe geral de comunicação e imprensa do deputado federal Gustavo Gayer.',                                          estado:'GO',area:'Comunicação',   instagram:'amandacaixeeta',    foto_url:'/fellows/amanda-caixeta.png',    created_at:'' },
   { id:2,  nome:'Ana Carolina Beltrão Peixoto',      bio:'Administradora, Assistente Social e Pedagoga. Doutora em Serviço Social e Mestre em Meio Ambiente.',                                        estado:'MG',area:'Educação',      instagram:'acarolprofessora',  foto_url:'/fellows/ana-carolina.png',      created_at:'' },
@@ -72,6 +79,11 @@ const CSS = `
     .ef-grid { grid-template-columns: 1fr 1fr; }
   }
 `
+
+// Dispara evento para Artigos.tsx filtrar pelo fellow
+function verArtigosDeFellow(nome: string) {
+  window.dispatchEvent(new CustomEvent('amplifica:filtrar-fellow', { detail: nome }))
+}
 
 export default function EncontreUmFellow() {
   const [fellows, setFellows] = useState<Fellow[]>(FELLOWS_DEMO)
@@ -240,12 +252,10 @@ export default function EncontreUmFellow() {
                     style={{ objectFit: 'cover', objectPosition: 'center 20%' }}
                   />
                 )}
-                {/* Gradiente: só escurece a metade inferior, preserva o rosto */}
                 <div style={{
                   position: 'absolute', inset: 0,
                   background: 'linear-gradient(to bottom, transparent 45%, rgba(17,17,17,0.75) 70%, #111 100%)',
                 }} />
-                {/* Botão fechar */}
                 <button
                   onClick={() => setSelected(null)}
                   style={{
@@ -258,7 +268,6 @@ export default function EncontreUmFellow() {
                     lineHeight: 1,
                   }}
                 >×</button>
-                {/* Nome e área sobre o gradiente */}
                 <div style={{ position: 'absolute', bottom: 20, left: 28 }}>
                   <h3 style={{ fontSize: 22, fontWeight: 600, color: '#fff', margin: 0, lineHeight: 1.2 }}>
                     {selected.nome}
@@ -309,6 +318,28 @@ export default function EncontreUmFellow() {
                     Solicitar via Amplifica
                   </a>
                 </div>
+
+                {/* Botão Ver artigos — aparece só para fellows com artigos publicados */}
+                {FELLOWS_COM_ARTIGOS.has(selected.nome) && (
+                  <button
+                    onClick={() => {
+                      setSelected(null)
+                      verArtigosDeFellow(selected.nome)
+                    }}
+                    style={{
+                      width: '100%', marginTop: 12,
+                      padding: '11px', background: 'transparent',
+                      border: '1px solid rgba(126,211,33,0.3)',
+                      borderRadius: 8, fontSize: 13,
+                      color: 'var(--verde)', cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(126,211,33,0.08)'; e.currentTarget.style.borderColor = 'var(--verde)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(126,211,33,0.3)' }}
+                  >
+                    Ver artigos publicados →
+                  </button>
+                )}
               </div>
 
             </div>
