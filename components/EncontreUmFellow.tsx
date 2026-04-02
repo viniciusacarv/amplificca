@@ -67,6 +67,7 @@ export default function EncontreUmFellow() {
   const [estado, setEstado] = useState('Todos os estados')
   const [especialidade, setEspecialidade] = useState('Todas as especialidades')
   const [selected, setSelected] = useState<Fellow | null>(null)
+  const [visibleCount, setVisibleCount] = useState(6)
 
   useEffect(() => {
     async function load() {
@@ -75,6 +76,9 @@ export default function EncontreUmFellow() {
     }
     load()
   }, [])
+
+  // Reset visible count when filters change
+  useEffect(() => { setVisibleCount(6) }, [busca, estado, especialidade])
 
   const filtrados = fellows.filter(f => {
     const uf = estado.split(' — ')[0]
@@ -94,8 +98,21 @@ export default function EncontreUmFellow() {
     backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center', paddingRight: 40, width: '100%',
   }
 
+
   return (
-    <section id="fellows" style={{ padding: '100px 0', background: '#0a0a0a' }}>
+    <section id="fellows" style={{ padding: '80px 0', background: '#0a0a0a' }}>
+      <style>{`
+        .fellows-filter-grid { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 16px; align-items: end; padding: 28px 32px; }
+        .fellows-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+        @media (max-width: 768px) {
+          .fellows-filter-grid { grid-template-columns: 1fr; padding: 20px; gap: 12px; }
+          .fellows-cards-grid { grid-template-columns: 1fr; }
+          .fellows-filter-clear { width: 100%; }
+        }
+        @media (min-width: 500px) and (max-width: 768px) {
+          .fellows-cards-grid { grid-template-columns: 1fr 1fr; }
+        }
+      `}</style>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem' }}>
 
         <div style={{ marginBottom: 56 }}>
@@ -109,7 +126,7 @@ export default function EncontreUmFellow() {
         </div>
 
         {/* Filtros com borda animada */}
-        <AnimatedBorder animationMode="auto-rotate" animationSpeed={6} borderRadius={12} borderWidth={1.5} style={{ marginBottom: 48 }}>
+        <AnimatedBorder animationMode="auto-rotate" animationSpeed={6} borderRadius={12} borderWidth={1.5} style={'--ab-speed': '6s',  marginBottom: 48 }}>
           <div style={{
             background: 'rgba(10,10,10,0.95)', borderRadius: 12,
             padding: '28px 32px',
@@ -147,9 +164,9 @@ export default function EncontreUmFellow() {
         </div>
 
         {/* Grid de cards com borda animada no hover */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
-          {filtrados.map(f => (
-            <AnimatedBorder key={f.id} animationMode="rotate-on-hover" animationSpeed={3} borderRadius={12} borderWidth={1.5}>
+        <div className="fellows-cards-grid">
+          {filtrados.slice(0, visibleCount).map(f => (
+            <AnimatedBorder key={f.id} animationMode="rotate-on-hover" animationSpeed={3} style={'--ab-speed': '3s'} borderRadius={12} borderWidth={1.5}>
               <div style={{ background: '#0d0d0d', borderRadius: 12, overflow: 'hidden', cursor: 'pointer' }} onClick={() => setSelected(f)}>
                 <div style={{ position: 'relative', height: 200, background: 'rgba(255,255,255,0.03)', overflow: 'hidden' }}>
                   {f.foto_url ? (
@@ -185,6 +202,25 @@ export default function EncontreUmFellow() {
           ))}
         </div>
 
+        {/* Ver mais */}
+        {visibleCount < filtrados.length && (
+          <div style={{ textAlign: 'center', marginTop: 32 }}>
+            <button
+              onClick={() => setVisibleCount(v => v + 6)}
+              style={{
+                background: 'transparent', border: '1.5px solid var(--verde)',
+                color: 'var(--verde)', borderRadius: 6, padding: '12px 40px',
+                fontSize: 14, fontWeight: 500, cursor: 'pointer', letterSpacing: 0.5,
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(126,211,33,0.1)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+            >
+              Ver mais {Math.min(6, filtrados.length - visibleCount)} fellows →
+            </button>
+          </div>
+        )}
+
         {filtrados.length === 0 && (
           <div style={{ textAlign: 'center', padding: '80px 0', color: 'rgba(255,255,255,0.25)', fontSize: 15 }}>
             Nenhum fellow encontrado.
@@ -200,7 +236,7 @@ export default function EncontreUmFellow() {
       {/* Modal */}
       {selected && (
         <div onClick={() => setSelected(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', backdropFilter: 'blur(12px)' }}>
-          <AnimatedBorder animationMode="auto-rotate" animationSpeed={4} borderRadius={16} borderWidth={1.5} style={{ maxWidth: 580, width: '100%' }}>
+          <AnimatedBorder animationMode="auto-rotate" animationSpeed={4} borderRadius={16} borderWidth={1.5} style={'--ab-speed': '4s',  maxWidth: 580, width: '100%' }}>
             <div onClick={e => e.stopPropagation()} style={{ background: '#111', borderRadius: 16, overflow: 'hidden', position: 'relative' }}>
               <div style={{ height: 220, position: 'relative', background: '#0a0a0a' }}>
                 {selected.foto_url && <Image src={selected.foto_url} alt={selected.nome} fill style={{ objectFit: 'cover', objectPosition: 'center top', opacity: 0.8 }} />}

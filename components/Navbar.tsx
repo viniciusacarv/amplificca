@@ -4,6 +4,7 @@ import Image from 'next/image'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -19,82 +20,90 @@ export default function Navbar() {
   ]
 
   return (
-    <nav style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-      transition: 'all 0.3s ease',
-      background: scrolled ? 'rgba(10,10,10,0.95)' : 'transparent',
-      backdropFilter: scrolled ? 'blur(12px)' : 'none',
-      borderBottom: scrolled ? '1px solid rgba(126,211,33,0.15)' : 'none',
-    }}>
-      <div style={{
-        maxWidth: 1200, margin: '0 auto', padding: '0 2rem',
-        height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    <>
+      <style>{`
+        @media (max-width: 768px) {
+          .nav-desktop { display: none !important; }
+          .nav-hamburger { display: flex !important; }
+        }
+        @media (min-width: 769px) {
+          .nav-desktop { display: flex !important; }
+          .nav-hamburger { display: none !important; }
+          .nav-mobile-menu { display: none !important; }
+        }
+      `}</style>
+
+      <nav style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+        transition: 'all 0.3s ease',
+        background: scrolled || menuOpen ? 'rgba(10,10,10,0.97)' : 'transparent',
+        backdropFilter: scrolled || menuOpen ? 'blur(12px)' : 'none',
+        borderBottom: scrolled || menuOpen ? '1px solid rgba(126,211,33,0.15)' : 'none',
       }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1.5rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
-        {/* Logo: ícone real + texto */}
-        <a href="#" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Image
-            src="/logo-icon.png"
-            alt="Amplifica"
-            width={40}
-            height={40}
-            style={{ width: 40, height: 40, objectFit: 'contain' }}
-            priority
-          />
-          <span style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 30,
-            color: '#fff',
-            letterSpacing: 1,
-            lineHeight: 1,
-          }}>
-            Amplifica<span style={{ color: 'var(--verde)' }}>!</span>
-          </span>
-        </a>
-
-        <div style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
-          {links.map(l => (
-            <a key={l.label} href={l.href} style={{
-              color: 'rgba(255,255,255,0.7)', textDecoration: 'none',
-              fontSize: 14, fontWeight: 400, letterSpacing: 0.5,
-              transition: 'color 0.2s',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'var(--verde)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
-            >{l.label}</a>
-          ))}
-
-          <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.12)' }} />
-
-          <a
-            href="https://wa.me/5541999911224?text=Olá, conheci o Instituto Amplifica e gostaria de me tornar um investidor do projeto!"
-            target="_blank" rel="noopener"
-            style={{
-              background: 'transparent', color: 'var(--verde)',
-              padding: '8px 18px', borderRadius: 4, fontSize: 13, fontWeight: 500,
-              textDecoration: 'none', border: '1.5px solid var(--verde)',
-              transition: 'all 0.2s', whiteSpace: 'nowrap',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(126,211,33,0.1)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
-          >
-            Torne-se financiador
+          {/* Logo */}
+          <a href="#" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Image src="/logo-icon.png" alt="Amplifica" width={36} height={36} style={{ width: 36, height: 36, objectFit: 'contain' }} priority />
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 26, color: '#fff', letterSpacing: 1, lineHeight: 1 }}>
+              Amplifica<span style={{ color: 'var(--verde)' }}>!</span>
+            </span>
           </a>
 
-          <a
-            href="#inscricao"
-            style={{
-              background: 'var(--verde)', color: '#000',
-              padding: '8px 20px', borderRadius: 4, fontSize: 13, fontWeight: 500,
-              textDecoration: 'none', transition: 'opacity 0.2s', whiteSpace: 'nowrap',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
-            onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-          >
-            Inscreva-se
-          </a>
+          {/* Desktop nav */}
+          <div className="nav-desktop" style={{ gap: 28, alignItems: 'center' }}>
+            {links.map(l => (
+              <a key={l.label} href={l.href} style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: 14, transition: 'color 0.2s' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--verde)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}>{l.label}</a>
+            ))}
+            <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.12)' }} />
+            <a href="https://wa.me/5541999911224?text=Olá, conheci o Instituto Amplifica e gostaria de me tornar um investidor do projeto!" target="_blank" rel="noopener"
+              style={{ background: 'transparent', color: 'var(--verde)', padding: '7px 16px', borderRadius: 4, fontSize: 13, fontWeight: 500, textDecoration: 'none', border: '1.5px solid var(--verde)', whiteSpace: 'nowrap', transition: 'all 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(126,211,33,0.1)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}>
+              Torne-se financiador
+            </a>
+            <a href="#inscricao" style={{ background: 'var(--verde)', color: '#000', padding: '7px 18px', borderRadius: 4, fontSize: 13, fontWeight: 500, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              Inscreva-se
+            </a>
+          </div>
+
+          {/* Hamburguer */}
+          <button className="nav-hamburger" onClick={() => setMenuOpen(!menuOpen)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 8, display: 'flex', flexDirection: 'column', gap: 5, alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ display: 'block', width: 24, height: 2, background: menuOpen ? 'var(--verde)' : '#fff', transition: 'all 0.3s', transform: menuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none' }} />
+            <span style={{ display: 'block', width: 24, height: 2, background: menuOpen ? 'var(--verde)' : '#fff', transition: 'all 0.3s', opacity: menuOpen ? 0 : 1 }} />
+            <span style={{ display: 'block', width: 24, height: 2, background: menuOpen ? 'var(--verde)' : '#fff', transition: 'all 0.3s', transform: menuOpen ? 'rotate(-45deg) translate(5px, -5px)' : 'none' }} />
+          </button>
         </div>
-      </div>
-    </nav>
+
+        {/* Mobile menu */}
+        <div className="nav-mobile-menu" style={{
+          display: menuOpen ? 'flex' : 'none',
+          flexDirection: 'column',
+          padding: '16px 24px 24px',
+          borderTop: '1px solid rgba(126,211,33,0.1)',
+          gap: 4,
+        }}>
+          {links.map(l => (
+            <a key={l.label} href={l.href} onClick={() => setMenuOpen(false)}
+              style={{ color: 'rgba(255,255,255,0.8)', textDecoration: 'none', fontSize: 18, padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.06)', fontFamily: 'var(--font-display)', letterSpacing: 1 }}>
+              {l.label}
+            </a>
+          ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
+            <a href="https://wa.me/5541999911224?text=Olá, conheci o Instituto Amplifica e gostaria de me tornar um investidor do projeto!" target="_blank" rel="noopener"
+              style={{ textAlign: 'center', padding: '12px', background: 'transparent', color: 'var(--verde)', borderRadius: 6, fontSize: 14, fontWeight: 500, textDecoration: 'none', border: '1.5px solid var(--verde)' }}>
+              Torne-se financiador
+            </a>
+            <a href="#inscricao" onClick={() => setMenuOpen(false)}
+              style={{ textAlign: 'center', padding: '12px', background: 'var(--verde)', color: '#000', borderRadius: 6, fontSize: 14, fontWeight: 500, textDecoration: 'none' }}>
+              Inscreva-se
+            </a>
+          </div>
+        </div>
+      </nav>
+    </>
   )
 }

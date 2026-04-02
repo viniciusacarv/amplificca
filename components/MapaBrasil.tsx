@@ -1,9 +1,5 @@
 'use client'
-// @ts-nocheck
-
 import { useEffect, useRef, useCallback, useState } from 'react'
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 const FELLOWS_LOCATIONS = [
   { id: 'pr', location: [-25.4, -49.3] as [number, number], estado: 'PR — Paraná' },
@@ -109,18 +105,27 @@ export default function MapaBrasil() {
   }, [])
 
   return (
-    <section style={{ padding: '100px 0', background: '#0d0d0d', overflow: 'hidden' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
+    <section style={{ padding: '80px 0', background: '#0d0d0d', overflow: 'hidden' }}>
+      <style>{`
+        .mapa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+        .mapa-estados { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
+        @media (max-width: 768px) {
+          .mapa-grid { grid-template-columns: 1fr; gap: 40px; }
+          .mapa-globe-col { max-width: 320px; margin: 0 auto; width: 100%; }
+          .mapa-estados { grid-template-columns: 1fr 1fr; }
+        }
+      `}</style>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1.5rem' }}>
+        <div className="mapa-grid">
           <div>
             <span style={{ color: 'var(--verde)', fontSize: 12, letterSpacing: 2, fontWeight: 500 }}>PRESENÇA NACIONAL</span>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(48px, 6vw, 72px)', color: '#fff', lineHeight: 0.95, marginTop: 12, marginBottom: 24 }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(40px, 6vw, 72px)', color: '#fff', lineHeight: 0.95, marginTop: 12, marginBottom: 24 }}>
               DO ACRE AO<br />RIO GRANDE<br />DO SUL
             </h2>
-            <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, marginBottom: 40 }}>
-              O Amplifica reúne fellows de {FELLOWS_LOCATIONS.length} estados, garantindo que as ideias de liberdade cheguem a todos os cantos do país.
+            <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, marginBottom: 32 }}>
+              O Amplifica reúne fellows de {FELLOWS_LOCATIONS.length} estados brasileiros.
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 24px' }}>
+            <div className="mapa-estados">
               {FELLOWS_LOCATIONS.map(f => (
                 <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--verde)', flexShrink: 0 }} />
@@ -129,17 +134,23 @@ export default function MapaBrasil() {
               ))}
             </div>
           </div>
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
+          <div className="mapa-globe-col" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'radial-gradient(circle at center, rgba(126,211,33,0.12) 0%, transparent 65%)', borderRadius: '50%' }} />
-            <div style={{ position: 'relative', width: '100%', maxWidth: 480, aspectRatio: '1', zIndex: 1 }}>
-              <canvas ref={canvasRef}
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '1', zIndex: 1 }}>
+              <canvas
+                ref={canvasRef}
                 onPointerDown={e => { pointerInteracting.current = { x: e.clientX, y: e.clientY }; if (canvasRef.current) canvasRef.current.style.cursor = 'grabbing'; isPausedRef.current = true }}
-                style={{ width: '100%', height: '100%', cursor: 'grab', opacity: 0, transition: 'opacity 1.5s ease', borderRadius: '50%', touchAction: 'none' }}
+                style={{ width: '100%', height: '100%', cursor: 'grab', opacity: 0, transition: 'opacity 1.5s ease', borderRadius: '50%', touchAction: 'none', display: 'block' }}
               />
-              {loaded && <div style={{ position: 'absolute', bottom: -32, left: '50%', transform: 'translateX(-50%)', fontSize: 11, color: 'rgba(255,255,255,0.25)', letterSpacing: 1, whiteSpace: 'nowrap' }}>arraste para girar</div>}
+              {loaded && (
+                <div style={{ position: 'absolute', bottom: -28, left: '50%', transform: 'translateX(-50%)', fontSize: 11, color: 'rgba(255,255,255,0.25)', letterSpacing: 1, whiteSpace: 'nowrap' }}>
+                  arraste para girar
+                </div>
+              )}
             </div>
-            <div style={{ position: 'absolute', top: 16, right: 0, background: 'rgba(126,211,33,0.08)', border: '1px solid rgba(126,211,33,0.2)', borderRadius: 8, padding: '12px 16px', textAlign: 'center' }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 32, color: 'var(--verde)', lineHeight: 1 }}>{FELLOWS_LOCATIONS.length}</div>
+            <div style={{ position: 'absolute', top: 0, right: 0, background: 'rgba(126,211,33,0.08)', border: '1px solid rgba(126,211,33,0.2)', borderRadius: 8, padding: '10px 14px', textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 28, color: 'var(--verde)', lineHeight: 1 }}>{FELLOWS_LOCATIONS.length}</div>
               <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 4, letterSpacing: 1 }}>ESTADOS</div>
             </div>
           </div>
