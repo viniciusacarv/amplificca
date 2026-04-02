@@ -140,25 +140,33 @@ function ProfessorAvatar({ nome, foto }: { nome: string; foto?: string }) {
 
 export default function Professores() {
   const scrollRef = useRef<HTMLDivElement>(null)
-  const [canScrollLeft, setCanScrollLeft] = useState(false)
-  const [canScrollRight, setCanScrollRight] = useState(true)
+  const isPausedRef = useRef(false)
+  const professoresLoop = [...PROFESSORES, ...PROFESSORES]
 
   useEffect(() => {
     const container = scrollRef.current
     if (!container) return
 
-    const updateButtons = () => {
-      setCanScrollLeft(container.scrollLeft > 8)
-      setCanScrollRight(container.scrollLeft + container.clientWidth < container.scrollWidth - 8)
+    let frameId = 0
+
+    const animate = () => {
+      const halfWidth = container.scrollWidth / 2
+
+      if (!isPausedRef.current) {
+        container.scrollLeft += 0.45
+      }
+
+      if (container.scrollLeft >= halfWidth) {
+        container.scrollLeft -= halfWidth
+      }
+
+      frameId = window.requestAnimationFrame(animate)
     }
 
-    updateButtons()
-    container.addEventListener('scroll', updateButtons)
-    window.addEventListener('resize', updateButtons)
+    frameId = window.requestAnimationFrame(animate)
 
     return () => {
-      container.removeEventListener('scroll', updateButtons)
-      window.removeEventListener('resize', updateButtons)
+      window.cancelAnimationFrame(frameId)
     }
   }, [])
 
@@ -212,20 +220,32 @@ export default function Professores() {
           <div
             ref={scrollRef}
             className="professores-track"
+            onMouseEnter={() => {
+              isPausedRef.current = true
+            }}
+            onMouseLeave={() => {
+              isPausedRef.current = false
+            }}
+            onTouchStart={() => {
+              isPausedRef.current = true
+            }}
+            onTouchEnd={() => {
+              isPausedRef.current = false
+            }}
             style={{
               display: 'flex',
               gap: 16,
               overflowX: 'auto',
-              scrollSnapType: 'x mandatory',
+              scrollSnapType: 'x proximity',
               padding: '0 20px 20px',
               scrollbarWidth: 'none',
             }}
           >
-            {PROFESSORES.map((professor) => {
+            {professoresLoop.map((professor, index) => {
               const Icon = professor.canal === 'site' ? Link2 : Instagram
 
               return (
-                <div key={professor.nome} style={{ minWidth: 320, maxWidth: 320, scrollSnapAlign: 'start', flex: '0 0 320px' }}>
+                <div key={`${professor.nome}-${index}`} style={{ minWidth: 320, maxWidth: 320, scrollSnapAlign: 'start', flex: '0 0 320px' }}>
                   <AnimatedBorder animationMode="rotate-on-hover" animationSpeed={5} style={{ '--ab-speed': '5s' } as CSSProperties} borderRadius={16} borderWidth={1.5}>
                     <div
                       style={{
@@ -290,18 +310,17 @@ export default function Professores() {
             <button
               type="button"
               onClick={() => handleScroll('left')}
-              disabled={!canScrollLeft}
               style={{
                 width: 42,
                 height: 42,
                 borderRadius: '999px',
                 border: '1px solid rgba(126,211,33,0.2)',
-                background: canScrollLeft ? 'rgba(126,211,33,0.08)' : 'rgba(255,255,255,0.03)',
-                color: canScrollLeft ? 'var(--verde)' : 'rgba(255,255,255,0.25)',
+                background: 'rgba(126,211,33,0.08)',
+                color: 'var(--verde)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: canScrollLeft ? 'pointer' : 'not-allowed',
+                cursor: 'pointer',
               }}
             >
               <ArrowLeft size={18} />
@@ -310,18 +329,17 @@ export default function Professores() {
             <button
               type="button"
               onClick={() => handleScroll('right')}
-              disabled={!canScrollRight}
               style={{
                 width: 42,
                 height: 42,
                 borderRadius: '999px',
                 border: '1px solid rgba(126,211,33,0.2)',
-                background: canScrollRight ? 'rgba(126,211,33,0.08)' : 'rgba(255,255,255,0.03)',
-                color: canScrollRight ? 'var(--verde)' : 'rgba(255,255,255,0.25)',
+                background: 'rgba(126,211,33,0.08)',
+                color: 'var(--verde)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: canScrollRight ? 'pointer' : 'not-allowed',
+                cursor: 'pointer',
               }}
             >
               <ArrowRight size={18} />
