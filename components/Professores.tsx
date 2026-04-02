@@ -138,44 +138,130 @@ function ProfessorAvatar({ nome, foto }: { nome: string; foto?: string }) {
   )
 }
 
+function ProfessorCard({ professor }: { professor: Professor }) {
+  const Icon = professor.canal === 'site' ? Link2 : Instagram
+
+  return (
+    <div style={{ minWidth: 320, maxWidth: 320, flex: '0 0 320px' }}>
+      <AnimatedBorder animationMode="rotate-on-hover" animationSpeed={5} style={{ '--ab-speed': '5s' } as CSSProperties} borderRadius={16} borderWidth={1.5}>
+        <div
+          style={{
+            minHeight: 370,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            gap: 18,
+            background: 'linear-gradient(180deg, rgba(13,13,13,0.98), rgba(10,10,10,0.96))',
+            borderRadius: 16,
+            padding: 24,
+          }}
+        >
+          <div>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <ProfessorAvatar nome={professor.nome} foto={professor.foto} />
+                <div>
+                  <div style={{ color: '#fff', fontSize: 22, fontWeight: 500, lineHeight: 1.1, maxWidth: 160 }}>
+                    {professor.nome}
+                  </div>
+                </div>
+              </div>
+
+              {professor.link ? <ArrowUpRight size={18} color="var(--verde)" /> : null}
+            </div>
+
+            <div style={{ color: 'var(--verde)', fontSize: 12, letterSpacing: 1.2, marginBottom: 14 }}>
+              {professor.cargo}
+            </div>
+
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.56)', lineHeight: 1.75 }}>
+              {professor.bio}
+            </p>
+          </div>
+
+          <div style={{ paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            {professor.link ? (
+              <a
+                href={professor.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--verde)', fontSize: 12, letterSpacing: 1.1, textDecoration: 'none' }}
+              >
+                <Icon size={14} />
+                <span>{professor.canal === 'site' ? 'Abrir perfil' : 'Ver perfil'}</span>
+              </a>
+            ) : (
+              <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: 1.1 }}>
+                Perfil externo não informado
+              </div>
+            )}
+          </div>
+        </div>
+      </AnimatedBorder>
+    </div>
+  )
+}
+
 export default function Professores() {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const firstTrackRef = useRef<HTMLDivElement>(null)
   const isPausedRef = useRef(false)
-  const professoresLoop = [...PROFESSORES, ...PROFESSORES]
+  const resumeTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
     const container = scrollRef.current
-    if (!container) return
+    const firstTrack = firstTrackRef.current
+    if (!container || !firstTrack) return
 
     let frameId = 0
 
     const animate = () => {
-      const halfWidth = container.scrollWidth / 2
+      const loopWidth = firstTrack.scrollWidth + 16
 
-      if (!isPausedRef.current) {
-        container.scrollLeft += 0.45
+      if (!isPausedRef.current && loopWidth > 0) {
+        container.scrollLeft += 1
       }
 
-      if (container.scrollLeft >= halfWidth) {
-        container.scrollLeft -= halfWidth
+      if (loopWidth > 0 && container.scrollLeft >= loopWidth) {
+        container.scrollLeft -= loopWidth
       }
 
       frameId = window.requestAnimationFrame(animate)
     }
 
+    container.scrollLeft = 0
     frameId = window.requestAnimationFrame(animate)
 
     return () => {
+      if (resumeTimeoutRef.current) {
+        window.clearTimeout(resumeTimeoutRef.current)
+      }
       window.cancelAnimationFrame(frameId)
     }
   }, [])
 
+  const pauseAutoplayTemporarily = () => {
+    isPausedRef.current = true
+    if (resumeTimeoutRef.current) {
+      window.clearTimeout(resumeTimeoutRef.current)
+    }
+    resumeTimeoutRef.current = window.setTimeout(() => {
+      isPausedRef.current = false
+    }, 2500)
+  }
+
   const handleScroll = (direction: 'left' | 'right') => {
     const container = scrollRef.current
-    if (!container) return
+    const firstTrack = firstTrackRef.current
+    if (!container || !firstTrack) return
 
-    container.scrollBy({
-      left: direction === 'left' ? -340 : 340,
+    pauseAutoplayTemporarily()
+
+    const loopWidth = firstTrack.scrollWidth + 16
+    const nextLeft = container.scrollLeft + (direction === 'left' ? -360 : 360)
+
+    container.scrollTo({
+      left: nextLeft < 0 ? loopWidth + nextLeft : nextLeft,
       behavior: 'smooth',
     })
   }
@@ -234,76 +320,22 @@ export default function Professores() {
             }}
             style={{
               display: 'flex',
-              gap: 16,
               overflowX: 'auto',
-              scrollSnapType: 'x proximity',
               padding: '0 20px 20px',
               scrollbarWidth: 'none',
             }}
           >
-            {professoresLoop.map((professor, index) => {
-              const Icon = professor.canal === 'site' ? Link2 : Instagram
+            <div ref={firstTrackRef} style={{ display: 'flex', gap: 16, paddingRight: 16 }}>
+              {PROFESSORES.map((professor) => (
+                <ProfessorCard key={`first-${professor.nome}`} professor={professor} />
+              ))}
+            </div>
 
-              return (
-                <div key={`${professor.nome}-${index}`} style={{ minWidth: 320, maxWidth: 320, scrollSnapAlign: 'start', flex: '0 0 320px' }}>
-                  <AnimatedBorder animationMode="rotate-on-hover" animationSpeed={5} style={{ '--ab-speed': '5s' } as CSSProperties} borderRadius={16} borderWidth={1.5}>
-                    <div
-                      style={{
-                        minHeight: 370,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        gap: 18,
-                        background: 'linear-gradient(180deg, rgba(13,13,13,0.98), rgba(10,10,10,0.96))',
-                        borderRadius: 16,
-                        padding: 24,
-                      }}
-                    >
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 20 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                            <ProfessorAvatar nome={professor.nome} foto={professor.foto} />
-                            <div>
-                              <div style={{ color: '#fff', fontSize: 22, fontWeight: 500, lineHeight: 1.1, maxWidth: 160 }}>
-                                {professor.nome}
-                              </div>
-                            </div>
-                          </div>
-
-                          {professor.link ? <ArrowUpRight size={18} color="var(--verde)" /> : null}
-                        </div>
-
-                        <div style={{ color: 'var(--verde)', fontSize: 12, letterSpacing: 1.2, marginBottom: 14 }}>
-                          {professor.cargo}
-                        </div>
-
-                        <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.56)', lineHeight: 1.75 }}>
-                          {professor.bio}
-                        </p>
-                      </div>
-
-                      <div style={{ paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                        {professor.link ? (
-                          <a
-                            href={professor.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--verde)', fontSize: 12, letterSpacing: 1.1, textDecoration: 'none' }}
-                          >
-                            <Icon size={14} />
-                            <span>{professor.canal === 'site' ? 'Abrir perfil' : 'Ver perfil'}</span>
-                          </a>
-                        ) : (
-                          <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: 1.1 }}>
-                            Perfil externo não informado
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </AnimatedBorder>
-                </div>
-              )
-            })}
+            <div style={{ display: 'flex', gap: 16, paddingRight: 16 }}>
+              {PROFESSORES.map((professor) => (
+                <ProfessorCard key={`second-${professor.nome}`} professor={professor} />
+              ))}
+            </div>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, padding: '0 20px 20px' }}>
