@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -27,13 +28,12 @@ export default function Navbar() {
       borderBottom: scrolled ? '1px solid rgba(126,211,33,0.15)' : 'none',
     }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem', height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <a href="#" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: 28, color: '#fff', letterSpacing: 1 }}>
-            Amplifica<span style={{ color: 'var(--verde)' }}>!</span>
-          </span>
+
+        <a href="#" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+          <Image src="/logo.svg" alt="Amplifica!" width={180} height={44} style={{ height: 44, width: 'auto' }} priority />
         </a>
 
-        <div style={{ display: 'flex', gap: 36, alignItems: 'center' }} className="desktop-nav">
+        <div style={{ display: 'flex', gap: 36, alignItems: 'center' }}>
           {links.map(l => (
             <a key={l.label} href={l.href} style={{
               color: 'rgba(255,255,255,0.7)', textDecoration: 'none',
