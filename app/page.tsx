@@ -1,7 +1,7 @@
 'use client'
 import Navbar from '@/components/Navbar'
 import Hero from '@/components/Hero'
-import Fellows from '@/components/Fellows'
+import EncontreUmFellow from '@/components/EncontreUmFellow'
 import Artigos from '@/components/Artigos'
 import MapaBrasil from '@/components/MapaBrasil'
 import Missao from '@/components/Missao'
@@ -14,7 +14,7 @@ export default function Home() {
     <main>
       <Navbar />
       <Hero />
-      <Fellows />
+      <EncontreUmFellow />
       <Artigos />
       <MapaBrasil />
       <Missao />
