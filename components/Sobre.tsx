@@ -32,6 +32,7 @@ const CONSELHO = [
 const PARCEIROS = [
   {
     nome: 'LOLA',
+    logo: '/parceiros/lola.png',
     url: 'https://ladiesofliberty.org/',
     site: 'ladiesofliberty.org',
     categoria: 'Rede internacional',
@@ -39,6 +40,7 @@ const PARCEIROS = [
   },
   {
     nome: 'Instituto Liberal',
+    logo: '/parceiros/instituto-liberal.png',
     url: 'https://www.institutoliberal.org.br/',
     site: 'institutoliberal.org.br',
     categoria: 'Think tank',
@@ -46,6 +48,7 @@ const PARCEIROS = [
   },
   {
     nome: 'Instituto Sivis',
+    logo: '/parceiros/instituto-sivis.png',
     url: 'https://www.sivis.org.br/',
     site: 'sivis.org.br',
     categoria: 'Impacto civico',
@@ -53,6 +56,7 @@ const PARCEIROS = [
   },
   {
     nome: 'Instituto Liberal de Sao Paulo',
+    logo: '/parceiros/ilisp.png',
     url: 'https://www.ilisp.org/',
     site: 'ilisp.org',
     categoria: 'Formacao e debate',
@@ -60,6 +64,7 @@ const PARCEIROS = [
   },
   {
     nome: 'SFL Brasil',
+    logo: '/parceiros/sfl-brasil.png',
     url: 'https://studentsforliberty.org/brazil/',
     site: 'studentsforliberty.org/brazil',
     categoria: 'Juventude',
@@ -67,6 +72,7 @@ const PARCEIROS = [
   },
   {
     nome: 'Brasil Paralelo',
+    logo: '/parceiros/brasil-paralelo.png',
     url: 'https://www.brasilparalelo.com.br/',
     site: 'brasilparalelo.com.br',
     categoria: 'Midia e educacao',
@@ -75,10 +81,10 @@ const PARCEIROS = [
 ]
 
 const FLOATING_BADGES = [
-  { label: 'COLABORACAO', style: { top: '10%', left: '3%', animationDelay: '0s' } },
-  { label: 'LIBERDADE', style: { top: '14%', right: '8%', animationDelay: '1.1s' } },
-  { label: 'IMPACTO', style: { bottom: '26%', left: '10%', animationDelay: '0.5s' } },
-  { label: 'REDE', style: { bottom: '12%', right: '14%', animationDelay: '1.7s' } },
+  { label: 'COLABORACAO', style: { top: '4%', left: '2%', animationDelay: '0s' } },
+  { label: 'LIBERDADE', style: { top: '4%', right: '3%', animationDelay: '1.1s' } },
+  { label: 'IMPACTO', style: { bottom: '4%', left: '4%', animationDelay: '0.5s' } },
+  { label: 'REDE', style: { bottom: '4%', right: '8%', animationDelay: '1.7s' } },
 ]
 
 const rotatingBorderStyle: CSSProperties & Record<'--ab-speed', string> = {
@@ -101,6 +107,61 @@ function getPartnerInitials(name: string) {
     .map((part) => part[0])
     .join('')
     .toUpperCase()
+}
+
+function PartnerLogo({ nome, logo }: { nome: string; logo?: string }) {
+  if (!logo) {
+    return (
+      <div
+        style={{
+          width: 56,
+          height: 56,
+          borderRadius: 14,
+          background: 'linear-gradient(135deg, rgba(126,211,33,0.2), rgba(126,211,33,0.05))',
+          border: '1px solid rgba(126,211,33,0.22)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'var(--verde)',
+          fontFamily: 'var(--font-display)',
+          fontSize: 24,
+          letterSpacing: 1,
+          flexShrink: 0,
+        }}
+      >
+        {getPartnerInitials(nome)}
+      </div>
+    )
+  }
+
+  return (
+    <div
+      style={{
+        width: 144,
+        height: 64,
+        borderRadius: 14,
+        background: 'linear-gradient(135deg, rgba(126,211,33,0.12), rgba(126,211,33,0.03))',
+        border: '1px solid rgba(126,211,33,0.18)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '10px 14px',
+        flexShrink: 0,
+      }}
+    >
+      <Image
+        src={logo}
+        alt={nome}
+        width={140}
+        height={52}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+        }}
+      />
+    </div>
+  )
 }
 
 export default function Sobre() {
@@ -127,6 +188,8 @@ export default function Sobre() {
           letter-spacing: 2px;
           backdrop-filter: blur(8px);
           animation: partners-float 6.5s ease-in-out infinite;
+          z-index: 2;
+          pointer-events: none;
         }
         @keyframes partners-enter {
           from { opacity: 0; transform: translateY(18px); }
@@ -177,7 +240,7 @@ export default function Sobre() {
         </div>
 
         <div>
-          <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: 2 }}>CONSELHO ESTRATÉGICO</span>
+          <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: 2 }}>CONSELHO ESTRATEGICO</span>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16, marginTop: 20 }}>
             {CONSELHO.map((conselheiro) => (
               <AnimatedBorder key={conselheiro.nome} animationMode="rotate-on-hover" animationSpeed={4} style={rotatingBorderStyle} borderRadius={10} borderWidth={1.5}>
@@ -207,7 +270,7 @@ export default function Sobre() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'rgba(255,255,255,0.55)', fontSize: 13, maxWidth: 360 }}>
               <Handshake size={18} color="var(--verde)" />
               <p style={{ lineHeight: 1.6 }}>
-                Organizações alinhadas à formação, liberdade, cultura cívica e impacto público.
+                Organizacoes alinhadas a formacao, liberdade, cultura civica e impacto publico.
               </p>
             </div>
           </div>
@@ -238,8 +301,8 @@ export default function Sobre() {
                 padding: '0 20px 20px',
               }}
             >
-              {PARCEIROS.map((parceiro, index) => (
-                <div key={parceiro.nome} className="partners-card" style={{ animationDelay: `${index * 0.08}s` }}>
+                {PARCEIROS.map((parceiro, index) => (
+                <div key={parceiro.nome} className="partners-card" style={{ animationDelay: `${index * 0.08}s`, position: 'relative', zIndex: 1 }}>
                   <AnimatedBorder animationMode="rotate-on-hover" animationSpeed={5} style={partnerBorderStyle} borderRadius={16} borderWidth={1.5}>
                     <a
                       href={parceiro.url}
@@ -259,24 +322,7 @@ export default function Sobre() {
                     >
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, marginBottom: 22 }}>
-                          <div
-                            style={{
-                              width: 56,
-                              height: 56,
-                              borderRadius: 14,
-                              background: 'linear-gradient(135deg, rgba(126,211,33,0.2), rgba(126,211,33,0.05))',
-                              border: '1px solid rgba(126,211,33,0.22)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'var(--verde)',
-                              fontFamily: 'var(--font-display)',
-                              fontSize: 24,
-                              letterSpacing: 1,
-                            }}
-                          >
-                            {getPartnerInitials(parceiro.nome)}
-                          </div>
+                          <PartnerLogo nome={parceiro.nome} logo={parceiro.logo} />
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.36)', fontSize: 12 }}>
                             <Globe2 size={14} />
