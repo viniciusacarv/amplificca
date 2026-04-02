@@ -1,6 +1,6 @@
 'use client'
 
-import type { CSSProperties } from 'react'
+import { useState, type CSSProperties } from 'react'
 import Image from 'next/image'
 import { ArrowUpRight, Globe2, Handshake, Sparkles } from 'lucide-react'
 import AnimatedBorder from '@/components/AnimatedBorder'
@@ -32,7 +32,7 @@ const CONSELHO = [
 const PARCEIROS = [
   {
     nome: 'LOLA',
-    logo: '/parceiros/lola.png',
+    logo: '/LOLA-LOGO.png',
     url: 'https://ladiesofliberty.org/',
     site: 'ladiesofliberty.org',
     categoria: 'Rede internacional',
@@ -40,7 +40,7 @@ const PARCEIROS = [
   },
   {
     nome: 'Instituto Liberal',
-    logo: '/parceiros/instituto-liberal.png',
+    logo: '/IL-LOGO.png',
     url: 'https://www.institutoliberal.org.br/',
     site: 'institutoliberal.org.br',
     categoria: 'Think tank',
@@ -48,7 +48,7 @@ const PARCEIROS = [
   },
   {
     nome: 'Instituto Sivis',
-    logo: '/parceiros/instituto-sivis.png',
+    logo: '/SIVIS-LOGO.png',
     url: 'https://www.sivis.org.br/',
     site: 'sivis.org.br',
     categoria: 'Impacto civico',
@@ -56,7 +56,7 @@ const PARCEIROS = [
   },
   {
     nome: 'Instituto Liberal de Sao Paulo',
-    logo: '/parceiros/ilisp.png',
+    logo: '/ILISP-LOGO.png',
     url: 'https://www.ilisp.org/',
     site: 'ilisp.org',
     categoria: 'Formacao e debate',
@@ -64,15 +64,23 @@ const PARCEIROS = [
   },
   {
     nome: 'SFL Brasil',
-    logo: '/parceiros/sfl-brasil.png',
+    logo: '/SFL-LOGO.png',
     url: 'https://studentsforliberty.org/brazil/',
     site: 'studentsforliberty.org/brazil',
     categoria: 'Juventude',
     desc: 'Rede estudantil internacional que desenvolve jovens liderancas em defesa da liberdade por meio de programas e comunidades.',
   },
   {
+    nome: 'Boletim da Liberdade',
+    logo: '/BOLETIM-LIBERDADE-LOGO.png',
+    url: 'https://www.boletimdaliberdade.com.br/home-2/',
+    site: 'boletimdaliberdade.com.br',
+    categoria: 'Midia e jornalismo',
+    desc: 'Portal jornalistico dedicado a cobertura politica, economica e de liberdades civis, com foco em analises e noticias do ecossistema liberal.',
+  },
+  {
     nome: 'Brasil Paralelo',
-    logo: '/parceiros/brasil-paralelo.png',
+    logo: '/BRASILPARALELO-LOGO.png',
     url: 'https://www.brasilparalelo.com.br/',
     site: 'brasilparalelo.com.br',
     categoria: 'Midia e educacao',
@@ -103,7 +111,9 @@ function getPartnerInitials(name: string) {
 }
 
 function PartnerLogo({ nome, logo }: { nome: string; logo?: string }) {
-  if (!logo) {
+  const [imageFailed, setImageFailed] = useState(false)
+
+  if (!logo || imageFailed) {
     return (
       <div
         style={{
@@ -147,6 +157,7 @@ function PartnerLogo({ nome, logo }: { nome: string; logo?: string }) {
         alt={nome}
         width={140}
         height={52}
+        onError={() => setImageFailed(true)}
         style={{
           width: '100%',
           height: '100%',
