@@ -8,10 +8,7 @@ import {
   useMemo,
   useState,
 } from "react"
-import {
-  AnimatePresence,
-  motion,
-} from "framer-motion"
+import { AnimatePresence, motion } from "motion/react"
 
 export interface TextRotateRef {
   next: () => void
@@ -27,7 +24,6 @@ interface TextRotateProps {
   staggerFrom?: "first" | "last" | "center" | number
   loop?: boolean
   auto?: boolean
-  className?: string
   style?: React.CSSProperties
 }
 
@@ -40,7 +36,6 @@ const TextRotate = forwardRef<TextRotateRef, TextRotateProps>(
       staggerFrom = "first",
       loop = true,
       auto = true,
-      className,
       style,
     },
     ref
@@ -61,9 +56,12 @@ const TextRotate = forwardRef<TextRotateRef, TextRotateProps>(
       })
     }, [texts.length, loop])
 
-    const jumpTo = useCallback((index: number) => {
-      setCurrentIndex(Math.max(0, Math.min(index, texts.length - 1)))
-    }, [texts.length])
+    const jumpTo = useCallback(
+      (index: number) => {
+        setCurrentIndex(Math.max(0, Math.min(index, texts.length - 1)))
+      },
+      [texts.length]
+    )
 
     const reset = useCallback(() => setCurrentIndex(0), [])
 
@@ -75,10 +73,10 @@ const TextRotate = forwardRef<TextRotateRef, TextRotateProps>(
       return () => clearInterval(interval)
     }, [auto, next, rotationInterval])
 
-    const currentText = texts[currentIndex]
-
-    // Split into individual characters for stagger animation
-    const characters = useMemo(() => currentText.split(""), [currentText])
+    const characters = useMemo(
+      () => texts[currentIndex].split(""),
+      [texts, currentIndex]
+    )
 
     const getDelay = (index: number, total: number) => {
       if (staggerFrom === "first") return index * staggerDuration
@@ -95,7 +93,6 @@ const TextRotate = forwardRef<TextRotateRef, TextRotateProps>(
 
     return (
       <span
-        className={className}
         style={{
           display: "inline-flex",
           overflow: "hidden",
@@ -107,7 +104,7 @@ const TextRotate = forwardRef<TextRotateRef, TextRotateProps>(
           <motion.span
             key={currentIndex}
             style={{ display: "inline-flex" }}
-            aria-label={currentText}
+            aria-label={texts[currentIndex]}
           >
             {characters.map((char, i) => (
               <motion.span
@@ -121,7 +118,10 @@ const TextRotate = forwardRef<TextRotateRef, TextRotateProps>(
                   stiffness: 350,
                   delay: getDelay(i, characters.length),
                 }}
-                style={{ display: "inline-block", whiteSpace: char === " " ? "pre" : "normal" }}
+                style={{
+                  display: "inline-block",
+                  whiteSpace: char === " " ? "pre" : "normal",
+                }}
               >
                 {char === " " ? "\u00A0" : char}
               </motion.span>
@@ -132,3 +132,6 @@ const TextRotate = forwardRef<TextRotateRef, TextRotateProps>(
     )
   }
 )
+
+TextRotate.displayName = "TextRotate"
+export default TextRotate
