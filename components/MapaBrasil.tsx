@@ -84,7 +84,6 @@ export default function MapaBrasil() {
         baseColor: [0.05, 0.05, 0.05],
         markerColor: [0.494, 0.827, 0.129],
         glowColor: [0.2, 0.45, 0.05],
-        markerElevation: 0.03,
         markers: FELLOWS_LOCATIONS.map(m => ({ location: m.location, size: 0.045 })),
         arcs: ARCS,
         arcColor: [0.494, 0.827, 0.129],
