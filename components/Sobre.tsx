@@ -281,7 +281,7 @@ export default function Sobre() {
                 gap: 16,
               }}
             >
-              {PARCEIROS.map((parceiro, index) => (
+              {PARCEIROS.map((parceiro) => (
                 <div key={parceiro.nome} className="partners-card" style={{ position: 'relative' }}>
                   <AnimatedBorder animationMode="rotate-on-hover" animationSpeed={5} style={partnerBorderStyle} borderRadius={16} borderWidth={1.5}>
                     <a
@@ -327,8 +327,7 @@ export default function Sobre() {
                         style={{
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: 12,
+                          gap: 8,
                           paddingTop: 16,
                           borderTop: '1px solid rgba(255,255,255,0.08)',
                         }}
@@ -337,7 +336,6 @@ export default function Sobre() {
                           <Sparkles size={14} />
                           <span>Visitar parceiro</span>
                         </div>
-                        <span style={{ color: 'rgba(255,255,255,0.24)', fontSize: 12 }}>0{index + 1}</span>
                       </div>
                     </a>
                   </AnimatedBorder>
