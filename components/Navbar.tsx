@@ -8,6 +8,7 @@ const links = [
   { label: 'Artigos', href: '#artigos' },
   { label: 'Missao', href: '#missao' },
   { label: 'Equipe', href: '#sobre' },
+  { label: 'Professores', href: '#professores' },
   { label: 'Parceiros', href: '#parceiros' },
 ]
 
