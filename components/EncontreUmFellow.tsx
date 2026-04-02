@@ -208,29 +208,109 @@ export default function EncontreUmFellow() {
         )}
       </div>
 
+      {/* MODAL */}
       {selected && (
-        <div onClick={() => setSelected(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', backdropFilter: 'blur(12px)' }}>
-          <AnimatedBorder animationMode="auto-rotate" animationSpeed={4} borderRadius={16} borderWidth={1.5} style={{ '--ab-speed': '4s', maxWidth: 580, width: '100%' } as React.CSSProperties}>
-            <div onClick={e => e.stopPropagation()} style={{ background: '#111', borderRadius: 16, overflow: 'hidden', position: 'relative' }}>
-              <div style={{ height: 200, position: 'relative', background: '#0a0a0a' }}>
-                {selected.foto_url && <Image src={selected.foto_url} alt={selected.nome} fill style={{ objectFit: 'cover', objectPosition: 'center top', opacity: 0.8 }} />}
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, #111 100%)' }} />
-                <button onClick={() => setSelected(null)} style={{ position: 'absolute', top: 16, right: 16, width: 32, height: 32, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%', color: '#fff', cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
-              </div>
-              <div style={{ padding: '0 28px 28px' }}>
-                <h3 style={{ fontSize: 20, fontWeight: 500, color: '#fff', marginBottom: 4 }}>{selected.nome}</h3>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 13, color: 'var(--verde)' }}>{ESTADOS_NOME[selected.estado] || selected.estado}</span>
-                  <span style={{ fontSize: 11, padding: '2px 10px', borderRadius: 100, background: cor(selected.area).bg, color: cor(selected.area).text, border: `1px solid ${cor(selected.area).border}` }}>{selected.area}</span>
+        <div
+          onClick={() => setSelected(null)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 200,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '1.5rem', backdropFilter: 'blur(12px)',
+          }}
+        >
+          <AnimatedBorder
+            animationMode="auto-rotate"
+            animationSpeed={4}
+            borderRadius={16}
+            borderWidth={1.5}
+            style={{ '--ab-speed': '4s', maxWidth: 580, width: '100%' } as React.CSSProperties}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{ background: '#111', borderRadius: 16, overflow: 'hidden', position: 'relative' }}
+            >
+
+              {/* FOTO BANNER NO TOPO */}
+              <div style={{ height: 260, position: 'relative', background: '#0a0a0a' }}>
+                {selected.foto_url && (
+                  <Image
+                    src={selected.foto_url}
+                    alt={selected.nome}
+                    fill
+                    style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                  />
+                )}
+                {/* Gradiente */}
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'linear-gradient(to bottom, transparent 30%, #111 100%)',
+                }} />
+                {/* Botão fechar */}
+                <button
+                  onClick={() => setSelected(null)}
+                  style={{
+                    position: 'absolute', top: 16, right: 16,
+                    width: 32, height: 32,
+                    background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)',
+                    border: '1px solid rgba(255,255,255,0.2)', borderRadius: '50%',
+                    color: '#fff', cursor: 'pointer', fontSize: 18,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    lineHeight: 1,
+                  }}
+                >×</button>
+                {/* Nome e área sobre o gradiente */}
+                <div style={{ position: 'absolute', bottom: 20, left: 28 }}>
+                  <h3 style={{ fontSize: 22, fontWeight: 600, color: '#fff', margin: 0, lineHeight: 1.2 }}>
+                    {selected.nome}
+                  </h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 13, color: 'var(--verde)' }}>
+                      {ESTADOS_NOME[selected.estado] || selected.estado}
+                    </span>
+                    <span style={{
+                      fontSize: 11, padding: '2px 10px', borderRadius: 100,
+                      background: cor(selected.area).bg,
+                      color: cor(selected.area).text,
+                      border: `1px solid ${cor(selected.area).border}`,
+                    }}>
+                      {selected.area}
+                    </span>
+                  </div>
                 </div>
-                <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, marginBottom: 24 }}>{selected.bio}</p>
+              </div>
+
+              {/* CONTEÚDO */}
+              <div style={{ padding: '20px 28px 28px' }}>
+                <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, marginBottom: 24 }}>
+                  {selected.bio}
+                </p>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  <a href={`https://instagram.com/${selected.instagram}`} target="_blank" rel="noopener"
-                    style={{ flex: 1, minWidth: 140, textAlign: 'center', padding: '11px', background: 'var(--verde)', color: '#000', borderRadius: 8, fontSize: 13, fontWeight: 500, textDecoration: 'none' }}>Contatar via Instagram ↗</a>
-                  <a href={`mailto:anne@institutoamplifica.com?subject=Interesse em entrevistar ${selected.nome}`}
-                    style={{ flex: 1, minWidth: 140, textAlign: 'center', padding: '11px', background: 'transparent', color: '#fff', borderRadius: 8, fontSize: 13, border: '1px solid rgba(255,255,255,0.15)', textDecoration: 'none' }}>Solicitar via Amplifica</a>
+                  <a
+                    href={`https://instagram.com/${selected.instagram}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      flex: 1, minWidth: 140, textAlign: 'center',
+                      padding: '11px', background: 'var(--verde)', color: '#000',
+                      borderRadius: 8, fontSize: 13, fontWeight: 500, textDecoration: 'none',
+                    }}
+                  >
+                    Contatar via Instagram ↗
+                  </a>
+                  <a
+                    href={`mailto:anne@institutoamplifica.com?subject=Interesse em entrevistar ${selected.nome}`}
+                    style={{
+                      flex: 1, minWidth: 140, textAlign: 'center',
+                      padding: '11px', background: 'transparent', color: '#fff',
+                      borderRadius: 8, fontSize: 13,
+                      border: '1px solid rgba(255,255,255,0.15)', textDecoration: 'none',
+                    }}
+                  >
+                    Solicitar via Amplifica
+                  </a>
                 </div>
               </div>
+
             </div>
           </AnimatedBorder>
         </div>
