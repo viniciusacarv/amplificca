@@ -30,3 +30,8 @@ html { scroll-behavior: smooth; }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #111; }
 ::-webkit-scrollbar-thumb { background: var(--verde); border-radius: 2px; }
+
+/* Mobile responsive globals */
+@media (max-width: 768px) {
+  section { padding-left: 1rem !important; padding-right: 1rem !important; }
+}
