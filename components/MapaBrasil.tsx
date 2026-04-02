@@ -1,92 +1,209 @@
 'use client'
 
-const ESTADOS_FELLOWS = ['PR', 'SP', 'RJ', 'MG', 'RS', 'GO', 'DF', 'PE', 'BA', 'AC']
+import { useEffect, useRef, useCallback, useState } from 'react'
 
-const ESTADOS_POS: Record<string, { x: number; y: number; label: string }> = {
-  'AM': { x: 200, y: 120, label: 'AM' }, 'PA': { x: 310, y: 110, label: 'PA' },
-  'MA': { x: 395, y: 105, label: 'MA' }, 'PI': { x: 415, y: 145, label: 'PI' },
-  'CE': { x: 445, y: 120, label: 'CE' }, 'RN': { x: 475, y: 130, label: 'RN' },
-  'PB': { x: 470, y: 145, label: 'PB' }, 'PE': { x: 455, y: 160, label: 'PE' },
-  'AL': { x: 470, y: 170, label: 'AL' }, 'SE': { x: 460, y: 183, label: 'SE' },
-  'BA': { x: 415, y: 200, label: 'BA' }, 'GO': { x: 340, y: 220, label: 'GO' },
-  'DF': { x: 355, y: 235, label: 'DF' }, 'MG': { x: 385, y: 255, label: 'MG' },
-  'ES': { x: 430, y: 265, label: 'ES' }, 'RJ': { x: 405, y: 290, label: 'RJ' },
-  'SP': { x: 365, y: 290, label: 'SP' }, 'PR': { x: 345, y: 320, label: 'PR' },
-  'SC': { x: 350, y: 345, label: 'SC' }, 'RS': { x: 330, y: 370, label: 'RS' },
-  'MS': { x: 310, y: 280, label: 'MS' }, 'MT': { x: 270, y: 215, label: 'MT' },
-  'RO': { x: 195, y: 190, label: 'RO' }, 'AC': { x: 140, y: 175, label: 'AC' },
-  'RR': { x: 215, y: 70, label: 'RR' }, 'AP': { x: 345, y: 70, label: 'AP' },
-  'TO': { x: 355, y: 175, label: 'TO' },
-}
+const FELLOWS_LOCATIONS = [
+  { id: 'pr', location: [-25.4, -49.3] as [number, number], estado: 'PR — Paraná' },
+  { id: 'sp', location: [-23.5, -46.6] as [number, number], estado: 'SP — São Paulo' },
+  { id: 'rj', location: [-22.9, -43.2] as [number, number], estado: 'RJ — Rio de Janeiro' },
+  { id: 'mg', location: [-19.9, -43.9] as [number, number], estado: 'MG — Minas Gerais' },
+  { id: 'rs', location: [-30.0, -51.2] as [number, number], estado: 'RS — Rio Grande do Sul' },
+  { id: 'go', location: [-16.7, -49.3] as [number, number], estado: 'GO — Goiás' },
+  { id: 'df', location: [-15.8, -47.9] as [number, number], estado: 'DF — Brasília' },
+  { id: 'pe', location: [-8.0, -34.9] as [number, number], estado: 'PE — Pernambuco' },
+  { id: 'ba', location: [-12.9, -38.4] as [number, number], estado: 'BA — Bahia' },
+  { id: 'ac', location: [-9.97, -67.8] as [number, number], estado: 'AC — Acre' },
+]
 
-const ESTADOS_NOMES: Record<string, string> = {
-  'PR': 'Paraná', 'SP': 'São Paulo', 'RJ': 'Rio de Janeiro', 'MG': 'Minas Gerais',
-  'RS': 'Rio Grande do Sul', 'GO': 'Goiás', 'DF': 'Distrito Federal',
-  'PE': 'Pernambuco', 'BA': 'Bahia', 'AC': 'Acre',
-}
+const ARCS = [
+  { from: [-25.4, -49.3] as [number, number], to: [-23.5, -46.6] as [number, number] },
+  { from: [-23.5, -46.6] as [number, number], to: [-22.9, -43.2] as [number, number] },
+  { from: [-22.9, -43.2] as [number, number], to: [-19.9, -43.9] as [number, number] },
+  { from: [-15.8, -47.9] as [number, number], to: [-16.7, -49.3] as [number, number] },
+  { from: [-15.8, -47.9] as [number, number], to: [-12.9, -38.4] as [number, number] },
+  { from: [-8.0, -34.9] as [number, number], to: [-12.9, -38.4] as [number, number] },
+  { from: [-9.97, -67.8] as [number, number], to: [-15.8, -47.9] as [number, number] },
+  { from: [-30.0, -51.2] as [number, number], to: [-25.4, -49.3] as [number, number] },
+]
 
 export default function MapaBrasil() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const pointerInteracting = useRef<{ x: number; y: number } | null>(null)
+  const dragOffset = useRef({ phi: 0, theta: 0 })
+  const phiOffsetRef = useRef(0)
+  const thetaOffsetRef = useRef(0)
+  const isPausedRef = useRef(false)
+  const [loaded, setLoaded] = useState(false)
+
+  const handlePointerUp = useCallback(() => {
+    if (pointerInteracting.current !== null) {
+      phiOffsetRef.current += dragOffset.current.phi
+      thetaOffsetRef.current += dragOffset.current.theta
+      dragOffset.current = { phi: 0, theta: 0 }
+    }
+    pointerInteracting.current = null
+    if (canvasRef.current) canvasRef.current.style.cursor = 'grab'
+    isPausedRef.current = false
+  }, [])
+
+  useEffect(() => {
+    const handlePointerMove = (e: PointerEvent) => {
+      if (pointerInteracting.current !== null) {
+        dragOffset.current = {
+          phi: (e.clientX - pointerInteracting.current.x) / 300,
+          theta: (e.clientY - pointerInteracting.current.y) / 1000,
+        }
+      }
+    }
+    window.addEventListener('pointermove', handlePointerMove, { passive: true })
+    window.addEventListener('pointerup', handlePointerUp, { passive: true })
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove)
+      window.removeEventListener('pointerup', handlePointerUp)
+    }
+  }, [handlePointerUp])
+
+  useEffect(() => {
+    if (!canvasRef.current) return
+    const canvas = canvasRef.current
+    let globe: any = null
+    let animationId: number
+    // Brasil centralizado: phi aponta para longitude ~-50°, theta para latitude ~-15°
+    let phi = 0.87 // ~50° oeste em radianos
+    const thetaBase = 0.26 // ~15° sul em radianos
+
+    async function init() {
+      const width = canvas.offsetWidth
+      if (width === 0 || globe) return
+      const { default: createGlobe } = await import('cobe')
+
+      globe = createGlobe(canvas, {
+        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+        width,
+        height: width,
+        phi,
+        theta: thetaBase,
+        dark: 1,
+        diffuse: 1.2,
+        mapSamples: 20000,
+        mapBrightness: 4,
+        baseColor: [0.05, 0.05, 0.05],
+        markerColor: [0.494, 0.827, 0.129], // verde #7ED321
+        glowColor: [0.2, 0.45, 0.05],
+        markerElevation: 0.03,
+        markers: FELLOWS_LOCATIONS.map(m => ({ location: m.location, size: 0.045 })),
+        arcs: ARCS,
+        arcColor: [0.494, 0.827, 0.129],
+        arcWidth: 1.5,
+        arcHeight: 0.2,
+        opacity: 0.85,
+        onRender: (state: any) => {
+          if (!isPausedRef.current) phi += 0.002
+          state.phi = phi + phiOffsetRef.current + dragOffset.current.phi
+          state.theta = thetaBase + thetaOffsetRef.current + dragOffset.current.theta
+        },
+      })
+
+      setTimeout(() => {
+        canvas.style.opacity = '1'
+        setLoaded(true)
+      }, 300)
+    }
+
+    if (canvas.offsetWidth > 0) {
+      init()
+    } else {
+      const ro = new ResizeObserver(entries => {
+        if (entries[0]?.contentRect.width > 0) {
+          ro.disconnect()
+          init()
+        }
+      })
+      ro.observe(canvas)
+    }
+
+    return () => {
+      if (animationId) cancelAnimationFrame(animationId)
+      if (globe) globe.destroy()
+    }
+  }, [])
+
   return (
-    <section style={{ padding: '100px 0', background: '#0d0d0d' }}>
+    <section style={{ padding: '100px 0', background: '#0d0d0d', overflow: 'hidden' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
 
+          {/* Texto esquerdo */}
           <div>
             <span style={{ color: 'var(--verde)', fontSize: 12, letterSpacing: 2, fontWeight: 500 }}>PRESENÇA NACIONAL</span>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(48px, 6vw, 72px)', color: '#fff', lineHeight: 0.95, marginTop: 12, marginBottom: 24 }}>
               DO ACRE AO<br />RIO GRANDE<br />DO SUL
             </h2>
             <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, marginBottom: 40 }}>
-              O Amplifica reúne fellows de {ESTADOS_FELLOWS.length} estados brasileiros, garantindo que as ideias de liberdade cheguem a todos os cantos do país.
+              O Amplifica reúne fellows de {FELLOWS_LOCATIONS.length} estados brasileiros, garantindo que as ideias de liberdade cheguem a todos os cantos do país.
             </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {ESTADOS_FELLOWS.map(uf => (
-                <div key={uf} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+
+            {/* Lista de estados */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 24px' }}>
+              {FELLOWS_LOCATIONS.map(f => (
+                <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--verde)', flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>
-                    <strong style={{ color: 'var(--verde)', fontWeight: 500 }}>{uf}</strong> — {ESTADOS_NOMES[uf] || uf}
-                  </span>
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>{f.estado}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Mapa SVG simplificado */}
-          <div style={{ position: 'relative' }}>
-            <svg viewBox="100 50 420 360" style={{ width: '100%', maxWidth: 480 }}>
-              {Object.entries(ESTADOS_POS).map(([uf, pos]) => {
-                const ativo = ESTADOS_FELLOWS.includes(uf)
-                return (
-                  <g key={uf}>
-                    <circle
-                      cx={pos.x} cy={pos.y} r={ativo ? 14 : 10}
-                      fill={ativo ? 'rgba(126,211,33,0.2)' : 'rgba(255,255,255,0.03)'}
-                      stroke={ativo ? '#7ED321' : 'rgba(255,255,255,0.1)'}
-                      strokeWidth={ativo ? 1.5 : 0.5}
-                    />
-                    {ativo && (
-                      <circle cx={pos.x} cy={pos.y} r={5} fill="#7ED321" opacity={0.9} />
-                    )}
-                    <text
-                      x={pos.x} y={pos.y + (ativo ? 28 : 24)}
-                      textAnchor="middle"
-                      fontSize={ativo ? 9 : 7}
-                      fill={ativo ? '#7ED321' : 'rgba(255,255,255,0.25)'}
-                      fontFamily="var(--font-body)"
-                      fontWeight={ativo ? '500' : '300'}
-                    >{pos.label}</text>
-                  </g>
-                )
-              })}
-            </svg>
-            <div style={{ position: 'absolute', bottom: 0, right: 0, display: 'flex', gap: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--verde)' }} />
-                Com fellow
+          {/* Globo direito */}
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
+            {/* Glow verde atrás do globo */}
+            <div style={{
+              position: 'absolute', inset: 0, zIndex: 0,
+              background: 'radial-gradient(circle at center, rgba(126,211,33,0.12) 0%, transparent 65%)',
+              borderRadius: '50%',
+            }} />
+
+            <div style={{ position: 'relative', width: '100%', maxWidth: 480, aspectRatio: '1', zIndex: 1 }}>
+              <canvas
+                ref={canvasRef}
+                onPointerDown={e => {
+                  pointerInteracting.current = { x: e.clientX, y: e.clientY }
+                  if (canvasRef.current) canvasRef.current.style.cursor = 'grabbing'
+                  isPausedRef.current = true
+                }}
+                style={{
+                  width: '100%', height: '100%',
+                  cursor: 'grab', opacity: 0,
+                  transition: 'opacity 1.5s ease',
+                  borderRadius: '50%',
+                  touchAction: 'none',
+                }}
+              />
+
+              {/* Label de interação */}
+              {loaded && (
+                <div style={{
+                  position: 'absolute', bottom: -32, left: '50%', transform: 'translateX(-50%)',
+                  fontSize: 11, color: 'rgba(255,255,255,0.25)', letterSpacing: 1,
+                  whiteSpace: 'nowrap',
+                }}>
+                  arraste para girar
+                </div>
+              )}
+            </div>
+
+            {/* Contador de estados */}
+            <div style={{
+              position: 'absolute', top: 16, right: 0,
+              background: 'rgba(126,211,33,0.08)', border: '1px solid rgba(126,211,33,0.2)',
+              borderRadius: 8, padding: '12px 16px', textAlign: 'center',
+            }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 32, color: 'var(--verde)', lineHeight: 1 }}>
+                {FELLOWS_LOCATIONS.length}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }} />
-                Sem fellow
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 4, letterSpacing: 1 }}>
+                ESTADOS
               </div>
             </div>
           </div>
