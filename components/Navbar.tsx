@@ -7,7 +7,7 @@ const links = [
   { label: 'Fellows', href: '#fellows' },
   { label: 'Artigos', href: '#artigos' },
   { label: 'Missao', href: '#missao' },
-  { label: 'Sobre', href: '#sobre' },
+  { label: 'Equipe', href: '#sobre' },
   { label: 'Parceiros', href: '#parceiros' },
 ]
 
