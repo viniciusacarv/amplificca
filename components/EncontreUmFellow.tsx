@@ -132,7 +132,7 @@ export default function EncontreUmFellow() {
             ENCONTRE UM<br />FELLOW
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 16, marginTop: 16, maxWidth: 560, lineHeight: 1.6 }}>
-            Conecte veículos de comunicação com especialistas preparados para o debate público.
+            Conecte seu veículo de comunicação com especialistas preparados para o debate público.
           </p>
         </div>
 
