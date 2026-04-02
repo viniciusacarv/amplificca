@@ -31,8 +31,25 @@ export default function Navbar() {
         height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
 
-        <a href="#" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-          <Image src="/logo.svg" alt="Amplifica!" width={180} height={44} style={{ height: 44, width: 'auto' }} priority />
+        {/* Logo: ícone real + texto */}
+        <a href="#" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Image
+            src="/logo-icon.png"
+            alt="Amplifica"
+            width={40}
+            height={40}
+            style={{ width: 40, height: 40, objectFit: 'contain' }}
+            priority
+          />
+          <span style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 30,
+            color: '#fff',
+            letterSpacing: 1,
+            lineHeight: 1,
+          }}>
+            Amplifica<span style={{ color: 'var(--verde)' }}>!</span>
+          </span>
         </a>
 
         <div style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
@@ -47,24 +64,16 @@ export default function Navbar() {
             >{l.label}</a>
           ))}
 
-          {/* Separador */}
           <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.12)' }} />
 
-          {/* Torne-se financiador */}
           <a
             href="https://wa.me/5541999911224?text=Olá, conheci o Instituto Amplifica e gostaria de me tornar um investidor do projeto!"
             target="_blank" rel="noopener"
             style={{
-              background: 'transparent',
-              color: 'var(--verde)',
-              padding: '8px 18px',
-              borderRadius: 4,
-              fontSize: 13,
-              fontWeight: 500,
-              textDecoration: 'none',
-              border: '1.5px solid var(--verde)',
-              transition: 'all 0.2s',
-              whiteSpace: 'nowrap',
+              background: 'transparent', color: 'var(--verde)',
+              padding: '8px 18px', borderRadius: 4, fontSize: 13, fontWeight: 500,
+              textDecoration: 'none', border: '1.5px solid var(--verde)',
+              transition: 'all 0.2s', whiteSpace: 'nowrap',
             }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(126,211,33,0.1)' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
@@ -72,19 +81,12 @@ export default function Navbar() {
             Torne-se financiador
           </a>
 
-          {/* Inscreva-se */}
           <a
             href="#inscricao"
             style={{
-              background: 'var(--verde)',
-              color: '#000',
-              padding: '8px 20px',
-              borderRadius: 4,
-              fontSize: 13,
-              fontWeight: 500,
-              textDecoration: 'none',
-              transition: 'opacity 0.2s',
-              whiteSpace: 'nowrap',
+              background: 'var(--verde)', color: '#000',
+              padding: '8px 20px', borderRadius: 4, fontSize: 13, fontWeight: 500,
+              textDecoration: 'none', transition: 'opacity 0.2s', whiteSpace: 'nowrap',
             }}
             onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
             onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
