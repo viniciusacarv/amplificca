@@ -322,9 +322,7 @@ export default function Professores() {
           }}
         >
           <div style={{ maxWidth: 720 }}>
-            <span
-              style={{ color: 'var(--verde)', fontSize: 12, letterSpacing: 2, fontWeight: 500 }}
-            >
+            <span style={{ color: 'var(--verde)', fontSize: 12, letterSpacing: 2, fontWeight: 500 }}>
               PRIMEIRA TURMA
             </span>
             <h2
@@ -384,18 +382,10 @@ export default function Professores() {
           <div
             ref={scrollRef}
             className="professores-track"
-            onMouseEnter={() => {
-              isPausedRef.current = true
-            }}
-            onMouseLeave={() => {
-              isPausedRef.current = false
-            }}
-            onTouchStart={() => {
-              isPausedRef.current = true
-            }}
-            onTouchEnd={() => {
-              isPausedRef.current = false
-            }}
+            onMouseEnter={() => { isPausedRef.current = true }}
+            onMouseLeave={() => { isPausedRef.current = false }}
+            onTouchStart={() => { isPausedRef.current = true }}
+            onTouchEnd={() => { isPausedRef.current = false }}
             style={{
               display: 'flex',
               overflowX: 'auto',
