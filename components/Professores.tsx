@@ -137,7 +137,7 @@ function ProfessorCard({ professor }: { professor: Professor }) {
   const Icon = professor.canal === 'site' ? Link2 : Instagram
 
   return (
-    <div style={{ width: 300, minWidth: 300, flex: '0 0 300px' }}>
+    <div className="professor-card-wrap">
       <AnimatedBorder
         animationMode="rotate-on-hover"
         animationSpeed={5}
