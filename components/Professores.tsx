@@ -270,20 +270,21 @@ export default function Professores() {
   }
 
   const handleScroll = (direction: 'left' | 'right') => {
-    const container = scrollRef.current
-    const firstTrack = firstTrackRef.current
-    if (!container || !firstTrack) return
+  const container = scrollRef.current
+  const firstTrack = firstTrackRef.current
+  if (!container || !firstTrack) return
 
-    pauseAutoplayTemporarily()
+  pauseAutoplayTemporarily()
 
-    const loopWidth = firstTrack.scrollWidth + 16
-    const nextLeft = container.scrollLeft + (direction === 'left' ? -320 : 320)
+  const cardWidth = firstTrack.children[0]?.getBoundingClientRect().width ?? 300
+  const loopWidth = firstTrack.scrollWidth + 16
+  const nextLeft = container.scrollLeft + (direction === 'left' ? -(cardWidth + 16) : (cardWidth + 16))
 
-    container.scrollTo({
-      left: nextLeft < 0 ? loopWidth + nextLeft : nextLeft,
-      behavior: 'smooth',
-    })
-  }
+  container.scrollTo({
+    left: nextLeft < 0 ? loopWidth + nextLeft : nextLeft,
+    behavior: 'smooth',
+  })
+}
 
   if (!mounted) return null
 
