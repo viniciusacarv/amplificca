@@ -32,7 +32,7 @@ const PROFESSORES: Professor[] = [
     canal: 'instagram',
   },
   {
-    nome: 'Felipe d'Avila',
+    nome: "Felipe d'Avila",
     cargo: 'Cientista político, escritor e comentarista',
     bio: 'Presidente do CLP - Centro de Liderança Pública, participa de análises em veículos como CNN Brasil e GloboNews.',
     link: 'https://www.instagram.com/felipedavilaoficial/',
