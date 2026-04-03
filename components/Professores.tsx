@@ -301,6 +301,7 @@ export default function Professores() {
             padding: '22px 0 0',
             background: 'radial-gradient(circle at top left, rgba(126,211,33,0.12), transparent 28%), linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))',
             border: '1px solid rgba(126,211,33,0.12)',
+            overflow: 'hidden',
           }}
         >
           <div
@@ -321,7 +322,7 @@ export default function Professores() {
             style={{
               display: 'flex',
               overflowX: 'auto',
-              padding: '0 20px 20px',
+              padding: '4px 20px 20px'
               scrollbarWidth: 'none',
             }}
           >
