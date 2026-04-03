@@ -137,7 +137,7 @@ function ProfessorCard({ professor }: { professor: Professor }) {
   const Icon = professor.canal === 'site' ? Link2 : Instagram
 
   return (
-    <div style={{ minWidth: 320, maxWidth: 320, flex: '0 0 320px' }}>
+    <div style={{ minWidth: 'min(320px, 85vw)', maxWidth: 'min(320px, 85vw)', flex: '0 0 min(320px, 85vw)' }}>
       <AnimatedBorder
         animationMode="rotate-on-hover"
         animationSpeed={5}
@@ -223,8 +223,14 @@ export default function Professores() {
   const firstTrackRef = useRef<HTMLDivElement>(null)
   const isPausedRef = useRef(false)
   const resumeTimeoutRef = useRef<number | null>(null)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
     const container = scrollRef.current
     const firstTrack = firstTrackRef.current
     if (!container || !firstTrack) return
@@ -251,7 +257,7 @@ export default function Professores() {
       }
       window.cancelAnimationFrame(frameId)
     }
-  }, [])
+  }, [mounted])
 
   const pauseAutoplayTemporarily = () => {
     isPausedRef.current = true
@@ -278,6 +284,8 @@ export default function Professores() {
       behavior: 'smooth',
     })
   }
+
+  if (!mounted) return null
 
   return (
     <section id="professores" style={{ padding: '100px 0', background: '#0a0a0a' }}>
