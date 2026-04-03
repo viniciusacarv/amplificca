@@ -57,7 +57,7 @@ const PROFESSORES: Professor[] = [
     nome: 'Guilherme Waltenberg',
     cargo: 'Jornalista e editor sênior no Poder360',
     bio: 'Tem experiência em política e economia. Atuou como repórter no Correio Braziliense e na Agência Estado, e como editor de Política no Metrópoles.',
-    link: 'https://www.poder360.com.br/author/guilherme-waltenberg/?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQMMjU2MjgxMDQwNTU4AAGnTCiUDWikdKzEetFNJvFaUiZMn_DtkegBRU-1uufHH0hn5FMq7NwhyfmoQdI_aem_gFtmBQ3oxEwWM_FJNrJwPQ',
+    link: 'https://www.poder360.com.br/author/guilherme-waltenberg/',
     foto: '/Guilherme-Waltenberg.png',
     canal: 'site',
   },
@@ -143,7 +143,13 @@ function ProfessorCard({ professor }: { professor: Professor }) {
 
   return (
     <div style={{ minWidth: 320, maxWidth: 320, flex: '0 0 320px' }}>
-      <AnimatedBorder animationMode="rotate-on-hover" animationSpeed={5} style={{ '--ab-speed': '5s' } as CSSProperties} borderRadius={16} borderWidth={1.5}>
+      <AnimatedBorder
+        animationMode="rotate-on-hover"
+        animationSpeed={5}
+        style={{ '--ab-speed': '5s' } as CSSProperties}
+        borderRadius={16}
+        borderWidth={1.5}
+      >
         <div
           style={{
             minHeight: 370,
@@ -157,20 +163,42 @@ function ProfessorCard({ professor }: { professor: Professor }) {
           }}
         >
           <div>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 20 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                gap: 16,
+                marginBottom: 20,
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                 <ProfessorAvatar nome={professor.nome} foto={professor.foto} />
                 <div>
-                  <div style={{ color: '#fff', fontSize: 22, fontWeight: 500, lineHeight: 1.1, maxWidth: 160 }}>
+                  <div
+                    style={{
+                      color: '#fff',
+                      fontSize: 22,
+                      fontWeight: 500,
+                      lineHeight: 1.1,
+                      maxWidth: 160,
+                    }}
+                  >
                     {professor.nome}
                   </div>
                 </div>
               </div>
-
               {professor.link ? <ArrowUpRight size={18} color="var(--verde)" /> : null}
             </div>
 
-            <div style={{ color: 'var(--verde)', fontSize: 12, letterSpacing: 1.2, marginBottom: 14 }}>
+            <div
+              style={{
+                color: 'var(--verde)',
+                fontSize: 12,
+                letterSpacing: 1.2,
+                marginBottom: 14,
+              }}
+            >
               {professor.cargo}
             </div>
 
@@ -185,7 +213,15 @@ function ProfessorCard({ professor }: { professor: Professor }) {
                 href={professor.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--verde)', fontSize: 12, letterSpacing: 1.1, textDecoration: 'none' }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  color: 'var(--verde)',
+                  fontSize: 12,
+                  letterSpacing: 1.1,
+                  textDecoration: 'none',
+                }}
               >
                 <Icon size={14} />
                 <span>{professor.canal === 'site' ? 'Abrir perfil' : 'Ver perfil'}</span>
@@ -275,21 +311,61 @@ export default function Professores() {
       `}</style>
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap', marginBottom: 32 }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'space-between',
+            gap: 24,
+            flexWrap: 'wrap',
+            marginBottom: 32,
+          }}
+        >
           <div style={{ maxWidth: 720 }}>
-            <span style={{ color: 'var(--verde)', fontSize: 12, letterSpacing: 2, fontWeight: 500 }}>PRIMEIRA TURMA</span>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(48px, 7vw, 80px)', color: '#fff', lineHeight: 0.95, marginTop: 12 }}>
+            <span
+              style={{ color: 'var(--verde)', fontSize: 12, letterSpacing: 2, fontWeight: 500 }}
+            >
+              PRIMEIRA TURMA
+            </span>
+            <h2
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(48px, 7vw, 80px)',
+                color: '#fff',
+                lineHeight: 0.95,
+                marginTop: 12,
+              }}
+            >
               PROFESSORES
             </h2>
-            <p style={{ marginTop: 18, fontSize: 15, lineHeight: 1.7, color: 'rgba(255,255,255,0.52)', maxWidth: 640 }}>
-              Jornalistas, professores, escritores e comentaristas que ajudaram a construir a formação da primeira turma do Amplifica.
+            <p
+              style={{
+                marginTop: 18,
+                fontSize: 15,
+                lineHeight: 1.7,
+                color: 'rgba(255,255,255,0.52)',
+                maxWidth: 640,
+              }}
+            >
+              Jornalistas, professores, escritores e comentaristas que ajudaram a construir a
+              formação da primeira turma do Amplifica.
             </p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'rgba(255,255,255,0.55)', fontSize: 13, maxWidth: 320 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              color: 'rgba(255,255,255,0.55)',
+              fontSize: 13,
+              maxWidth: 320,
+            }}
+          >
             <GraduationCap size={18} color="var(--verde)" />
             <p style={{ lineHeight: 1.6 }}>
-              Uma curadoria de nomes com experiência prática em comunicação, política, mídia e debate público.
+              Uma curadoria de nomes com experiência prática em comunicação, política, mídia e
+              debate público.
             </p>
           </div>
         </div>
@@ -299,7 +375,8 @@ export default function Professores() {
             position: 'relative',
             borderRadius: 20,
             padding: '22px 0 0',
-            background: 'radial-gradient(circle at top left, rgba(126,211,33,0.12), transparent 28%), linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))',
+            background:
+              'radial-gradient(circle at top left, rgba(126,211,33,0.12), transparent 28%), linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))',
             border: '1px solid rgba(126,211,33,0.12)',
             overflow: 'hidden',
           }}
