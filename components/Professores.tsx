@@ -289,11 +289,7 @@ export default function Professores() {
 
   return (
     <section id="professores" style={{ padding: '100px 0', background: '#0a0a0a' }}>
-      <style>{`
-        .professores-track::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
+      .professores-track
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem' }}>
         <div
