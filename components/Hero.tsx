@@ -81,10 +81,10 @@ export default function Hero() {
           }}>
             Conhecer os fellows →
           </a>
-          <a href="#inscricao" style={{
-            background: 'transparent', color: '#fff', padding: '14px 32px',
-            border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4,
-            fontSize: 14, fontWeight: 400, textDecoration: 'none',
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSera5I4P3_oLBlHEbAu7H4b_EjINA2cDV8Ierov0gbavgH5sA/viewform" target="_blank" rel="noopener noreferrer" style={{
+  background: 'transparent', color: '#fff', padding: '14px 32px',
+  border: '1px solid rgba(255,255,255,0.2)', borderRadius: 4,
+  fontSize: 14, fontWeight: 400, textDecoration: 'none',
           }}>
             Inscreva-se
           </a>
