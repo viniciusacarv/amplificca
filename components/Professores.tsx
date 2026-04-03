@@ -32,7 +32,7 @@ const PROFESSORES: Professor[] = [
     canal: 'instagram',
   },
   {
-    nome: 'Felipe d’Avila',
+    nome: 'Felipe d'Avila',
     cargo: 'Cientista político, escritor e comentarista',
     bio: 'Presidente do CLP - Centro de Liderança Pública, participa de análises em veículos como CNN Brasil e GloboNews.',
     link: 'https://www.instagram.com/felipedavilaoficial/',
@@ -181,7 +181,7 @@ function ProfessorCard({ professor }: { professor: Professor }) {
 
           <div style={{ paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
             {professor.link ? (
-              <a
+              
                 href={professor.link}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -322,7 +322,7 @@ export default function Professores() {
             style={{
               display: 'flex',
               overflowX: 'auto',
-              padding: '4px 20px 20px'
+              padding: '4px 20px 20px',
               scrollbarWidth: 'none',
             }}
           >
