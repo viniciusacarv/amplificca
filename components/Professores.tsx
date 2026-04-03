@@ -289,7 +289,23 @@ export default function Professores() {
 
   return (
     <section id="professores" style={{ padding: '100px 0', background: '#0a0a0a' }}>
-      .professores-track
+      <style>{`
+        .professores-track::-webkit-scrollbar {
+          display: none;
+        }
+        .professor-card-wrap {
+          width: 300px;
+          min-width: 300px;
+          flex: 0 0 300px;
+        }
+        @media (max-width: 480px) {
+          .professor-card-wrap {
+            width: 260px;
+            min-width: 260px;
+            flex: 0 0 260px;
+          }
+        }
+      `}</style>
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem' }}>
         <div
