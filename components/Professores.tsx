@@ -80,12 +80,7 @@ const PROFESSORES: Professor[] = [
 ]
 
 function getInitials(nome: string) {
-  return nome
-    .split(' ')
-    .slice(0, 2)
-    .map((parte) => parte[0])
-    .join('')
-    .toUpperCase()
+  return nome.split(' ').slice(0, 2).map((parte) => parte[0]).join('').toUpperCase()
 }
 
 function ProfessorAvatar({ nome, foto }: { nome: string; foto?: string }) {
@@ -175,15 +170,7 @@ function ProfessorCard({ professor }: { professor: Professor }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                 <ProfessorAvatar nome={professor.nome} foto={professor.foto} />
                 <div>
-                  <div
-                    style={{
-                      color: '#fff',
-                      fontSize: 22,
-                      fontWeight: 500,
-                      lineHeight: 1.1,
-                      maxWidth: 160,
-                    }}
-                  >
+                  <div style={{ color: '#fff', fontSize: 22, fontWeight: 500, lineHeight: 1.1, maxWidth: 160 }}>
                     {professor.nome}
                   </div>
                 </div>
@@ -191,14 +178,7 @@ function ProfessorCard({ professor }: { professor: Professor }) {
               {professor.link ? <ArrowUpRight size={18} color="var(--verde)" /> : null}
             </div>
 
-            <div
-              style={{
-                color: 'var(--verde)',
-                fontSize: 12,
-                letterSpacing: 1.2,
-                marginBottom: 14,
-              }}
-            >
+            <div style={{ color: 'var(--verde)', fontSize: 12, letterSpacing: 1.2, marginBottom: 14 }}>
               {professor.cargo}
             </div>
 
@@ -209,7 +189,7 @@ function ProfessorCard({ professor }: { professor: Professor }) {
 
           <div style={{ paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
             {professor.link ? (
-              
+              <a
                 href={professor.link}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -253,15 +233,12 @@ export default function Professores() {
 
     const animate = () => {
       const loopWidth = firstTrack.scrollWidth + 16
-
       if (!isPausedRef.current && loopWidth > 0) {
         container.scrollLeft += 0.2
       }
-
       if (loopWidth > 0 && container.scrollLeft >= loopWidth) {
         container.scrollLeft -= loopWidth
       }
-
       frameId = window.requestAnimationFrame(animate)
     }
 
@@ -373,8 +350,7 @@ export default function Professores() {
             position: 'relative',
             borderRadius: 20,
             padding: '22px 0 0',
-            background:
-              'radial-gradient(circle at top left, rgba(126,211,33,0.12), transparent 28%), linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))',
+            background: 'radial-gradient(circle at top left, rgba(126,211,33,0.12), transparent 28%), linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))',
             border: '1px solid rgba(126,211,33,0.12)',
             overflow: 'hidden',
           }}
