@@ -137,7 +137,7 @@ function ProfessorCard({ professor }: { professor: Professor }) {
   const Icon = professor.canal === 'site' ? Link2 : Instagram
 
   return (
-    <div style={{ minWidth: 'min(320px, 85vw)', maxWidth: 'min(320px, 85vw)', flex: '0 0 min(320px, 85vw)' }}>
+    <div style={{ width: 300, minWidth: 300, flex: '0 0 300px' }}>
       <AnimatedBorder
         animationMode="rotate-on-hover"
         animationSpeed={5}
@@ -170,7 +170,7 @@ function ProfessorCard({ professor }: { professor: Professor }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                 <ProfessorAvatar nome={professor.nome} foto={professor.foto} />
                 <div>
-                  <div style={{ color: '#fff', fontSize: 22, fontWeight: 500, lineHeight: 1.1, maxWidth: 160 }}>
+                  <div style={{ color: '#fff', fontSize: 20, fontWeight: 500, lineHeight: 1.2, maxWidth: 140 }}>
                     {professor.nome}
                   </div>
                 </div>
@@ -277,7 +277,7 @@ export default function Professores() {
     pauseAutoplayTemporarily()
 
     const loopWidth = firstTrack.scrollWidth + 16
-    const nextLeft = container.scrollLeft + (direction === 'left' ? -360 : 360)
+    const nextLeft = container.scrollLeft + (direction === 'left' ? -320 : 320)
 
     container.scrollTo({
       left: nextLeft < 0 ? loopWidth + nextLeft : nextLeft,
@@ -372,7 +372,8 @@ export default function Professores() {
             style={{
               display: 'flex',
               overflowX: 'auto',
-              padding: '4px 20px 20px',
+              padding: '6px 16px 20px',
+              gap: 0,
               scrollbarWidth: 'none',
             }}
           >
