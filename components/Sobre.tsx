@@ -24,7 +24,7 @@ const EQUIPE = [
     nome: 'Sara Almeida',
     cargo: 'Social Media',
     desc: 'Uma das vozes ativas da comunicação no movimento liberal brasileiro. Com atuação na Juventude Livre, LOLA Brasil, no Partido NOVO e para outras organizações e figuras políticas, constrói estratégias de conteúdo que traduzem ideias de liberdade em narrativas acessíveis e de alto alcance.',
-    instagram: 'saraalmeidaa_',
+    instagram: 'saraeduardaalmeida',
     foto: '/equipe/SARA-ALMEIDA.png',
   },
 ]
