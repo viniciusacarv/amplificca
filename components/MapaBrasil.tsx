@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 const FELLOWS_LOCATIONS = [
-  { id: 'pr', location: [-25.4, -49.3] as [number, number], estado: 'PR - Parana' },
-  { id: 'sp', location: [-23.5, -46.6] as [number, number], estado: 'SP - Sao Paulo' },
+  { id: 'pr', location: [-25.4, -49.3] as [number, number], estado: 'PR - Paraná' },
+  { id: 'sp', location: [-23.5, -46.6] as [number, number], estado: 'SP - São Paulo' },
   { id: 'rj', location: [-22.9, -43.2] as [number, number], estado: 'RJ - Rio de Janeiro' },
   { id: 'mg', location: [-19.9, -43.9] as [number, number], estado: 'MG - Minas Gerais' },
   { id: 'rs', location: [-30.0, -51.2] as [number, number], estado: 'RS - Rio Grande do Sul' },
-  { id: 'go', location: [-16.7, -49.3] as [number, number], estado: 'GO - Goias' },
-  { id: 'df', location: [-15.8, -47.9] as [number, number], estado: 'DF - Brasilia' },
+  { id: 'go', location: [-16.7, -49.3] as [number, number], estado: 'GO - Goiás' },
+  { id: 'df', location: [-15.8, -47.9] as [number, number], estado: 'DF - Distrito Federal' },
   { id: 'pe', location: [-8.0, -34.9] as [number, number], estado: 'PE - Pernambuco' },
   { id: 'ba', location: [-12.9, -38.4] as [number, number], estado: 'BA - Bahia' },
   { id: 'ac', location: [-9.97, -67.8] as [number, number], estado: 'AC - Acre' },
@@ -159,7 +159,7 @@ export default function MapaBrasil() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1.5rem' }}>
         <div className="mapa-grid">
           <div className="mapa-text-col">
-            <span style={{ color: 'var(--verde)', fontSize: 12, letterSpacing: 2, fontWeight: 500 }}>PRESENCA NACIONAL</span>
+            <span style={{ color: 'var(--verde)', fontSize: 12, letterSpacing: 2, fontWeight: 500 }}>PRESENÇA NACIONAL</span>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(40px, 6vw, 72px)', color: '#fff', lineHeight: 0.95, marginTop: 12, marginBottom: 24 }}>
               DO ACRE AO
               <br />
@@ -168,7 +168,7 @@ export default function MapaBrasil() {
               DO SUL
             </h2>
             <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, marginBottom: 32 }}>
-              O Amplifica reune fellows de {FELLOWS_LOCATIONS.length} estados brasileiros.
+              O Amplifica reúne fellows de {FELLOWS_LOCATIONS.length} estados brasileiros.
             </p>
 
             <div className="mapa-estados">
