@@ -134,19 +134,19 @@ export default function Fellows() {
             </div>
             <div style={{ padding: '20px 24px 28px' }}>
               <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, margin: 0 }}>{selected.bio}</p>
-              {selected.instagram && (
-                <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
-                  <a href={`https://instagram.com/${selected.instagram}`} target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--verde)', color: '#000', padding: '10px 20px', borderRadius: 6, fontSize: 13, fontWeight: 500, textDecoration: 'none', cursor: 'pointer' }}>
-                    Contatar via Instagram ↗
-                  </a>
-                  <a href={`/${toSlug(selected.nome)}`}
+              <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
+                  {selected.instagram && (
+                    <a href={`https://instagram.com/${selected.instagram}`} target="_blank" rel="noopener noreferrer"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--verde)', color: '#000', padding: '10px 20px', borderRadius: 6, fontSize: 13, fontWeight: 500, textDecoration: 'none', cursor: 'pointer' }}>
+                      Contatar via Instagram ↗
+                    </a>
+                  )}
+                  <a href={`/${selected.slug || toSlug(selected.nome)}`}
                     onClick={e => e.stopPropagation()}
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', padding: '10px 20px', borderRadius: 6, fontSize: 13, fontWeight: 500, textDecoration: 'none', cursor: 'pointer' }}>
                     Ver perfil completo →
                   </a>
                 </div>
-              )}
             </div>
           </div>
         </div>
