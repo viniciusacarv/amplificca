@@ -39,12 +39,17 @@ const FELLOWS_DEMO: Fellow[] = [
 
 const AREA_COLORS: Record<string, string> = {
   'Direito': '#3B82F6', 'Economia': '#F59E0B', 'Educação': '#8B5CF6',
-  'Tecnologia': '#06B6D4', 'Política': '#EF4444', 'Comunicação': '#7ED321',
-  'Gestão Pública': '#F97316',
+  'Tecnologia': '#06B6D4', 'Política': '#EF4444', 'Comunicação': '#7ED321', 'Gestão Pública': '#F97316',
 }
 
 function getInitials(nome: string) {
   return nome.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()
+}
+
+function toSlug(nome: string) {
+  return nome.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '')
 }
 
 export default function Fellows() {
@@ -65,7 +70,6 @@ export default function Fellows() {
   return (
     <section id="fellows" style={{ padding: '100px 0', background: '#0d0d0d' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 2rem' }}>
-
         <div style={{ marginBottom: 60 }}>
           <span style={{ color: 'var(--verde)', fontSize: 12, letterSpacing: 2, fontWeight: 500 }}>1ª TURMA</span>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(48px, 7vw, 80px)', color: '#fff', lineHeight: 0.95, marginTop: 12 }}>OS FELLOWS</h2>
@@ -73,27 +77,16 @@ export default function Fellows() {
             Jovens lideranças de todo o Brasil, treinadas para influenciar o debate público com ética e clareza.
           </p>
         </div>
-
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 48 }}>
           {AREAS.map(a => (
-            <button key={a} onClick={() => setFiltro(a)} style={{
-              padding: '6px 16px', borderRadius: 100, fontSize: 12, fontWeight: 400,
-              cursor: 'pointer', transition: 'all 0.2s', letterSpacing: 0.5,
-              background: filtro === a ? 'var(--verde)' : 'rgba(255,255,255,0.05)',
-              color: filtro === a ? '#000' : 'rgba(255,255,255,0.5)',
-              border: filtro === a ? 'none' : '1px solid rgba(255,255,255,0.1)',
-            }}>{a}</button>
+            <button key={a} onClick={() => setFiltro(a)} style={{ padding: '6px 16px', borderRadius: 100, fontSize: 12, fontWeight: 400, cursor: 'pointer', transition: 'all 0.2s', letterSpacing: 0.5, background: filtro === a ? 'var(--verde)' : 'rgba(255,255,255,0.05)', color: filtro === a ? '#000' : 'rgba(255,255,255,0.5)', border: filtro === a ? 'none' : '1px solid rgba(255,255,255,0.1)' }}>{a}</button>
           ))}
         </div>
-
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 2 }}>
           {filtrados.map(f => (
-            <div key={f.id} onClick={() => setSelected(f)} style={{
-              background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
-              padding: '28px', cursor: 'pointer', transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(126,211,33,0.05)'; e.currentTarget.style.borderColor = 'rgba(126,211,33,0.2)' }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)' }}>
+            <div key={f.id} onClick={() => setSelected(f)} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '28px', cursor: 'pointer', transition: 'all 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(126,211,33,0.05)'; e.currentTarget.style.borderColor = 'rgba(126,211,33,0.2)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
                 {f.foto_url ? (
                   <div style={{ width: 52, height: 52, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '2px solid rgba(126,211,33,0.3)' }}>
@@ -112,117 +105,48 @@ export default function Fellows() {
               <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, marginBottom: 16 }}>
                 {f.bio.length > 100 ? f.bio.slice(0, 100) + '...' : f.bio}
               </p>
-              <span style={{
-                fontSize: 10, padding: '3px 10px', borderRadius: 100,
-                background: `${AREA_COLORS[f.area] || '#7ED321'}18`,
-                color: AREA_COLORS[f.area] || '#7ED321',
-                border: `1px solid ${AREA_COLORS[f.area] || '#7ED321'}30`,
-              }}>{f.area}</span>
+              <span style={{ fontSize: 10, padding: '3px 10px', borderRadius: 100, background: `${AREA_COLORS[f.area] || '#7ED321'}18`, color: AREA_COLORS[f.area] || '#7ED321', border: `1px solid ${AREA_COLORS[f.area] || '#7ED321'}30` }}>{f.area}</span>
             </div>
           ))}
         </div>
       </div>
 
       {selected && (
-        <div onClick={() => setSelected(null)} style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 200,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem',
-          backdropFilter: 'blur(8px)',
-        }}>
-          <div onClick={e => e.stopPropagation()} style={{
-            background: '#111', border: '1px solid rgba(126,211,33,0.2)', borderRadius: 12,
-            maxWidth: 540, width: '100%', position: 'relative', overflow: 'hidden',
-          }}>
-
-            {/* FOTO BANNER NO TOPO */}
+        <div onClick={() => setSelected(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', backdropFilter: 'blur(8px)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: '#111', border: '1px solid rgba(126,211,33,0.2)', borderRadius: 12, maxWidth: 540, width: '100%', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'relative', width: '100%', height: 240 }}>
               {selected.foto_url ? (
-                <Image
-                  src={selected.foto_url}
-                  alt={selected.nome}
-                  fill
-                  style={{ objectFit: 'cover', objectPosition: 'center top' }}
-                />
+                <Image src={selected.foto_url} alt={selected.nome} fill style={{ objectFit: 'cover', objectPosition: 'center top' }} />
               ) : (
-                <div style={{
-                  width: '100%', height: '100%',
-                  background: 'rgba(126,211,33,0.1)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 48, color: 'var(--verde)', fontWeight: 500,
-                }}>
+                <div style={{ width: '100%', height: '100%', background: 'rgba(126,211,33,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, color: 'var(--verde)', fontWeight: 500 }}>
                   {getInitials(selected.nome)}
                 </div>
               )}
-
-              {/* Gradiente sobre a foto */}
-              <div style={{
-                position: 'absolute', inset: 0,
-                background: 'linear-gradient(to bottom, transparent 25%, rgba(17,17,17,0.92) 100%)',
-              }} />
-
-              {/* Botão fechar */}
-              <button onClick={() => setSelected(null)} style={{
-                position: 'absolute', top: 12, right: 12,
-                background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.2)',
-                color: '#fff', cursor: 'pointer', fontSize: 18, lineHeight: 1,
-                width: 32, height: 32, borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                backdropFilter: 'blur(4px)',
-              }}>×</button>
-
-              {/* Nome, estado e área sobre o gradiente */}
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 25%, rgba(17,17,17,0.92) 100%)' }} />
+              <button onClick={() => setSelected(null)} style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', cursor: 'pointer', fontSize: 18, lineHeight: 1, width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>×</button>
               <div style={{ position: 'absolute', bottom: 20, left: 24 }}>
-                <h3 style={{ fontSize: 22, fontWeight: 600, color: '#fff', margin: 0, lineHeight: 1.2 }}>
-                  {selected.nome}
-                </h3>
+                <h3 style={{ fontSize: 22, fontWeight: 600, color: '#fff', margin: 0, lineHeight: 1.2 }}>{selected.nome}</h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                  <span style={{ fontSize: 12, color: 'var(--verde)' }}>
-                    {ESTADOS[selected.estado] || selected.estado}
-                  </span>
-                  <span style={{
-                    fontSize: 11, padding: '2px 10px', borderRadius: 100,
-                    background: `${AREA_COLORS[selected.area] || '#7ED321'}25`,
-                    color: AREA_COLORS[selected.area] || '#7ED321',
-                    border: `1px solid ${AREA_COLORS[selected.area] || '#7ED321'}50`,
-                  }}>
-                    {selected.area}
-                  </span>
+                  <span style={{ fontSize: 12, color: 'var(--verde)' }}>{ESTADOS[selected.estado] || selected.estado}</span>
+                  <span style={{ fontSize: 11, padding: '2px 10px', borderRadius: 100, background: `${AREA_COLORS[selected.area] || '#7ED321'}25`, color: AREA_COLORS[selected.area] || '#7ED321', border: `1px solid ${AREA_COLORS[selected.area] || '#7ED321'}50` }}>{selected.area}</span>
                 </div>
               </div>
             </div>
-
-            {/* CONTEÚDO ABAIXO DA FOTO */}
             <div style={{ padding: '20px 24px 28px' }}>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, margin: 0 }}>
-                {selected.bio}
-              </p>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, margin: 0 }}>{selected.bio}</p>
               {selected.instagram && (
                 <div style={{ display: 'flex', gap: 12, marginTop: 24, flexWrap: 'wrap' }}>
-                  <a
-                    href={`https://instagram.com/${selected.instagram}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 8,
-                      background: 'var(--verde)', color: '#000',
-                      padding: '10px 20px', borderRadius: 6, fontSize: 13, fontWeight: 500,
-                      textDecoration: 'none', cursor: 'pointer',
-                    }}
-                  >
+                  <a href={`https://instagram.com/${selected.instagram}`} target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--verde)', color: '#000', padding: '10px 20px', borderRadius: 6, fontSize: 13, fontWeight: 500, textDecoration: 'none', cursor: 'pointer' }}>
                     Contatar via Instagram ↗
                   </a>
-                  <button style={{
-                    background: 'transparent',
-                    border: '1px solid rgba(255,255,255,0.15)',
-                    color: '#fff', padding: '10px 20px', borderRadius: 6,
-                    fontSize: 13, cursor: 'pointer',
-                  }}>
-                    Solicitar via Amplifica
-                  </button>
+                  <a href={`/${toSlug(selected.nome)}`}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', padding: '10px 20px', borderRadius: 6, fontSize: 13, fontWeight: 500, textDecoration: 'none', cursor: 'pointer' }}>
+                    Ver perfil completo →
+                  </a>
                 </div>
               )}
             </div>
-
           </div>
         </div>
       )}
