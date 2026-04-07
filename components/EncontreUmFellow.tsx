@@ -307,15 +307,16 @@ export default function EncontreUmFellow() {
                     Contatar via Instagram ↗
                   </a>
                   <a
-                    href={`mailto:anne@institutoamplifica.com?subject=Interesse em entrevistar ${selected.nome}`}
+                    href={`/${selected.slug || selected.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'')}`}
+                    onClick={e => e.stopPropagation()}
                     style={{
                       flex: 1, minWidth: 140, textAlign: 'center',
-                      padding: '11px', background: 'transparent', color: '#fff',
-                      borderRadius: 8, fontSize: 13,
-                      border: '1px solid rgba(255,255,255,0.15)', textDecoration: 'none',
+                      padding: '11px', background: 'var(--verde)', color: '#000',
+                      borderRadius: 8, fontSize: 13, fontWeight: 500,
+                      textDecoration: 'none',
                     }}
                   >
-                    Solicitar via Amplifica
+                    Ver perfil completo →
                   </a>
                 </div>
 
