@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     locale: 'pt_BR',
     type: 'website',
   },
+  icons: {
+    icon: '/favicon.png',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
