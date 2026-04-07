@@ -141,6 +141,7 @@ export default function Fellows() {
                     Contatar via Instagram ↗
                   </a>
                   <a href={`/${toSlug(selected.nome)}`}
+                    onClick={e => e.stopPropagation()}
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', padding: '10px 20px', borderRadius: 6, fontSize: 13, fontWeight: 500, textDecoration: 'none', cursor: 'pointer' }}>
                     Ver perfil completo →
                   </a>
