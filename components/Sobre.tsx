@@ -127,6 +127,12 @@ const partnerBorderStyle: CSSProperties & Record<'--ab-speed', string> = {
   '--ab-speed': '5s',
 }
 
+function toSlug(nome: string) {
+  return nome.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '')
+}
+
 function getPartnerInitials(name: string) {
   const parts = name.split(' ')
   if (parts.length === 1) return name.slice(0, 3).toUpperCase()
@@ -226,6 +232,9 @@ export default function Sobre() {
                 <a href={`https://instagram.com/${pessoa.instagram}`} target="_blank" rel="noopener"
                   style={{ display: 'inline-block', marginTop: 16, fontSize: 12, color: 'rgba(255,255,255,0.3)', textDecoration: 'none' }}>
                   @{pessoa.instagram} {'->'}
+                </a>
+                <a href={`/equipe/${toSlug(pessoa.nome)}`} style={{ display: 'inline-block', marginTop: 8, fontSize: 12, color: 'var(--verde)', textDecoration: 'none' }}>
+                  Ver perfil completo →
                 </a>
               </div>
             </AnimatedBorder>
