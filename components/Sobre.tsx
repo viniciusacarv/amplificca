@@ -28,7 +28,6 @@ const EQUIPE = [
     foto: '/equipe/SARA-ALMEIDA.png',
   },
 ]
-]
 
 const CONSELHO = [
   {
