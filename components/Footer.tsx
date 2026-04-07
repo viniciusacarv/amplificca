@@ -83,7 +83,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)', width: '100%' }}>
-          © {new Date().getFullYear()} Instituto Amplifica. Todos os direitos reservados.
+          © {new Date().getFullYear()} Instituto Amplifica. Todos os direitos reservados. Designed by VAC.
         </p>
 
       </div>
