@@ -9,7 +9,7 @@ export default function Inscricao() {
           SUA VOZ<br />MERECE<br /><span style={{ color: 'var(--verde)' }}>ESPAÇO</span>
         </h2>
         <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.45)', lineHeight: 1.7, marginBottom: 48, maxWidth: 520, margin: '0 auto 48px' }}>
-          O Amplifica seleciona jovens lideranças entre 18 e 35 anos comprometidas com as ideias de liberdade. As inscrições para a próxima turma serão abertas em breve.
+          O Amplifica seleciona jovens lideranças comprometidas com as ideias de liberdade. As inscrições para a próxima turma serão abertas em breve.
         </p>
 
         <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
