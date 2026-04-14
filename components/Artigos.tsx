@@ -5,7 +5,8 @@ import { supabase, Artigo } from '@/lib/supabase'
 const ITEMS_POR_PAGINA = 10
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+  const [year, month, day] = d.split('-')
+  return new Date(+year, +month - 1, +day).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 export default function Artigos() {
