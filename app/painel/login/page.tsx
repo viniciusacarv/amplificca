@@ -124,7 +124,7 @@ export default function LoginPage() {
             </span>
           </div>
           <span style={{ fontSize:12, color:'rgba(255,255,255,0.3)', letterSpacing:'0.1em', textTransform:'uppercase' }}>
-            Painel do Aluno
+            Painel de Acesso
           </span>
         </div>
 
