@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import DashboardBanner from '../components/DashboardBanner'
 
 // Mapeia tipo → rótulo + cor do badge
 const TIPO_LABELS: Record<string, { label: string; cor: string }> = {
@@ -105,6 +106,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      {/* Banner rotativo */}
+      <DashboardBanner />
+      
       {/* Saudação */}
       <div>
         <h1 className="text-2xl font-bold text-white">
