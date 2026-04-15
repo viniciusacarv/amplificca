@@ -15,8 +15,8 @@ const EQUIPE = [
   },
   {
     nome: 'Vinícius Antunes',
-    cargo: 'COO',
-    desc: 'Advogado, ex-Gerente de tributos em Big4 e especialista em estratégia tributária e transparência fiscal. Atuou como Chefe de Gabinete na Câmara Municipal de Curitiba e hoje é empreendedor, desenvolvendo projetos nas áreas jurídica, política e de negócios.',
+    cargo: 'COO / CTO',
+    desc: 'Advogado, ex-Gerente de tributos em Big4 e especialista consultoria empresarial. Atuou como Chefe de Gabinete na Câmara Municipal de Curitiba e hoje é empreendedor, desenvolvendo projetos nas áreas jurídica, política e de novos negócios.',
     instagram: 'viniciusacarv',
     foto: '/equipe/vinicius-antunes.png',
   },
