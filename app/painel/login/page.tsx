@@ -108,13 +108,21 @@ export default function LoginPage() {
       {/* ── Conteúdo principal ─────────────────────────────────────── */}
       <div className="login-card" style={{ position:'relative', zIndex:10, width:'100%', maxWidth:400, padding:'0 24px', display:'flex', flexDirection:'column', alignItems:'center', gap:32 }}>
 
-        {/* Logo */}
+        {/* Logo — idêntico ao Navbar */}
         <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8 }}>
-          <img
-            src="/logo.svg"
-            alt="Instituto Amplifica"
-            style={{ height:44, width:'auto', objectFit:'contain' }}
-          />
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <Image
+              src="/LOGO-ICON.svg"
+              alt="Amplifica"
+              width={36}
+              height={36}
+              style={{ width:36, height:36, objectFit:'contain' }}
+              priority
+            />
+            <span style={{ fontFamily:'var(--font-display)', fontSize:26, color:'#fff', letterSpacing:1, lineHeight:1 }}>
+              Amplifica<span style={{ color:'var(--verde)' }}>!</span>
+            </span>
+          </div>
           <span style={{ fontSize:12, color:'rgba(255,255,255,0.3)', letterSpacing:'0.1em', textTransform:'uppercase' }}>
             Painel do Aluno
           </span>
