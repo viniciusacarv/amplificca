@@ -76,24 +76,48 @@ export default function Navbar() {
             </span>
           </a>
 
+          {/* Desktop nav */}
           <div className="nav-desktop" style={{ gap: 28, alignItems: 'center' }}>
             {links.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
                 style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: 14, transition: 'color 0.2s' }}
-                onMouseEnter={(event) => {
-                  event.currentTarget.style.color = 'var(--verde)'
-                }}
-                onMouseLeave={(event) => {
-                  event.currentTarget.style.color = 'rgba(255,255,255,0.7)'
-                }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--verde)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.7)' }}
               >
                 {link.label}
               </a>
             ))}
 
             <div style={{ width: 1, height: 20, background: 'rgba(255,255,255,0.12)' }} />
+
+            {/* Log In — ghost branco, discreto */}
+            <a
+              href="/painel/login"
+              style={{
+                background: 'transparent',
+                color: 'rgba(255,255,255,0.65)',
+                padding: '7px 16px',
+                borderRadius: 4,
+                fontSize: 13,
+                fontWeight: 500,
+                textDecoration: 'none',
+                border: '1.5px solid rgba(255,255,255,0.22)',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#fff'
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'rgba(255,255,255,0.65)'
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)'
+              }}
+            >
+              Log In
+            </a>
 
             <a
               href="https://wa.me/5541999911224?text=Ola, conheci o Instituto Amplifica e gostaria de me tornar um investidor do projeto!"
@@ -111,12 +135,8 @@ export default function Navbar() {
                 whiteSpace: 'nowrap',
                 transition: 'all 0.2s',
               }}
-              onMouseEnter={(event) => {
-                event.currentTarget.style.background = 'rgba(126,211,33,0.1)'
-              }}
-              onMouseLeave={(event) => {
-                event.currentTarget.style.background = 'transparent'
-              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(126,211,33,0.1)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
             >
               Torne-se financiador
             </a>
@@ -129,6 +149,7 @@ export default function Navbar() {
             </a>
           </div>
 
+          {/* Hamburger mobile */}
           <button
             className="nav-hamburger"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -140,6 +161,7 @@ export default function Navbar() {
           </button>
         </div>
 
+        {/* Mobile menu */}
         <div
           className="nav-mobile-menu"
           style={{
@@ -162,6 +184,15 @@ export default function Navbar() {
           ))}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
+            {/* Log In mobile */}
+            <a
+              href="/painel/login"
+              onClick={() => setMenuOpen(false)}
+              style={{ textAlign: 'center', padding: '12px', background: 'transparent', color: 'rgba(255,255,255,0.75)', borderRadius: 6, fontSize: 14, fontWeight: 500, textDecoration: 'none', border: '1.5px solid rgba(255,255,255,0.22)' }}
+            >
+              Log In
+            </a>
+
             <a
               href="https://wa.me/5541999911224?text=Ola, conheci o Instituto Amplifica e gostaria de me tornar um investidor do projeto!"
               target="_blank"
@@ -170,6 +201,7 @@ export default function Navbar() {
             >
               Torne-se financiador
             </a>
+
             <a
               href="#inscricao"
               onClick={() => setMenuOpen(false)}
