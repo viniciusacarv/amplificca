@@ -14,29 +14,32 @@ const SLIDES = [
     eyebrow: 'PAINEL DO MEMBRO',
     headline: 'PAINEL AMPLIFICA',
     sub: 'Acompanhe seus pontos, posição no ranking e próximas aulas em tempo real.',
-    ticker: 'PAINEL AMPLIFICA • BEM-VINDO AO SEU ESPAÇO • PONTOS • RANKING • AULAS DE ORATÓRIA • ',
+    ticker: 'PAINEL AMPLIFICA • BEM-VINDO AO SEU ESPAÇO • CONTEÚDOS ADICIONAIS • PRÓXIMAS AULAS • ',
     img: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=1600&auto=format&fit=crop',
     accent: '#7ED321',
+    href: '',  // Deixe vazio para sem link, ou ex: '/painel/ranking'
   },
   {
     id: 'debates',
     tag: 'EM BREVE',
     eyebrow: 'CAMPEONATO 2026',
-    headline: 'CAMPEONATO DE DEBATES',
+    headline: 'DEBATES',
     sub: 'Os melhores fellows do programa vão se enfrentar. Prepare sua argumentação.',
     ticker: 'CAMPEONATO DE DEBATES 2026 • FASES ELIMINATÓRIAS • ATÉ 50 PONTOS • PREPARE-SE • ',
     img: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=1600&auto=format&fit=crop',
     accent: '#fbbf24',
+    href: '',  // Deixe vazio para sem link, ou ex: '/painel/ranking'
   },
   {
     id: 'oratoria',
     tag: 'TODA SEMANA',
     eyebrow: 'UNIÃO CONSERVADORA',
-    headline: 'AULAS DE ORATÓRIA',
+    headline: 'ORATÓRIA',
     sub: 'Com Mario — toda semana. Presença registrada pelo admin vale +5 pontos.',
     ticker: 'AULAS DE ORATÓRIA SEMANAIS • +5 PONTOS POR PRESENÇA • PARCERIA UNIÃO CONSERVADORA • ',
     img: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1600&auto=format&fit=crop',
     accent: '#7ED321',
+    href: 'https://www.instagram.com/uniaoconservadora.br/?hl=pt-br',  // Deixe vazio para sem link, ou ex: '/painel/ranking'
   },
 ]
 
@@ -192,7 +195,7 @@ export default function DashboardBanner() {
           .amplifica-ticker-track {
             display: flex;
             white-space: nowrap;
-            animation: amplifica-ticker 22s linear infinite;
+            animation: amplifica-ticker 40s linear infinite;
           }
         `}</style>
         <div className="amplifica-ticker-track">
