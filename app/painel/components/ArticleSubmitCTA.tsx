@@ -86,7 +86,7 @@ export default function ArticleSubmitCTA() {
               letterSpacing: 1,
             }}
           >
-            SUBMETA SEU ARTIGO
+            SUBMETA SEU ARTIGO PUBLICADO
           </h2>
 
           {/* Descrição */}
@@ -94,8 +94,7 @@ export default function ArticleSubmitCTA() {
             className="mt-2 max-w-md text-sm leading-relaxed text-gray-400"
             style={{ fontFamily: 'var(--font-body)' }}
           >
-            Publique sua análise e ganhe pontos no ranking. Artigos nacionais valem mais —
-            mostre seu argumento ao Brasil.
+            Publique sua análise e ganhe pontos no ranking. Mostre seu argumento ao Brasil.
           </p>
 
           {/* Micro-info: pontuação */}
