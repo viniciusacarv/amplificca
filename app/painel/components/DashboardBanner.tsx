@@ -39,11 +39,42 @@ const SLIDES = [
     ticker: 'AULAS DE ORATÓRIA SEMANAIS • +5 PONTOS POR PRESENÇA • PARCERIA UNIÃO CONSERVADORA • ',
     img: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=1600&auto=format&fit=crop',
     accent: '#7ED321',
-    href: 'https://www.instagram.com/uniaoconservadora.br/?hl=pt-br',  // Deixe vazio para sem link, ou ex: '/painel/ranking'
+    href: 'https://www.instagram.com/uniaoconservadora.br/?hl=pt-br',
   },
 ]
 
 const DURATION = 6000 // ms por slide
+
+// ── Wrapper que vira <a> se tiver href, ou <div> se não tiver ────────
+function ContentWrapper({
+  href,
+  children,
+}: {
+  href: string
+  children: React.ReactNode
+}) {
+  const style: React.CSSProperties = {
+    position: 'relative',
+    zIndex: 2,
+    padding: '36px 36px 72px',
+    display: 'block',
+    textDecoration: 'none',
+    cursor: href ? 'pointer' : 'default',
+  }
+
+  if (!href) return <div style={style}>{children}</div>
+
+  return (
+    <a
+      href={href}
+      target={href.startsWith('http') ? '_blank' : '_self'}
+      rel="noopener noreferrer"
+      style={style}
+    >
+      {children}
+    </a>
+  )
+}
 
 export default function DashboardBanner() {
   const [activeIndex, setActiveIndex] = useState(0)
@@ -117,8 +148,8 @@ export default function DashboardBanner() {
         background: 'linear-gradient(to right, rgba(10,10,10,0.97) 0%, rgba(10,10,10,0.88) 45%, rgba(10,10,10,0.35) 100%)',
       }} />
 
-      {/* ── Conteúdo do slide ──────────────────────────────────────── */}
-      <div style={{ position: 'relative', zIndex: 2, padding: '36px 36px 72px' }}>
+      {/* ── Conteúdo do slide (clicável se tiver href) ─────────────── */}
+      <ContentWrapper href={slide.href}>
         <AnimatePresence mode="wait">
           <motion.div
             key={slide.id}
@@ -146,7 +177,7 @@ export default function DashboardBanner() {
                 color: 'rgba(255,255,255,0.4)',
                 letterSpacing: '0.15em',
                 fontFamily: 'var(--font-body)',
-                textTransform: 'uppercase',
+                textTransform: 'uppercase' as const,
               }}>
                 {slide.eyebrow}
               </span>
@@ -177,7 +208,7 @@ export default function DashboardBanner() {
             </p>
           </motion.div>
         </AnimatePresence>
-      </div>
+      </ContentWrapper>
 
       {/* ── Ticker marquee ──────────────────────────────────────────── */}
       <div style={{
@@ -257,10 +288,10 @@ export default function DashboardBanner() {
                 fontWeight: 600,
                 position: 'relative',
                 zIndex: 1,
-                textTransform: 'uppercase',
+                textTransform: 'uppercase' as const,
                 whiteSpace: 'nowrap',
               }}>
-                {s.headline.split(' ').slice(0, 2).join(' ')}
+                {s.headline}
               </span>
 
               {/* Fundo de progresso (fill) */}
