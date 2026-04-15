@@ -4,9 +4,9 @@ import TextRotate from '@/components/ui/text-rotate'
 
 const METRICAS = [
   { numero: '20', label: 'Fellows ativos' },
-  { numero: '50+', label: 'Artigos publicados' },
-  { numero: '12', label: 'Veículos alcançados' },
-  { numero: '10', label: 'Estados representados' },
+  { numero: '40+', label: 'Artigos publicados' },
+  { numero: '10+', label: 'Veículos alcançados' },
+  { numero: '11', label: 'Estados representados' },
 ]
 
 const VEICULOS = ['Folha de S.Paulo', 'Estadão', 'Gazeta do Povo', 'Revista Oeste', 'Jovem Pan', 'Pleno News', 'CNN Brasil', 'Valor Econômico', 'Claudio Dantas', 'Congresso em Foco', 'Melhor do Sul', 'Instituto Mises', 'Exame', 'Crusoé']
