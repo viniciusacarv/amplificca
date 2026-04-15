@@ -47,14 +47,14 @@ const FELLOWS_COM_ARTIGOS = new Set([
 
 const FELLOWS_DEMO: Fellow[] = [
   { id:1,  nome:'Amanda Caixeta',                    bio:'Jornalista por formação, chefe geral de comunicação e imprensa do deputado federal Gustavo Gayer.',                                          estado:'GO',area:'Comunicação',   instagram:'amandacaixeeta',    foto_url:'/fellows/amanda-caixeta.png',    created_at:'' },
-  { id:2,  nome:'Ana Carolina Beltrão Peixoto',      bio:'Administradora, Assistente Social e Pedagoga. Doutora em Serviço Social e Mestre em Meio Ambiente.',                                        estado:'MG',area:'Educação',      instagram:'acarolprofessora',  foto_url:'/fellows/ana-carolina.png',      created_at:'' },
+  { id:2,  nome:'Ana Carolina Beltrão Peixoto',      bio:'Administradora, Assistente Social e Pedagoga. Doutora em Serviço Social e Mestre em Meio Ambiente.',                                        estado:'AL',area:'Educação',      instagram:'acarolprofessora',  foto_url:'/fellows/ana-carolina.png',      created_at:'' },
   { id:3,  nome:'Barbara Abras',                     bio:'Bacharel em Administração com experiência em gestão pública, gestão de pessoas e advocacy.',                                                 estado:'MG',area:'Gestão Pública',instagram:'barbara.abras',     foto_url:'/fellows/barbara-abras.png',     created_at:'' },
   { id:4,  nome:'Bruno Sperancetta',                 bio:'Presidente do movimento estudantil JL (Juventude Livre). Estudante de Direito na PUCPR.',                                                    estado:'PR',area:'Direito',       instagram:'bruno_sperancetta', foto_url:'/fellows/bruno-sperancetta.png', created_at:'' },
   { id:5,  nome:'Davi de Souza',                     bio:'Assessor Parlamentar na Câmara dos Deputados. Pesquisador em Ciência Política pela UnB.',                                                    estado:'DF',area:'Política',      instagram:'davidesouzabh',     foto_url:'/fellows/davi-souza.png',        created_at:'' },
   { id:6,  nome:'Eduardo Inojosa',                   bio:'Advogado e mestre em economia pelo Insper. Defende políticas públicas baseadas em dados e evidências.',                                      estado:'PE',area:'Economia',      instagram:'eduardoinojosaa',   foto_url:'/fellows/eduardo-inojosa.png',   created_at:'' },
   { id:7,  nome:'Gabriela Martins Nunes',            bio:'Project Leader no Mercado Livre. Mestre em Pesquisa Operacional pelo ITA.',                                                                  estado:'SP',area:'Tecnologia',    instagram:'gabrielamartinsn',  foto_url:'/fellows/gabriela-martins.png',  created_at:'' },
   { id:8,  nome:'Germano Laube',                     bio:'Especialista em Mercado Financeiro, Consultor de Investimentos e sócio cofundador da LDC Capital.',                                         estado:'RS',area:'Economia',      instagram:'germano_laube',     foto_url:'/fellows/germano-laube.png',     created_at:'' },
-  { id:9,  nome:'Ivanildo Francisco dos Santos Terceiro', bio:'Diretor Global de Marketing da Students For Liberty. Coordena campanhas que alcançam milhões de pessoas.',                              estado:'BA',area:'Comunicação',   instagram:'ivanildoiii',       foto_url:'/fellows/ivanildo-terceiro.png', created_at:'' },
+  { id:9,  nome:'Ivanildo Francisco dos Santos Terceiro', bio:'Diretor Global de Marketing da Students For Liberty. Coordena campanhas que alcançam milhões de pessoas.',                              estado:'SP',area:'Comunicação',   instagram:'ivanildoiii',       foto_url:'/fellows/ivanildo-terceiro.png', created_at:'' },
   { id:10, nome:'Jeferson Scheibler',                bio:'Acadêmico de Engenharia de Software, embaixador da ICSC e Local Lead do NASA Space Apps.',                                                  estado:'RS',area:'Tecnologia',    instagram:'jeferson_scheibler',foto_url:'/fellows/jeferson-scheibler.png',created_at:'' },
   { id:11, nome:'Julia de Castro',                   bio:'Formada em História pela UFRJ. Vice-presidente da ala jovem do Partido Liberal.',                                                           estado:'RJ',area:'Política',      instagram:'juliadecastrobr',   foto_url:'/fellows/julia-castro.png',      created_at:'' },
   { id:12, nome:'Letícia Barros',                    bio:'Advogada e empreendedora em comunicação política. Gerente de comunicação global do LOLA.',                                                   estado:'RJ',area:'Comunicação',   instagram:'leticiabbarros',    foto_url:'/fellows/leticia-barros.png',    created_at:'' },
@@ -65,7 +65,7 @@ const FELLOWS_DEMO: Fellow[] = [
   { id:17, nome:'Wesley Reis',                       bio:'Economista e diretor do IFL Rio de Janeiro. Colunista do Instituto Millenium.',                                                              estado:'RJ',area:'Economia',      instagram:'wesley.areis',      foto_url:'/fellows/wesley-reis.png',       created_at:'' },
   { id:18, nome:'William A. Clavijo Vitto',          bio:'Cientista político venezuelano. Doutor em Políticas Públicas pela UFRJ. Presidente da Associação Venezuela Global.',                        estado:'RJ',area:'Política',      instagram:'wclavijo90',        foto_url:'/fellows/william-clavijo.png',   created_at:'' },
   { id:19, nome:'Yuri Quadros',                      bio:'Articulista e cofundador do Instituto Aliança dos Inconfidentes. Defende visão liberal-conservadora.',                                       estado:'MG',area:'Política',      instagram:'oyuriquadros',      foto_url:'/fellows/yuri-quadros.png',      created_at:'' },
-  { id:20, nome:'Zizi Martins',                      bio:'Advogada pública, consultora e comentarista política. Pós-doutora em política, comportamento e mídia.',                                     estado:'DF',area:'Direito',       instagram:'zizimartinsoficial',foto_url:'/fellows/zizi-martins.png',      created_at:'' },
+  { id:20, nome:'Zizi Martins',                      bio:'Advogada pública, consultora e comentarista política. Pós-doutora em política, comportamento e mídia.',                                     estado:'BA',area:'Direito',       instagram:'zizimartinsoficial',foto_url:'/fellows/zizi-martins.png',      created_at:'' },
 ]
 
 const CSS = `
@@ -241,8 +241,6 @@ export default function EncontreUmFellow() {
               onClick={e => e.stopPropagation()}
               style={{ background: '#111', borderRadius: 16, overflow: 'hidden', position: 'relative' }}
             >
-
-              {/* FOTO BANNER NO TOPO */}
               <div style={{ height: 280, position: 'relative', background: '#0a0a0a' }}>
                 {selected.foto_url && (
                   <Image
@@ -288,7 +286,6 @@ export default function EncontreUmFellow() {
                 </div>
               </div>
 
-              {/* CONTEÚDO */}
               <div style={{ padding: '20px 28px 28px' }}>
                 <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.8, marginBottom: 24 }}>
                   {selected.bio}
@@ -331,7 +328,6 @@ export default function EncontreUmFellow() {
                   </a>
                 </div>
 
-                {/* Botão Ver artigos — aparece só para fellows com artigos publicados */}
                 {FELLOWS_COM_ARTIGOS.has(selected.nome) && (
                   <button
                     onClick={() => {
@@ -353,7 +349,6 @@ export default function EncontreUmFellow() {
                   </button>
                 )}
               </div>
-
             </div>
           </AnimatedBorder>
         </div>

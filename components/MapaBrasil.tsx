@@ -13,6 +13,7 @@ const FELLOWS_LOCATIONS = [
   { id: 'pe', location: [-8.0, -34.9] as [number, number], estado: 'PE - Pernambuco' },
   { id: 'ba', location: [-12.9, -38.4] as [number, number], estado: 'BA - Bahia' },
   { id: 'ac', location: [-9.97, -67.8] as [number, number], estado: 'AC - Acre' },
+  { id: 'al', location: [-9.66, -35.74] as [number, number], estado: 'AL - Alagoas' },
 ]
 
 const ARCS = [
@@ -23,6 +24,7 @@ const ARCS = [
   { from: [-8.0, -34.9] as [number, number], to: [-12.9, -38.4] as [number, number] },
   { from: [-9.97, -67.8] as [number, number], to: [-15.8, -47.9] as [number, number] },
   { from: [-30.0, -51.2] as [number, number], to: [-25.4, -49.3] as [number, number] },
+  { from: [-8.0, -34.9] as [number, number], to: [-9.66, -35.74] as [number, number] },
 ]
 
 const CSS = `
