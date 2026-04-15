@@ -14,6 +14,13 @@ const EQUIPE = [
     foto: '/equipe/anne-dias.png',
   },
   {
+    nome: 'Vinícius Antunes de Carvalho',
+    cargo: 'COO / CTO',
+    desc: 'Advogado, ex-Gerente de tributos em multinacional de auditoria e consultoria e especialista em consultoria empresarial. Atuou como Chefe de Gabinete na Câmara Municipal de Curitiba e hoje é empreendedor, desenvolvendo projetos nas áreas jurídica, política e de negócios.',
+    instagram: 'viniciusacarv',
+    foto: '/equipe/vinicius-antunes.png',
+  },
+  {
     nome: 'Sara Ganime',
     cargo: 'Head de Comunicação',
     desc: 'Jornalista e editora-chefe do Boletim da Liberdade. Protagonizou o placar do Boletim que ajudou a barrar o "PL da Censura" em 2023. Colunista do Pleno.News e presidente do IFL Rio de Janeiro.',
@@ -247,7 +254,7 @@ export default function Sobre() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16, marginTop: 20 }}>
             {CONSELHO.map((conselheiro) => (
               <AnimatedBorder key={conselheiro.nome} animationMode="rotate-on-hover" animationSpeed={4} style={rotatingBorderStyle} borderRadius={12} borderWidth={1.5}>
-                <a
+                
                   href={`https://instagram.com/${conselheiro.instagram}`}
                   target="_blank"
                   rel="noopener noreferrer"
