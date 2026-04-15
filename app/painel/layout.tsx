@@ -48,7 +48,11 @@ export default async function PainelLayout({
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) redirect('/painel/login')
+  // Se não há usuário (página de login), renderiza só os filhos sem navbar
+  // O middleware já cuida dos redirecionamentos — o layout NÃO redireciona
+  if (!user) {
+    return <>{children}</>
+  }
 
   // Busca nome do fellow pelo email
   const { data: fellow } = await supabase
