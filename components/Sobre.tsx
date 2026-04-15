@@ -14,7 +14,7 @@ const EQUIPE = [
     foto: '/equipe/anne-dias.png',
   },
   {
-    nome: 'Vinícius Antunes',
+    nome: 'Vinícius Antunes de Carvalho',
     cargo: 'COO / CTO',
     desc: 'Advogado, ex-Gerente de tributos em Big4 e especialista consultoria empresarial. Atuou como Chefe de Gabinete na Câmara Municipal de Curitiba e hoje é empreendedor, desenvolvendo projetos nas áreas jurídica, política e de novos negócios.',
     instagram: 'viniciusacarv',
