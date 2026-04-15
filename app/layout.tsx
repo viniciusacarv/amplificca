@@ -4,6 +4,9 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'Instituto Amplifica',
   description: 'Formando lideranças orientadas para a liberdade',
+  icons: {
+    icon: '/favicon.png',
+  },
 }
 
 export default function RootLayout({
