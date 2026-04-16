@@ -2,6 +2,7 @@
 // Dashboard principal do aluno — Server Component
 
 import { createClient } from '@/lib/supabase-server'
+import { getPanelUserProfile } from '@/lib/auth-profile'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import DashboardBanner from '../components/DashboardBanner'
@@ -47,12 +48,7 @@ export default async function DashboardPage() {
 
   if (!user) redirect('/painel/login')
 
-  // Busca fellow pelo email
-  const { data: fellow } = await supabase
-    .from('fellows')
-    .select('id, nome, foto_url, area, estado')
-    .eq('email', user.email)
-    .maybeSingle()
+  const { fellow, isAdmin, nomeExibicao } = await getPanelUserProfile(supabase, user)
 
   // Busca posição no ranking
   const { data: rankEntry } = fellow
@@ -86,7 +82,7 @@ export default async function DashboardPage() {
     .order('data_hora')
     .limit(3)
 
-  const nome = fellow?.nome ?? user.email?.split('@')[0] ?? 'Fellow'
+  const nome = nomeExibicao
   const primeiroNome = nome.split(' ')[0]
   const posicao = rankEntry?.posicao ?? null
   const totalPontos = rankEntry?.total_pontos ?? 0
@@ -121,7 +117,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Aviso se perfil não vinculado */}
-      {!fellow && (
+      {!fellow && !isAdmin && (
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-amber-400 text-sm">
           <strong>Atenção:</strong> Seu perfil ainda não foi vinculado. Peça ao administrador para adicionar seu email na tabela de fellows.
         </div>
