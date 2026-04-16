@@ -1,3 +1,7 @@
 'use server'
 
-export { salvarVeiculo } from '../imprensa/actions'
+import { salvarVeiculo as salvarVeiculoAdminImprensa } from '../imprensa/actions'
+
+export async function salvarVeiculo(formData: FormData) {
+  return salvarVeiculoAdminImprensa(formData)
+}
