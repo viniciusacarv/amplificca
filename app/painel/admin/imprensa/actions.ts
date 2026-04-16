@@ -3,6 +3,7 @@
 // Server Actions do painel admin — gestão de submissões e veículos
 
 import { createClient } from '@/lib/supabase-server'
+import { isAdminUser } from '@/lib/auth-profile'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 
@@ -12,11 +13,8 @@ async function assertAdmin() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/painel/login')
 
-  const adminEmails = (process.env.ADMIN_EMAIL ?? 'anne@institutoamplifica.com')
-    .split(',')
-    .map((e) => e.trim())
-
-  if (!adminEmails.includes(user.email ?? '')) redirect('/painel/dashboard')
+  const isAdmin = await isAdminUser(supabase, user.email)
+  if (!isAdmin) redirect('/painel/dashboard')
 
   return { supabase, user }
 }
