@@ -3,6 +3,7 @@
 // Usa o mesmo padrão de ADMIN_EMAIL do layout principal
 
 import { createClient } from '@/lib/supabase-server'
+import { isAdminUser } from '@/lib/auth-profile'
 import { redirect } from 'next/navigation'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -11,12 +12,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/painel/login')
 
-  // Usa o mesmo padrão do painel layout (env var)
-  const adminEmails = (process.env.ADMIN_EMAIL ?? 'anne@institutoamplifica.com')
-    .split(',')
-    .map((e) => e.trim())
+  const isAdmin = await isAdminUser(supabase, user.email)
 
-  if (!adminEmails.includes(user.email ?? '')) {
+  if (!isAdmin) {
     redirect('/painel/dashboard')
   }
 
