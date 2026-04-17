@@ -4,12 +4,15 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 
+const TZ_BR = 'America/Sao_Paulo'
+
 function formatarDataCompleta(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
     year: 'numeric',
+    timeZone: TZ_BR,
   })
 }
 
@@ -17,13 +20,28 @@ function formatarHora(iso: string) {
   return new Date(iso).toLocaleTimeString('pt-BR', {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: TZ_BR,
   })
 }
 
 function horaFim(iso: string, duracao: number) {
   const inicio = new Date(iso)
   const fim = new Date(inicio.getTime() + duracao * 60000)
-  return fim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  return fim.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: TZ_BR,
+  })
+}
+
+// Partes de data no fuso BR (para os blocos de calendário)
+function parteData(iso: string, opts: Intl.DateTimeFormatOptions) {
+  return new Date(iso).toLocaleDateString('pt-BR', { ...opts, timeZone: TZ_BR })
+}
+
+function diaBR(iso: string) {
+  // Retorna o dia do mês no fuso BR como número
+  return Number(new Date(iso).toLocaleDateString('en-US', { day: 'numeric', timeZone: TZ_BR }))
 }
 
 function isPassada(iso: string) {
@@ -82,13 +100,13 @@ export default async function AulasPage() {
                   {/* Data block */}
                   <div className="flex-shrink-0 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3 text-center min-w-[80px]">
                     <p className="text-xs text-emerald-400 font-medium uppercase">
-                      {new Date(aula.data_hora).toLocaleDateString('pt-BR', { month: 'short' })}
+                      {parteData(aula.data_hora, { month: 'short' })}
                     </p>
                     <p className="text-2xl font-bold text-white leading-none mt-0.5">
-                      {new Date(aula.data_hora).getDate()}
+                      {diaBR(aula.data_hora)}
                     </p>
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {new Date(aula.data_hora).toLocaleDateString('pt-BR', { weekday: 'short' })}
+                      {parteData(aula.data_hora, { weekday: 'short' })}
                     </p>
                   </div>
 
@@ -173,10 +191,10 @@ export default async function AulasPage() {
                 {/* Data */}
                 <div className="flex-shrink-0 text-center min-w-[48px]">
                   <p className="text-xs text-gray-500 uppercase">
-                    {new Date(aula.data_hora).toLocaleDateString('pt-BR', { month: 'short' })}
+                    {parteData(aula.data_hora, { month: 'short' })}
                   </p>
                   <p className="text-lg font-bold text-gray-500 leading-none mt-0.5">
-                    {new Date(aula.data_hora).getDate()}
+                    {diaBR(aula.data_hora)}
                   </p>
                 </div>
                 <div className="flex-1 min-w-0">
