@@ -21,11 +21,14 @@ const TIPO_LABELS: Record<string, { label: string; cor: string }> = {
   aula_presenca:       { label: 'Aula',       cor: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' },
 }
 
+const TZ_BR = 'America/Sao_Paulo'
+
 function formatarData(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    timeZone: TZ_BR,
   })
 }
 
@@ -36,6 +39,7 @@ function formatarDataHora(iso: string) {
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: TZ_BR,
   })
 }
 
@@ -176,6 +180,7 @@ export default async function DashboardPage() {
                   weekday: 'short',
                   day: '2-digit',
                   month: 'short',
+                  timeZone: TZ_BR,
                 })}
               </p>
             </>
