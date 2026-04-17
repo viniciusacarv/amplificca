@@ -5,6 +5,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { isAdminUser } from '@/lib/auth-profile'
 import { redirect } from 'next/navigation'
+import AdminSubNav from './AdminSubNav'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
@@ -18,5 +19,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/painel/dashboard')
   }
 
-  return <>{children}</>
+  return (
+    <div className="space-y-6">
+      <AdminSubNav />
+      {children}
+    </div>
+  )
 }
