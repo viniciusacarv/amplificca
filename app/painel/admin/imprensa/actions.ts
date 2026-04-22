@@ -94,25 +94,31 @@ export async function marcarNotificacoesAdminLidas() {
 export async function salvarVeiculo(formData: FormData) {
   const { supabase } = await assertAdmin()
 
-  const id                  = formData.get('id') as string | null
-  const nome                = formData.get('nome') as string
-  const website             = formData.get('website') as string
-  const tipo_relacionamento = formData.get('tipo_relacionamento') as string
-  const contato_nome        = formData.get('contato_nome') as string
-  const contato_email       = formData.get('contato_email') as string
-  const contato_whatsapp    = formData.get('contato_whatsapp') as string
-  const notas_abordagem     = formData.get('notas_abordagem') as string
-  const area_cobertura      = formData.get('area_cobertura') as string
+  const id                     = formData.get('id') as string | null
+  const nome                   = formData.get('nome') as string
+  const website                = formData.get('website') as string
+  const tipo_relacionamento    = formData.get('tipo_relacionamento') as string
+  const contato_nome           = formData.get('contato_nome') as string
+  const contato_email          = formData.get('contato_email') as string
+  const contato_whatsapp       = formData.get('contato_whatsapp') as string
+  const notas_abordagem        = formData.get('notas_abordagem') as string
+  const area_cobertura         = formData.get('area_cobertura') as string
+  const estrategia_aproximacao = formData.get('estrategia_aproximacao') as string
+  const proximos_passos        = formData.get('proximos_passos') as string
+  const tags                   = formData.getAll('tags') as string[]
 
   const payload = {
-    nome:                 nome.trim(),
-    website:              website?.trim() || null,
+    nome:                    nome.trim(),
+    website:                 website?.trim() || null,
     tipo_relacionamento,
-    contato_nome:         contato_nome?.trim() || null,
-    contato_email:        contato_email?.trim() || null,
-    contato_whatsapp:     contato_whatsapp?.trim() || null,
-    notas_abordagem:      notas_abordagem?.trim() || null,
-    area_cobertura:       area_cobertura?.trim() || null,
+    contato_nome:            contato_nome?.trim() || null,
+    contato_email:           contato_email?.trim() || null,
+    contato_whatsapp:        contato_whatsapp?.trim() || null,
+    notas_abordagem:         notas_abordagem?.trim() || null,
+    area_cobertura:          area_cobertura?.trim() || null,
+    estrategia_aproximacao:  estrategia_aproximacao?.trim() || null,
+    proximos_passos:         proximos_passos?.trim() || null,
+    tags:                    tags.length > 0 ? tags : [],
   }
 
   if (id) {
