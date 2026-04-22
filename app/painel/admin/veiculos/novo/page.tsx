@@ -68,20 +68,21 @@ export default async function NovoVeiculoPage({
         {/* Tipo de relacionamento */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-3">
-            Tipo de relacionamento <span className="text-red-400">*</span>
+            Nível de proximidade <span className="text-red-400">*</span>
           </label>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { value: 'parceiro',     label: 'Parceiro',    desc: 'Relação próxima e ativa',          emoji: '🤝' },
-              { value: 'acessivel',    label: 'Acessível',   desc: 'Contato estabelecido',             emoji: '📨' },
-              { value: 'a_conquistar', label: 'A conquistar',desc: 'Ainda sem relacionamento',         emoji: '🎯' },
+              { value: 'parceiro',     label: 'Parceiro',     desc: 'Relação próxima e ativa',        emoji: '🤝' },
+              { value: 'acessivel',    label: 'Acessível',    desc: 'Já houve contato ou placement',  emoji: '📨' },
+              { value: 'a_conquistar', label: 'A conquistar', desc: 'Contato esporádico ou via terceiros', emoji: '🎯' },
+              { value: 'inexistente',  label: 'Inexistente',  desc: 'Sem nenhum contato prévio',      emoji: '🧭' },
             ].map((opt) => (
               <label key={opt.value} className="cursor-pointer">
                 <input
                   type="radio"
                   name="tipo_relacionamento"
                   value={opt.value}
-                  defaultChecked={(veiculo?.tipo_relacionamento || 'a_conquistar') === opt.value}
+                  defaultChecked={(veiculo?.tipo_relacionamento || 'inexistente') === opt.value}
                   className="sr-only peer"
                 />
                 <div className="flex flex-col items-start p-3.5 rounded-xl border border-gray-700 bg-gray-800/50 peer-checked:bg-emerald-500/10 peer-checked:border-emerald-500/40 transition-all">
@@ -191,11 +192,109 @@ export default async function NovoVeiculoPage({
           <textarea
             id="notas_abordagem"
             name="notas_abordagem"
-            rows={4}
+            rows={3}
             defaultValue={veiculo?.notas_abordagem || ''}
-            placeholder="ex: Preferem pitches curtos por e-mail. Melhor dia: segunda de manhã. Já publicamos 3 artigos. Contato direto com João, editor de opinião..."
+            placeholder="ex: Preferem pitches curtos por e-mail. Melhor dia: segunda de manhã..."
             className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-emerald-500/60 transition-colors"
           />
+        </div>
+
+        {/* Estratégia de aproximação */}
+        <div>
+          <label htmlFor="estrategia_aproximacao" className="block text-sm font-medium text-gray-300 mb-2">
+            Estratégia de aproximação
+            <span className="ml-2 text-xs font-normal text-gray-500">como entrar no radar desse veículo, quem pode intermediar</span>
+          </label>
+          <textarea
+            id="estrategia_aproximacao"
+            name="estrategia_aproximacao"
+            rows={3}
+            defaultValue={veiculo?.estrategia_aproximacao || ''}
+            placeholder="ex: Abordar via Mano Ferreira (Jovem Pan). Mandar pitch personalizado para o editor de opinião. Usar publicação anterior como referência..."
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-emerald-500/60 transition-colors"
+          />
+        </div>
+
+        {/* Próximos passos */}
+        <div>
+          <label htmlFor="proximos_passos" className="block text-sm font-medium text-gray-300 mb-2">
+            Próximos passos
+            <span className="ml-2 text-xs font-normal text-gray-500">ações concretas com responsável e prazo</span>
+          </label>
+          <textarea
+            id="proximos_passos"
+            name="proximos_passos"
+            rows={3}
+            defaultValue={veiculo?.proximos_passos || ''}
+            placeholder="ex: → Sara envia e-mail até 30/04&#10;→ Follow-up 7 dias depois se sem retorno&#10;→ Anne apresenta o Amplifica ao editor na próxima visita a SP"
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-emerald-500/60 transition-colors"
+          />
+        </div>
+
+        {/* Tags */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-3">
+            Tags
+            <span className="ml-2 text-xs font-normal text-gray-500">classifique por tema, porte e perfil editorial</span>
+          </label>
+          <div className="space-y-4">
+            {[
+              {
+                grupo: 'Tema',
+                tags: [
+                  { value: 'economia',   label: 'Economia'   },
+                  { value: 'politica',   label: 'Política'   },
+                  { value: 'cultura',    label: 'Cultura'    },
+                  { value: 'direito',    label: 'Direito'    },
+                  { value: 'tecnologia', label: 'Tecnologia' },
+                  { value: 'educacao',   label: 'Educação'   },
+                  { value: 'saude',      label: 'Saúde'      },
+                  { value: 'seguranca',  label: 'Segurança'  },
+                ],
+              },
+              {
+                grupo: 'Porte',
+                tags: [
+                  { value: 'grande',  label: 'Grande'  },
+                  { value: 'medio',   label: 'Médio'   },
+                  { value: 'pequeno', label: 'Pequeno' },
+                  { value: 'nicho',   label: 'Nicho'   },
+                ],
+              },
+              {
+                grupo: 'Perfil editorial',
+                tags: [
+                  { value: 'liberal',       label: 'Liberal'       },
+                  { value: 'conservador',   label: 'Conservador'   },
+                  { value: 'mainstream',    label: 'Mainstream'    },
+                  { value: 'independente',  label: 'Independente'  },
+                ],
+              },
+            ].map(({ grupo, tags }) => {
+              const currentTags: string[] = veiculo?.tags ?? []
+              return (
+                <div key={grupo}>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">{grupo}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag) => (
+                      <label key={tag.value} className="cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="tags"
+                          value={tag.value}
+                          defaultChecked={currentTags.includes(tag.value)}
+                          className="sr-only peer"
+                        />
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-gray-700 bg-gray-800 text-gray-400 peer-checked:bg-emerald-500/15 peer-checked:border-emerald-500/40 peer-checked:text-emerald-400 transition-all cursor-pointer hover:border-gray-600">
+                          {tag.label}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
 
         {/* Botões */}
