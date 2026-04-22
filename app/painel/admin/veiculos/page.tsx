@@ -9,6 +9,7 @@ const TIPO_CONFIG = {
   parceiro:      { label: 'Parceiro',    color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20', emoji: '🤝' },
   acessivel:     { label: 'Acessível',   color: 'bg-blue-500/15 text-blue-400 border-blue-500/20',           emoji: '📨' },
   a_conquistar:  { label: 'A conquistar',color: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/20',     emoji: '🎯' },
+  inexistente:   { label: 'Inexistente', color: 'bg-gray-500/15 text-gray-400 border-gray-500/20',           emoji: '🧭' },
 } as const
 
 const CATEGORIA_LABEL: Record<string, string> = {
@@ -57,10 +58,11 @@ export default async function AdminVeiculosPage({
   })
 
   const filtros = [
-    { key: 'todos',       label: 'Todos',         count: todos?.length || 0             },
-    { key: 'parceiro',    label: 'Parceiros',      count: countMap['parceiro'] || 0       },
-    { key: 'acessivel',   label: 'Acessíveis',     count: countMap['acessivel'] || 0      },
-    { key: 'a_conquistar',label: 'A conquistar',   count: countMap['a_conquistar'] || 0   },
+    { key: 'todos',       label: 'Todos',         count: todos?.length || 0              },
+    { key: 'parceiro',    label: 'Parceiros',      count: countMap['parceiro'] || 0        },
+    { key: 'acessivel',   label: 'Acessíveis',     count: countMap['acessivel'] || 0       },
+    { key: 'a_conquistar',label: 'A conquistar',   count: countMap['a_conquistar'] || 0    },
+    { key: 'inexistente', label: 'Inexistente',    count: countMap['inexistente'] || 0     },
   ]
 
   return (
@@ -97,11 +99,12 @@ export default async function AdminVeiculosPage({
       )}
 
       {/* ── Cards de resumo ──────────────────────────────────────── */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { key: 'parceiro',    label: 'Parceiros',   count: countMap['parceiro'] || 0,      emoji: '🤝', color: 'from-emerald-600/10 to-teal-700/5 border-emerald-600/20' },
-          { key: 'acessivel',   label: 'Acessíveis',  count: countMap['acessivel'] || 0,     emoji: '📨', color: 'from-blue-600/10 to-blue-700/5 border-blue-600/20'       },
-          { key: 'a_conquistar',label: 'A conquistar',count: countMap['a_conquistar'] || 0,  emoji: '🎯', color: 'from-yellow-600/10 to-yellow-700/5 border-yellow-600/20'  },
+          { key: 'parceiro',    label: 'Parceiros',    count: countMap['parceiro'] || 0,     emoji: '🤝', color: 'from-emerald-600/10 to-teal-700/5 border-emerald-600/20'  },
+          { key: 'acessivel',   label: 'Acessíveis',   count: countMap['acessivel'] || 0,    emoji: '📨', color: 'from-blue-600/10 to-blue-700/5 border-blue-600/20'         },
+          { key: 'a_conquistar',label: 'A conquistar', count: countMap['a_conquistar'] || 0, emoji: '🎯', color: 'from-yellow-600/10 to-yellow-700/5 border-yellow-600/20'   },
+          { key: 'inexistente', label: 'Inexistente',  count: countMap['inexistente'] || 0,  emoji: '🧭', color: 'from-gray-600/10 to-gray-700/5 border-gray-600/20'         },
         ].map((c) => (
           <div key={c.key} className={`bg-gradient-to-br ${c.color} border rounded-2xl p-5`}>
             <div className="flex items-start justify-between">
@@ -152,9 +155,9 @@ export default async function AdminVeiculosPage({
             {/* Header da tabela */}
             <div className="grid grid-cols-12 gap-4 px-6 py-3 text-xs text-gray-500 uppercase tracking-wider">
               <div className="col-span-3">Veículo</div>
-              <div className="col-span-2">Relacionamento</div>
+              <div className="col-span-2">Proximidade</div>
               <div className="col-span-2">Cobertura</div>
-              <div className="col-span-3">Contato</div>
+              <div className="col-span-3">Tags</div>
               <div className="col-span-2 text-right">Ações</div>
             </div>
 
@@ -186,15 +189,21 @@ export default async function AdminVeiculosPage({
                     </span>
                   </div>
 
-                  {/* Contato */}
+                  {/* Tags */}
                   <div className="col-span-3 min-w-0">
-                    {v.contato_nome ? (
-                      <div>
-                        <p className="text-sm text-gray-300 truncate">{v.contato_nome}</p>
-                        <p className="text-xs text-gray-600 truncate">{v.contato_email || v.contato_whatsapp || '—'}</p>
+                    {v.tags && v.tags.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {(v.tags as string[]).slice(0, 3).map((tag: string) => (
+                          <span key={tag} className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-gray-800 border border-gray-700 text-gray-400">
+                            {tag}
+                          </span>
+                        ))}
+                        {v.tags.length > 3 && (
+                          <span className="text-xs text-gray-600">+{v.tags.length - 3}</span>
+                        )}
                       </div>
                     ) : (
-                      <span className="text-sm text-gray-600">—</span>
+                      <span className="text-sm text-gray-700">—</span>
                     )}
                   </div>
 
