@@ -11,6 +11,21 @@ const TIPO_CONFIG = {
   a_conquistar:  { label: 'A conquistar',color: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/20',     emoji: '🎯' },
 } as const
 
+const CATEGORIA_LABEL: Record<string, string> = {
+  midia_pro_liberdade:       'Mídia Pró-Liberdade',
+  mainstream_pro_liberdade:  'Mainstream Pró-Liberdade',
+  midia_de_ideias:           'Mídia de Ideias',
+  documentarios_plataformas: 'Documentários/Plataformas',
+  grandes_jornais:           'Grandes Jornais',
+  politica_bastidores:       'Política e Bastidores',
+  opiniao_analise:           'Opinião e Análise',
+  economia_negocios:         'Economia e Negócios',
+  judiciario_direito:        'Judiciário e Direito',
+  radio:                     'Rádio',
+  tv_canais_noticia:         'TV e Canais de Notícia',
+  regional:                  'Regional',
+}
+
 export default async function AdminVeiculosPage({
   searchParams,
 }: {
@@ -166,7 +181,9 @@ export default async function AdminVeiculosPage({
 
                   {/* Cobertura */}
                   <div className="col-span-2">
-                    <span className="text-sm text-gray-400">{v.area_cobertura || '—'}</span>
+                    <span className="text-sm text-gray-400">
+                      {v.area_cobertura ? (CATEGORIA_LABEL[v.area_cobertura] ?? v.area_cobertura) : '—'}
+                    </span>
                   </div>
 
                   {/* Contato */}
