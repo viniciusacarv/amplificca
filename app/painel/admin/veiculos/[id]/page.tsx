@@ -1,0 +1,233 @@
+// app/painel/admin/veiculos/[id]/page.tsx
+// Página de edição de um veículo de imprensa
+
+import { createClient } from '@/lib/supabase-server'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { salvarVeiculo } from '../actions'
+
+const CATEGORIAS = [
+  { group: 'Mídias de Orientação Liberal', options: [
+    { value: 'midia_pro_liberdade',      label: 'Mídia Pró-Liberdade' },
+    { value: 'mainstream_pro_liberdade', label: 'Mainstream Pró-Liberdade' },
+    { value: 'midia_de_ideias',          label: 'Mídia de Ideias (Think Tanks)' },
+    { value: 'documentarios_plataformas',label: 'Documentários / Plataformas' },
+  ]},
+  { group: 'Grande Mídia Nacional', options: [
+    { value: 'grandes_jornais',    label: 'Grandes Jornais' },
+    { value: 'politica_bastidores',label: 'Política e Bastidores' },
+    { value: 'opiniao_analise',    label: 'Opinião e Análise' },
+    { value: 'economia_negocios',  label: 'Economia e Negócios' },
+    { value: 'judiciario_direito', label: 'Judiciário e Direito' },
+  ]},
+  { group: 'Audiovisual', options: [
+    { value: 'radio',            label: 'Rádio' },
+    { value: 'tv_canais_noticia',label: 'TV e Canais de Notícia' },
+  ]},
+  { group: 'Cobertura Regional', options: [
+    { value: 'regional', label: 'Regional' },
+  ]},
+]
+
+export default async function EditarVeiculoPage({
+  params,
+  searchParams,
+}: {
+  params: { id: string }
+  searchParams: { sucesso?: string }
+}) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/painel/login')
+
+  const { data: veiculo } = await supabase
+    .from('veiculos')
+    .select('*')
+    .eq('id', params.id)
+    .single()
+
+  if (!veiculo) redirect('/painel/admin/veiculos')
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-8">
+
+      {/* ── Header ───────────────────────────────────────────────── */}
+      <div>
+        <Link
+          href="/painel/admin/veiculos"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-300 transition-colors mb-4"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          CRM de Veículos
+        </Link>
+        <h1 className="text-2xl font-bold text-white">Editar veículo</h1>
+        <p className="text-gray-400 mt-1 text-sm">Atualize as informações de <span className="text-white">{veiculo.nome}</span>.</p>
+      </div>
+
+      {searchParams.sucesso && (
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-emerald-400 text-sm">
+          ✅ Veículo atualizado com sucesso.
+        </div>
+      )}
+
+      {/* ── Formulário ───────────────────────────────────────────── */}
+      <form action={salvarVeiculo} className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-6">
+        <input type="hidden" name="id" value={veiculo.id} />
+
+        {/* Nome */}
+        <div>
+          <label htmlFor="nome" className="block text-sm font-medium text-gray-300 mb-2">
+            Nome do veículo <span className="text-red-400">*</span>
+          </label>
+          <input
+            id="nome"
+            name="nome"
+            type="text"
+            required
+            defaultValue={veiculo.nome}
+            placeholder="ex: O Globo, Gazeta do Povo"
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
+          />
+        </div>
+
+        {/* Tipo de relacionamento */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-3">
+            Tipo de relacionamento <span className="text-red-400">*</span>
+          </label>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { value: 'parceiro',     label: 'Parceiro',     desc: 'Relação próxima e ativa',    emoji: '🤝' },
+              { value: 'acessivel',    label: 'Acessível',    desc: 'Contato estabelecido',        emoji: '📨' },
+              { value: 'a_conquistar', label: 'A conquistar', desc: 'Ainda sem relacionamento',    emoji: '🎯' },
+            ].map((opt) => (
+              <label key={opt.value} className="cursor-pointer">
+                <input
+                  type="radio"
+                  name="tipo_relacionamento"
+                  value={opt.value}
+                  defaultChecked={veiculo.tipo_relacionamento === opt.value}
+                  className="sr-only peer"
+                />
+                <div className="flex flex-col items-start p-3.5 rounded-xl border border-gray-700 bg-gray-800/50 peer-checked:bg-emerald-500/10 peer-checked:border-emerald-500/40 transition-all">
+                  <span className="text-xl mb-1.5">{opt.emoji}</span>
+                  <span className="text-xs font-semibold text-white">{opt.label}</span>
+                  <span className="text-xs text-gray-500 mt-0.5 leading-snug">{opt.desc}</span>
+                </div>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Website */}
+        <div>
+          <label htmlFor="website" className="block text-sm font-medium text-gray-300 mb-2">Website</label>
+          <input
+            id="website"
+            name="website"
+            type="url"
+            defaultValue={veiculo.website || ''}
+            placeholder="https://..."
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
+          />
+        </div>
+
+        {/* Categoria editorial */}
+        <div>
+          <label htmlFor="area_cobertura" className="block text-sm font-medium text-gray-300 mb-2">
+            Categoria editorial
+          </label>
+          <select
+            id="area_cobertura"
+            name="area_cobertura"
+            defaultValue={veiculo.area_cobertura || ''}
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500/60 transition-colors appearance-none"
+          >
+            <option value="">Selecione uma categoria…</option>
+            {CATEGORIAS.map((grupo) => (
+              <optgroup key={grupo.group} label={grupo.group}>
+                {grupo.options.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+
+        {/* Contato */}
+        <div>
+          <p className="text-sm font-medium text-gray-300 mb-3">Informações de contato</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label htmlFor="contato_nome" className="block text-xs text-gray-500 mb-1.5">Nome</label>
+              <input
+                id="contato_nome"
+                name="contato_nome"
+                type="text"
+                defaultValue={veiculo.contato_nome || ''}
+                placeholder="Editor / responsável"
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
+              />
+            </div>
+            <div>
+              <label htmlFor="contato_email" className="block text-xs text-gray-500 mb-1.5">E-mail</label>
+              <input
+                id="contato_email"
+                name="contato_email"
+                type="email"
+                defaultValue={veiculo.contato_email || ''}
+                placeholder="email@veiculo.com"
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
+              />
+            </div>
+            <div>
+              <label htmlFor="contato_whatsapp" className="block text-xs text-gray-500 mb-1.5">WhatsApp</label>
+              <input
+                id="contato_whatsapp"
+                name="contato_whatsapp"
+                type="text"
+                defaultValue={veiculo.contato_whatsapp || ''}
+                placeholder="+55 11 9 0000-0000"
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Notas de abordagem */}
+        <div>
+          <label htmlFor="notas_abordagem" className="block text-sm font-medium text-gray-300 mb-2">
+            Notas de abordagem
+            <span className="ml-2 text-xs font-normal text-gray-500">como fazer contato, estilo, histórico</span>
+          </label>
+          <textarea
+            id="notas_abordagem"
+            name="notas_abordagem"
+            rows={4}
+            defaultValue={veiculo.notas_abordagem || ''}
+            placeholder="ex: Preferem pitches curtos por e-mail. Melhor dia: segunda de manhã..."
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-emerald-500/60 transition-colors"
+          />
+        </div>
+
+        {/* Botões */}
+        <div className="flex items-center gap-3 pt-2">
+          <button
+            type="submit"
+            className="flex-1 sm:flex-none bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-black font-semibold text-sm px-6 py-2.5 rounded-xl transition-all"
+          >
+            Salvar alterações
+          </button>
+          <Link
+            href="/painel/admin/veiculos"
+            className="text-sm text-gray-500 hover:text-gray-300 transition-colors px-4 py-2.5"
+          >
+            Cancelar
+          </Link>
+        </div>
+      </form>
+    </div>
+  )
+}
