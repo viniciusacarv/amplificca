@@ -94,30 +94,52 @@ export default async function NovoVeiculoPage({
           </div>
         </div>
 
-        {/* Website + cobertura */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="website" className="block text-sm font-medium text-gray-300 mb-2">Website</label>
-            <input
-              id="website"
-              name="website"
-              type="url"
-              defaultValue={veiculo?.website || ''}
-              placeholder="https://..."
-              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
-            />
-          </div>
-          <div>
-            <label htmlFor="area_cobertura" className="block text-sm font-medium text-gray-300 mb-2">Área de cobertura</label>
-            <input
-              id="area_cobertura"
-              name="area_cobertura"
-              type="text"
-              defaultValue={veiculo?.area_cobertura || ''}
-              placeholder="ex: Nacional, Regional, Digital"
-              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
-            />
-          </div>
+        {/* Website */}
+        <div>
+          <label htmlFor="website" className="block text-sm font-medium text-gray-300 mb-2">Website</label>
+          <input
+            id="website"
+            name="website"
+            type="url"
+            defaultValue={veiculo?.website || ''}
+            placeholder="https://..."
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
+          />
+        </div>
+
+        {/* Categoria editorial */}
+        <div>
+          <label htmlFor="area_cobertura" className="block text-sm font-medium text-gray-300 mb-2">
+            Categoria editorial
+          </label>
+          <select
+            id="area_cobertura"
+            name="area_cobertura"
+            defaultValue={veiculo?.area_cobertura || ''}
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500/60 transition-colors appearance-none"
+          >
+            <option value="">Selecione uma categoria…</option>
+            <optgroup label="Mídias de Orientação Liberal">
+              <option value="midia_pro_liberdade">Mídia Pró-Liberdade</option>
+              <option value="mainstream_pro_liberdade">Mainstream Pró-Liberdade</option>
+              <option value="midia_de_ideias">Mídia de Ideias (Think Tanks)</option>
+              <option value="documentarios_plataformas">Documentários / Plataformas</option>
+            </optgroup>
+            <optgroup label="Grande Mídia Nacional">
+              <option value="grandes_jornais">Grandes Jornais</option>
+              <option value="politica_bastidores">Política e Bastidores</option>
+              <option value="opiniao_analise">Opinião e Análise</option>
+              <option value="economia_negocios">Economia e Negócios</option>
+              <option value="judiciario_direito">Judiciário e Direito</option>
+            </optgroup>
+            <optgroup label="Audiovisual">
+              <option value="radio">Rádio</option>
+              <option value="tv_canais_noticia">TV e Canais de Notícia</option>
+            </optgroup>
+            <optgroup label="Cobertura Regional">
+              <option value="regional">Regional</option>
+            </optgroup>
+          </select>
         </div>
 
         {/* Contato */}
