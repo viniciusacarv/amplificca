@@ -15,6 +15,7 @@ const STATUS_OPTIONS = [
   { value: 'enviado_imprensa',    label: 'Enviado à imprensa', emoji: '📤', desc: 'Em contato com o veículo'         },
   { value: 'publicado',           label: 'Publicado',          emoji: '🎉', desc: 'Artigo está no ar'                },
   { value: 'rejeitado',           label: 'Recusado',           emoji: '❌', desc: 'Não seguirá para publicação'      },
+  { value: 'retirado_fellow',     label: 'Retirado pelo fellow', emoji: '↩️', desc: 'Submissão encerrada pelo autor' },
 ]
 
 const TENTATIVA_STATUS = {
