@@ -32,35 +32,35 @@ export async function registrarTentativa(formData: FormData) {
     return { error: 'Submissão e veículo são obrigatórios.' }
   }
 
-  // Busca fellow_id da submissão
+  // Busca fellow_id, titulo e status da submissão
   const { data: sub } = await supabase
     .from('submissoes')
-    .select('fellow_id, titulo')
+    .select('fellow_id, titulo, status')
     .eq('id', submissao_id)
     .single()
 
-  if (!sub) return { error: 'Submissão não encontrada.' }
+  if (!sub) redirect(`/painel/admin/imprensa/${submissao_id}?erro=submissao`)
 
   const { error } = await supabase
     .from('tentativas_placement')
     .insert({
       submissao_id,
-      fellow_id:       sub.fellow_id,
+      fellow_id:        sub.fellow_id,
       veiculo_id,
       responsavel_nome: responsavel_nome?.trim() || null,
-      status:          'aguardando',
-      notas:           notas?.trim() || null,
-      enviado_em:      enviado_em || new Date().toISOString(),
+      status:           'aguardando',
+      notas:            notas?.trim() || null,
+      enviado_em:       enviado_em || new Date().toISOString().slice(0, 10),
     })
 
-  if (error) return { error: 'Erro ao registrar tentativa.' }
+  if (error) redirect(`/painel/admin/imprensa/${submissao_id}?erro=tentativa`)
 
-  // Se a submissão ainda está em 'aprovado', avança para 'enviado_imprensa'
+  // Avança para 'enviado_imprensa' se ainda em 'aprovado'; sempre atualiza veiculo_id
+  const novoStatus = sub.status === 'aprovado' ? 'enviado_imprensa' : sub.status
   await supabase
     .from('submissoes')
-    .update({ status: 'enviado_imprensa', veiculo_id })
+    .update({ status: novoStatus, veiculo_id })
     .eq('id', submissao_id)
-    .eq('status', 'aprovado')
 
   revalidatePath(`/painel/admin/imprensa/${submissao_id}`)
   revalidatePath(`/painel/admin/fellows/${sub.fellow_id}`)
