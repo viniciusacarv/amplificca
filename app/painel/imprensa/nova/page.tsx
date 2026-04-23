@@ -44,7 +44,7 @@ export default function NovaSubmissaoPage() {
         </Link>
         <h1 className="text-2xl font-bold text-white">Enviar texto para avaliação</h1>
         <p className="text-gray-400 mt-1 text-sm">
-          Preencha as informações abaixo. A Sara retornará em até 2 dias úteis.
+          Preencha as informações abaixo. Nosso time retornará em até 2 dias úteis.
         </p>
       </div>
 
@@ -127,7 +127,7 @@ export default function NovaSubmissaoPage() {
         {/* Aviso de processo */}
         <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
           <p className="text-xs text-blue-300 leading-relaxed">
-            <span className="font-semibold">Como funciona:</span> A Sara receberá uma notificação assim que você enviar. Em até <strong>1 dia útil</strong> você receberá a confirmação de recebimento, e em até <strong>2 dias úteis</strong> terá o retorno com aprovação, pedido de ajustes ou recusa fundamentada.
+            <span className="font-semibold">Como funciona:</span> Nosso time receberá uma notificação assim que você enviar. Em até <strong>1 dia útil</strong> você receberá a confirmação de recebimento, e em até <strong>2 dias úteis</strong> terá o retorno com aprovação, pedido de ajustes ou recusa fundamentada.
           </p>
         </div>
 
