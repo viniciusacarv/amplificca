@@ -79,6 +79,19 @@ function Campo({ label, valor, link }: { label: string; valor?: string | null; l
   )
 }
 
+const TENTATIVA_STATUS: Record<string, { label: string; emoji: string; color: string }> = {
+  aguardando:  { label: 'Aguardando',  emoji: '⏳', color: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/20'  },
+  sem_retorno: { label: 'Sem retorno', emoji: '🔇', color: 'bg-orange-500/15 text-orange-400 border-orange-500/20'  },
+  negativo:    { label: 'Negativo',    emoji: '❌', color: 'bg-red-500/15 text-red-400 border-red-500/20'            },
+  publicado:   { label: 'Publicado',   emoji: '🎉', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20'},
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('pt-BR', {
+    day: '2-digit', month: 'short', year: 'numeric',
+  })
+}
+
 export default async function VisualizarVeiculoPage({
   params,
 }: {
@@ -95,6 +108,13 @@ export default async function VisualizarVeiculoPage({
     .single()
 
   if (!veiculo) redirect('/painel/admin/veiculos')
+
+  // Histórico de tentativas neste veículo
+  const { data: tentativas } = await supabase
+    .from('tentativas_placement')
+    .select('*, submissoes(id, titulo), fellows(id, nome, foto_url)')
+    .eq('veiculo_id', params.id)
+    .order('enviado_em', { ascending: false })
 
   const tipo = TIPO_CONFIG[veiculo.tipo_relacionamento] ?? TIPO_CONFIG.inexistente
   const tags: string[] = veiculo.tags ?? []
@@ -215,6 +235,79 @@ export default async function VisualizarVeiculoPage({
         <div className="pt-2 border-t border-gray-800">
           <Campo label="Próximos passos" valor={veiculo.proximos_passos} />
         </div>
+      </div>
+
+      {/* ── Histórico de tentativas ───────────────────────────────── */}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-sm font-semibold text-white">Histórico de tentativas</h2>
+          <span className="text-xs text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full">
+            {tentativas?.length ?? 0}
+          </span>
+        </div>
+
+        {!tentativas || tentativas.length === 0 ? (
+          <p className="text-sm text-gray-600 italic">Nenhuma tentativa registrada neste veículo ainda.</p>
+        ) : (
+          <div className="divide-y divide-gray-800">
+            {(tentativas as any[]).map((t) => {
+              const st = TENTATIVA_STATUS[t.status] ?? TENTATIVA_STATUS.aguardando
+              const fellow = t.fellows as any
+              const submissao = t.submissoes as any
+              return (
+                <div key={t.id} className="py-4 flex items-start gap-4">
+                  {/* Avatar do fellow */}
+                  <div className="flex-shrink-0">
+                    {fellow?.foto_url ? (
+                      <img src={fellow.foto_url} alt={fellow.nome} className="w-8 h-8 rounded-full object-cover border border-gray-700" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                        <span className="text-emerald-400 text-xs font-bold">{fellow?.nome?.charAt(0) ?? '?'}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Link
+                        href={`/painel/admin/fellows/${fellow?.id}`}
+                        className="text-sm font-medium text-white hover:text-emerald-400 transition-colors"
+                      >
+                        {fellow?.nome ?? '—'}
+                      </Link>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border ${st.color}`}>
+                        {st.emoji} {st.label}
+                      </span>
+                    </div>
+
+                    {submissao?.titulo && (
+                      <Link
+                        href={`/painel/admin/imprensa/${submissao.id}`}
+                        className="block text-xs text-gray-500 hover:text-gray-300 transition-colors mt-0.5 truncate"
+                      >
+                        {submissao.titulo} →
+                      </Link>
+                    )}
+
+                    {t.motivo && (
+                      <p className="text-xs text-orange-400 mt-1">{t.motivo}</p>
+                    )}
+                    {t.notas && (
+                      <p className="text-xs text-gray-500 mt-1">{t.notas}</p>
+                    )}
+                  </div>
+
+                  <div className="flex-shrink-0 text-right">
+                    <p className="text-xs text-gray-600">{formatDate(t.enviado_em)}</p>
+                    {t.responsavel_nome && (
+                      <p className="text-xs text-gray-700 mt-0.5">por {t.responsavel_nome}</p>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
     </div>
