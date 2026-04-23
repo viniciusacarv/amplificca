@@ -2,10 +2,8 @@
 // app/painel/components/ArticleSubmitCTA.tsx
 // CTA de submissão de artigos — efeito spotlight + identidade Amplifica
 
+import Link from 'next/link'
 import { useState, useRef } from 'react'
-
-const FORM_URL =
-  'https://docs.google.com/forms/d/e/1FAIpQLScVJ-khF3okK7ICUEg90dg1M117ahF2TLOofxzbwqoosl4iUw/viewform?usp=sharing&ouid=107264401382754200648'
 
 export default function ArticleSubmitCTA() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -106,10 +104,8 @@ export default function ArticleSubmitCTA() {
 
         {/* Botão CTA */}
         <div className="flex-shrink-0">
-          <a
-            href={FORM_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/painel/imprensa/nova"
             className="group/btn inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold text-black transition-all duration-300"
             style={{
               background: 'linear-gradient(135deg, #7ED321 0%, #5fb800 100%)',
@@ -142,7 +138,7 @@ export default function ArticleSubmitCTA() {
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
             </svg>
-          </a>
+          </Link>
 
           {/* Aviso prazo */}
           <p
