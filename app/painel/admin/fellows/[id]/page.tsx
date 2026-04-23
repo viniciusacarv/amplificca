@@ -68,11 +68,29 @@ export default async function FellowPerfilPage({
     .order('data_publicacao', { ascending: false })
 
   // Todas as tentativas de placement do fellow (histórico do CRM interno)
-  const { data: tentativas } = await supabase
+  const { data: tentativasRaw } = await supabase
     .from('tentativas_placement')
-    .select('*, submissoes(id, titulo), veiculos(id, nome, tipo_relacionamento)')
+    .select('*')
     .eq('fellow_id', params.id)
     .order('enviado_em', { ascending: false })
+
+  const submissaoIds = [...new Set(tentativasRaw?.map(t => t.submissao_id).filter(Boolean))]
+  const { data: subsData } = await supabase
+    .from('submissoes')
+    .select('id, titulo')
+    .in('id', submissaoIds.length ? submissaoIds : [''])
+
+  const veiculoIds = [...new Set(tentativasRaw?.map(t => t.veiculo_id).filter(Boolean))]
+  const { data: veiculosData } = await supabase
+    .from('veiculos')
+    .select('id, nome, tipo_relacionamento')
+    .in('id', veiculoIds.length ? veiculoIds : [''])
+
+  const tentativas = tentativasRaw?.map(t => ({
+    ...t,
+    submissoes: subsData?.find(s => String(s.id) === String(t.submissao_id)),
+    veiculos: veiculosData?.find(v => String(v.id) === String(t.veiculo_id))
+  })) || []
 
   // Métricas rápidas
   const totalSub       = submissoes?.length ?? 0

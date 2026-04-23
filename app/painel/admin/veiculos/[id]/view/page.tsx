@@ -110,11 +110,29 @@ export default async function VisualizarVeiculoPage({
   if (!veiculo) redirect('/painel/admin/veiculos')
 
   // Histórico de tentativas neste veículo (CRM interno do Amplifica)
-  const { data: tentativas } = await supabase
+  const { data: tentativasRaw } = await supabase
     .from('tentativas_placement')
-    .select('*, submissoes(id, titulo), fellows(id, nome, foto_url)')
+    .select('*')
     .eq('veiculo_id', params.id)
     .order('enviado_em', { ascending: false })
+
+  const submissaoIds = [...new Set(tentativasRaw?.map(t => t.submissao_id).filter(Boolean))]
+  const { data: subsData } = await supabase
+    .from('submissoes')
+    .select('id, titulo')
+    .in('id', submissaoIds.length ? submissaoIds : [''])
+
+  const fellowIds = [...new Set(tentativasRaw?.map(t => t.fellow_id).filter(Boolean))]
+  const { data: fellowsData } = await supabase
+    .from('fellows')
+    .select('id, nome, foto_url')
+    .in('id', fellowIds.length ? fellowIds : [0])
+
+  const tentativas = tentativasRaw?.map(t => ({
+    ...t,
+    submissoes: subsData?.find(s => String(s.id) === String(t.submissao_id)),
+    fellows: fellowsData?.find(f => String(f.id) === String(t.fellow_id))
+  })) || []
 
   // Artigos já publicados neste veículo — match por nome (tabela artigos usa texto livre)
   const { data: artigos } = await supabase

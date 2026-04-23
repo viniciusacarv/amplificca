@@ -72,11 +72,22 @@ export default async function AdminImprensaReviewPage({
     .order('nome')
 
   // Tentativas de placement desta submissão
-  const { data: tentativas } = await supabase
+  const { data: tentativasRaw } = await supabase
     .from('tentativas_placement')
-    .select('*, veiculos(id, nome, tipo_relacionamento)')
+    .select('*')
     .eq('submissao_id', params.id)
     .order('enviado_em', { ascending: false })
+
+  const veiculoIds = [...new Set(tentativasRaw?.map(t => t.veiculo_id).filter(Boolean))]
+  const { data: veiculosData } = await supabase
+    .from('veiculos')
+    .select('id, nome, tipo_relacionamento')
+    .in('id', veiculoIds.length ? veiculoIds : [''])
+
+  const tentativas = tentativasRaw?.map(t => ({
+    ...t,
+    veiculos: veiculosData?.find(v => String(v.id) === String(t.veiculo_id))
+  })) || []
 
   const fellow = sub.fellows as any
   const veiculoAtual = sub.veiculos as any
