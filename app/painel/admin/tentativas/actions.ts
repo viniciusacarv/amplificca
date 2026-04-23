@@ -55,18 +55,21 @@ export async function registrarTentativa(formData: FormData) {
 
   if (error) redirect(`/painel/admin/imprensa/${submissao_id}?erro=tentativa`)
 
-  // Avança para 'enviado_imprensa' se ainda em 'aprovado'; sempre atualiza veiculo_id
-  const novoStatus = sub.status === 'aprovado' ? 'enviado_imprensa' : sub.status
-  await supabase
-    .from('submissoes')
-    .update({ status: novoStatus, veiculo_id })
-    .eq('id', submissao_id)
+  // Avança status para 'enviado_imprensa' na PRIMEIRA tentativa.
+  // Para tentativas subsequentes, NÃO sobrescreve o veiculo_id da submissão —
+  // cada tentativa já é registrada em tentativas_placement como histórico.
+  if (sub.status === 'aprovado') {
+    await supabase
+      .from('submissoes')
+      .update({ status: 'enviado_imprensa', veiculo_id })
+      .eq('id', submissao_id)
+  }
 
-  revalidatePath(`/painel/admin/imprensa/${submissao_id}`)
-  revalidatePath(`/painel/admin/fellows/${sub.fellow_id}`)
-  revalidatePath('/painel/admin/veiculos')
-  revalidatePath(`/painel/admin/veiculos/${veiculo_id}`)
-  revalidatePath(`/painel/admin/veiculos/${veiculo_id}/view`)
+  revalidatePath(`/painel/admin/imprensa/${submissao_id}`, 'page')
+  revalidatePath(`/painel/admin/fellows/${sub.fellow_id}`, 'page')
+  revalidatePath('/painel/admin/veiculos', 'layout')
+  revalidatePath(`/painel/admin/veiculos/${veiculo_id}`, 'layout')
+  revalidatePath(`/painel/admin/veiculos/${veiculo_id}/view`, 'layout')
   redirect(`/painel/admin/imprensa/${submissao_id}?tentativa=1`)
 }
 
