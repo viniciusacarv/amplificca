@@ -13,6 +13,7 @@ const STATUS_CONFIG = {
   enviado_imprensa:    { label: 'Na imprensa',         emoji: '📤', color: 'bg-blue-500/15 text-blue-400 border-blue-500/20'       },
   publicado:           { label: 'Publicado',           emoji: '🎉', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20'},
   rejeitado:           { label: 'Recusado',            emoji: '❌', color: 'bg-red-500/15 text-red-400 border-red-500/20'         },
+  retirado_fellow:     { label: 'Retirado pelo fellow',emoji: '↩️', color: 'bg-gray-500/15 text-gray-300 border-gray-500/20'   },
 } as const
 
 function formatDate(iso: string) {
@@ -69,6 +70,7 @@ export default async function AdminImprensaPage({
     { key: 'enviado_imprensa',label: 'Na imprensa',  count: countMap['enviado_imprensa'] || 0 },
     { key: 'publicado',       label: 'Publicados',   count: countMap['publicado'] || 0       },
     { key: 'rejeitado',       label: 'Recusados',    count: countMap['rejeitado'] || 0       },
+    { key: 'retirado_fellow', label: 'Retirados',    count: countMap['retirado_fellow'] || 0 },
     { key: 'todos',           label: 'Todos',        count: contagens?.length || 0           },
   ]
 
