@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { retirarSubmissao } from './actions'
 
 const STATUS_CONFIG = {
   recebido: { label: 'Recebido', emoji: '📬', color: 'bg-blue-500/15 text-blue-400 border-blue-500/20' },
@@ -13,6 +14,7 @@ const STATUS_CONFIG = {
   enviado_imprensa: { label: 'Enviado à imprensa', emoji: '📤', color: 'bg-blue-500/15 text-blue-400 border-blue-500/20' },
   publicado: { label: 'Publicado', emoji: '🎉', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' },
   rejeitado: { label: 'Recusado', emoji: '❌', color: 'bg-red-500/15 text-red-400 border-red-500/20' },
+  retirado_fellow: { label: 'Retirado por você', emoji: '↩️', color: 'bg-gray-500/15 text-gray-300 border-gray-500/20' },
 } as const
 
 const PIPELINE_STEPS = [
@@ -46,7 +48,11 @@ function getPipelineIndex(status: string) {
   return PIPELINE_STEPS.findIndex((step) => step.key === status)
 }
 
-export default async function ImprensaPage() {
+export default async function ImprensaPage({
+  searchParams,
+}: {
+  searchParams: { retirada?: string }
+}) {
   const supabase = createClient()
   const {
     data: { user },
@@ -73,7 +79,11 @@ export default async function ImprensaPage() {
   })
 
   const totalPublicados = countByStatus.publicado || 0
-  const totalAtivos = (submissoes?.length || 0) - (countByStatus.rejeitado || 0) - totalPublicados
+  const totalAtivos =
+    (submissoes?.length || 0) -
+    (countByStatus.rejeitado || 0) -
+    (countByStatus.retirado_fellow || 0) -
+    totalPublicados
 
   return (
     <div className="space-y-8">
@@ -112,6 +122,12 @@ export default async function ImprensaPage() {
           <p className="text-xs text-gray-500 mt-1">em avaliação</p>
         </div>
       </div>
+
+      {searchParams?.retirada && (
+        <div className="rounded-xl border border-orange-500/20 bg-orange-500/10 p-4 text-sm text-orange-300">
+          Sua submissão foi retirada e a equipe do admin foi avisada.
+        </div>
+      )}
 
       <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
         <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-5">Pipeline de Status</h2>
@@ -173,6 +189,7 @@ export default async function ImprensaPage() {
               const st = STATUS_CONFIG[sub.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.recebido
               const currentStepIndex = getPipelineIndex(sub.status)
               const hasFeedback = Boolean(sub.feedback)
+              const canWithdraw = ['recebido', 'em_avaliacao', 'ajustes_solicitados', 'aprovado'].includes(sub.status)
 
               return (
                 <div
@@ -218,7 +235,7 @@ export default async function ImprensaPage() {
                     </div>
                   </div>
 
-                  {sub.status !== 'rejeitado' ? (
+                  {!['rejeitado', 'retirado_fellow'].includes(sub.status) ? (
                     <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
                       {PIPELINE_STEPS.map((step, index) => {
                         const isCurrent = sub.status === step.key
@@ -247,9 +264,13 @@ export default async function ImprensaPage() {
                         )
                       })}
                     </div>
-                  ) : (
+                  ) : sub.status === 'rejeitado' ? (
                     <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                       Esta submissão foi encerrada com recusa editorial.
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-gray-500/20 bg-gray-500/10 px-4 py-3 text-sm text-gray-300">
+                      Esta submissão foi retirada por você e encerrada no fluxo editorial.
                     </div>
                   )}
 
@@ -263,7 +284,7 @@ export default async function ImprensaPage() {
                           : 'border-blue-500/20 bg-blue-500/10 text-blue-200'
                       }`}
                     >
-                      <span className="font-semibold">Feedback Amplifica: </span>
+                      <span className="font-semibold">Atualização da Sara: </span>
                       {sub.feedback}
                     </div>
                   )}
@@ -280,6 +301,18 @@ export default async function ImprensaPage() {
                       </svg>
                       Ver artigo publicado
                     </a>
+                  )}
+
+                  {canWithdraw && (
+                    <form action={retirarSubmissao}>
+                      <input type="hidden" name="submissao_id" value={sub.id} />
+                      <button
+                        type="submit"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs font-medium text-red-300 transition-colors hover:bg-red-500/15 hover:text-red-200"
+                      >
+                        Retirar submissão
+                      </button>
+                    </form>
                   )}
                 </div>
               )
