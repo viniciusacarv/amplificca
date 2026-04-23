@@ -3,6 +3,7 @@
 // Server Actions do módulo de Assessoria de Imprensa (lado do fellow)
 
 import { createClient } from '@/lib/supabase-server'
+import { enviarEmailNovaSubmissao } from '@/lib/imprensa-email'
 import { redirect } from 'next/navigation'
 
 export async function criarSubmissao(formData: FormData) {
@@ -56,6 +57,18 @@ export async function criarSubmissao(formData: FormData) {
     mensagem: `${fellow.nome} enviou um ${tipo === 'artigo' ? 'artigo' : 'pitch'} para avaliação.`,
     submissao_id: submissao.id,
   })
+
+  try {
+    await enviarEmailNovaSubmissao({
+      submissaoId: submissao.id,
+      fellowNome: fellow.nome,
+      titulo: titulo.trim(),
+      tipo,
+      googleDocUrl: google_doc_url?.trim() || null,
+    })
+  } catch (emailError) {
+    console.error('Erro ao enviar e-mail de nova submissão:', emailError)
+  }
 
   redirect('/painel/imprensa')
 }
