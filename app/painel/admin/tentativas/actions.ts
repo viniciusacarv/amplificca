@@ -29,7 +29,7 @@ export async function registrarTentativa(formData: FormData) {
   const notas            = formData.get('notas') as string
 
   if (!submissao_id || !veiculo_id) {
-    return { error: 'Submissão e veículo são obrigatórios.' }
+    redirect(`/painel/admin/imprensa/${submissao_id || ''}?erro=tentativa`)
   }
 
   // Busca fellow_id, titulo e status da submissão
@@ -41,35 +41,38 @@ export async function registrarTentativa(formData: FormData) {
 
   if (!sub) redirect(`/painel/admin/imprensa/${submissao_id}?erro=submissao`)
 
+  const fellowId = (sub as any).fellow_id as string | null
+  const statusAtual = (sub as any).status as string
+
   const { error } = await supabase
     .from('tentativas_placement')
     .insert({
       submissao_id,
-      fellow_id:        sub.fellow_id,
+      fellow_id:        fellowId,
       veiculo_id,
       responsavel_nome: responsavel_nome?.trim() || null,
       status:           'aguardando',
       notas:            notas?.trim() || null,
-      enviado_em:       enviado_em || new Date().toISOString().slice(0, 10),
+      enviado_em:       enviado_em || new Date().toISOString(),
     })
 
   if (error) redirect(`/painel/admin/imprensa/${submissao_id}?erro=tentativa`)
 
-  // Avança status para 'enviado_imprensa' na PRIMEIRA tentativa.
-  // Para tentativas subsequentes, NÃO sobrescreve o veiculo_id da submissão —
-  // cada tentativa já é registrada em tentativas_placement como histórico.
-  if (sub.status === 'aprovado') {
+  // Avança para 'enviado_imprensa' na primeira tentativa (quando status é 'aprovado').
+  // Tentativas subsequentes preservam o histórico sem sobrescrever o veículo principal.
+  if (statusAtual === 'aprovado') {
     await supabase
       .from('submissoes')
       .update({ status: 'enviado_imprensa', veiculo_id })
       .eq('id', submissao_id)
   }
 
-  revalidatePath(`/painel/admin/imprensa/${submissao_id}`, 'page')
-  revalidatePath(`/painel/admin/fellows/${sub.fellow_id}`, 'page')
-  revalidatePath('/painel/admin/veiculos', 'layout')
-  revalidatePath(`/painel/admin/veiculos/${veiculo_id}`, 'layout')
-  revalidatePath(`/painel/admin/veiculos/${veiculo_id}/view`, 'layout')
+  revalidatePath(`/painel/admin/imprensa/${submissao_id}`)
+  revalidatePath('/painel/admin/imprensa')
+  revalidatePath('/painel/admin/veiculos')
+  revalidatePath(`/painel/admin/veiculos/${veiculo_id}`)
+  revalidatePath(`/painel/admin/veiculos/${veiculo_id}/view`)
+  if (fellowId) revalidatePath(`/painel/admin/fellows/${fellowId}`)
   redirect(`/painel/admin/imprensa/${submissao_id}?tentativa=1`)
 }
 
