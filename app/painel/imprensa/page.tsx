@@ -123,6 +123,10 @@ export default async function ImprensaPage({
         </div>
       </div>
 
+      <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-4 text-sm text-blue-200">
+        Vocë pode retirar sua submissão enquanto ela ainda estiver em análise. Após a aprovação, essa opção deixa de ficar disponível.
+      </div>
+
       {searchParams?.retirada && (
         <div className="rounded-xl border border-orange-500/20 bg-orange-500/10 p-4 text-sm text-orange-300">
           Sua submissão foi retirada e a equipe do admin foi avisada.
@@ -189,7 +193,7 @@ export default async function ImprensaPage({
               const st = STATUS_CONFIG[sub.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.recebido
               const currentStepIndex = getPipelineIndex(sub.status)
               const hasFeedback = Boolean(sub.feedback)
-              const canWithdraw = ['recebido', 'em_avaliacao', 'ajustes_solicitados', 'aprovado'].includes(sub.status)
+              const canWithdraw = ['recebido', 'em_avaliacao', 'ajustes_solicitados'].includes(sub.status)
 
               return (
                 <div
