@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { salvarVeiculo } from '../actions'
+import { DeleteVeiculoButton } from './DeleteVeiculoButton'
 
 const CATEGORIAS = [
   { group: 'Mídias de Orientação Liberal', options: [
@@ -24,8 +25,12 @@ const CATEGORIAS = [
     { value: 'radio',            label: 'Rádio' },
     { value: 'tv_canais_noticia',label: 'TV e Canais de Notícia' },
   ]},
-  { group: 'Cobertura Regional', options: [
-    { value: 'regional', label: 'Regional' },
+  { group: 'Abrangência Geográfica', options: [
+    { value: 'municipal',     label: 'Municipal'     },
+    { value: 'estadual',      label: 'Estadual'      },
+    { value: 'regional',      label: 'Regional'      },
+    { value: 'nacional',      label: 'Nacional'      },
+    { value: 'internacional', label: 'Internacional' },
   ]},
 ]
 
@@ -427,6 +432,15 @@ export default async function FichaVeiculoPage({
             </Link>
           </div>
         </form>
+
+        {/* ── Zona de perigo: excluir veículo ──────────────────────── */}
+        <div className="mt-8 border border-red-500/20 rounded-2xl p-6 bg-red-500/5">
+          <h3 className="text-sm font-semibold text-red-400 mb-1">Zona de perigo</h3>
+          <p className="text-xs text-gray-500 mb-4">
+            Excluir este veículo o remove permanentemente do CRM. Esta ação não pode ser desfeita.
+          </p>
+          <DeleteVeiculoButton veiculoId={veiculo.id} veiculoNome={veiculo.nome} />
+        </div>
       </div>
     </div>
   )
