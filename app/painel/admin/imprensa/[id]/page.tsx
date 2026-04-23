@@ -228,58 +228,75 @@ export default async function AdminImprensaReviewPage({
             </div>
           </div>
 
-          {/* Veículo atual */}
-          {veiculoAtual && (
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-              <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-3">Veículo selecionado</h3>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-white">{veiculoAtual.nome}</p>
-                <Link href={`/painel/admin/veiculos/${veiculoAtual.id}/view`} className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
-                  Ver ficha →
-                </Link>
-              </div>
-            </div>
-          )}
-
           {/* ── Tentativas de placement ──────────────────────────── */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-sm font-semibold text-white">Tentativas de placement</h3>
+              <div>
+                <h3 className="text-sm font-semibold text-white">Tentativas de placement</h3>
+                {veiculoAtual && (
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    Veículo principal:{' '}
+                    <Link href={`/painel/admin/veiculos/${veiculoAtual.id}/view`} className="text-gray-400 hover:text-gray-200 transition-colors">
+                      {veiculoAtual.nome} →
+                    </Link>
+                  </p>
+                )}
+              </div>
               <span className="text-xs text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full">
                 {tentativas?.length ?? 0}
               </span>
             </div>
 
-            {/* Timeline de tentativas */}
+            {/* Log de tentativas — ordem cronológica crescente (mais antiga primeiro) */}
             {tentativas && tentativas.length > 0 ? (
-              <div className="space-y-4 mb-6">
-                {(tentativas as any[]).map((t) => {
-                  const st = TENTATIVA_STATUS[t.status as keyof typeof TENTATIVA_STATUS] ?? TENTATIVA_STATUS.aguardando
-                  const vt = t.veiculos as any
-                  return (
-                    <div key={t.id} className="border border-gray-800 rounded-xl p-4 space-y-3">
-                      <div className="flex items-start justify-between gap-3 flex-wrap">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-white">{vt?.nome ?? '—'}</span>
-                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border ${st.color}`}>
-                            {st.emoji} {st.label}
-                          </span>
-                        </div>
-                        <span className="text-xs text-gray-600 flex-shrink-0">
-                          Enviado {formatDate(t.enviado_em)}
-                          {t.respondido_em ? ` · Resp. ${formatDate(t.respondido_em)}` : ''}
-                        </span>
-                      </div>
+              <div className="relative mb-6">
+                {/* linha vertical do timeline */}
+                <div className="absolute left-3 top-2 bottom-2 w-px bg-gray-800" />
 
-                      {t.responsavel_nome && (
-                        <p className="text-xs text-gray-500">Por {t.responsavel_nome}</p>
-                      )}
-                      {t.notas && (
-                        <p className="text-xs text-gray-400 leading-relaxed">{t.notas}</p>
-                      )}
-                      {t.motivo && (
-                        <p className="text-xs text-orange-400 leading-relaxed">Motivo: {t.motivo}</p>
-                      )}
+                <div className="space-y-0">
+                  {[...(tentativas as any[])].reverse().map((t, idx, arr) => {
+                    const st = TENTATIVA_STATUS[t.status as keyof typeof TENTATIVA_STATUS] ?? TENTATIVA_STATUS.aguardando
+                    const vt = t.veiculos as any
+                    const isLast = idx === arr.length - 1
+                    return (
+                      <div key={t.id} className={`relative pl-8 ${isLast ? 'pb-0' : 'pb-5'}`}>
+                        {/* ponto no timeline */}
+                        <div className={`absolute left-0 top-1.5 w-6 h-6 rounded-full border-2 flex items-center justify-center text-[10px] ${
+                          t.status === 'publicado'   ? 'border-emerald-500 bg-emerald-500/20' :
+                          t.status === 'negativo'    ? 'border-red-500 bg-red-500/20' :
+                          t.status === 'sem_retorno' ? 'border-orange-500 bg-orange-500/20' :
+                          'border-yellow-500 bg-yellow-500/20'
+                        }`}>
+                          {st.emoji}
+                        </div>
+
+                        <div className="border border-gray-800 rounded-xl p-3 space-y-2">
+                          {/* cabeçalho: veículo + status + data */}
+                          <div className="flex items-start justify-between gap-2 flex-wrap">
+                            <div className="flex items-center gap-2 flex-wrap min-w-0">
+                              <span className="text-sm font-semibold text-white truncate">{vt?.nome ?? '—'}</span>
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border flex-shrink-0 ${st.color}`}>
+                                {st.emoji} {st.label}
+                              </span>
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              <p className="text-xs text-gray-500">{formatDateTime(t.enviado_em)}</p>
+                              {t.respondido_em && (
+                                <p className="text-xs text-gray-600">Resp. {formatDate(t.respondido_em)}</p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* metadados */}
+                          {t.responsavel_nome && (
+                            <p className="text-xs text-gray-600">por {t.responsavel_nome}</p>
+                          )}
+                          {t.notas && (
+                            <p className="text-xs text-gray-400 leading-relaxed">{t.notas}</p>
+                          )}
+                          {t.motivo && (
+                            <p className="text-xs text-orange-400 leading-relaxed">↳ {t.motivo}</p>
+                          )}
 
                       {/* Form de atualização de resultado — só para tentativas ainda abertas */}
                       {t.status === 'aguardando' && (
@@ -330,9 +347,11 @@ export default async function AdminImprensaReviewPage({
                           </button>
                         </form>
                       )}
-                    </div>
-                  )
-                })}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             ) : (
               <p className="text-sm text-gray-600 italic mb-5">Nenhuma tentativa registrada ainda.</p>
