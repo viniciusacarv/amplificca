@@ -5,6 +5,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { enviarEmailNovaSubmissao } from '@/lib/imprensa-email'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 
 export async function criarSubmissao(formData: FormData) {
   const supabase = createClient()
@@ -71,6 +72,75 @@ export async function criarSubmissao(formData: FormData) {
   }
 
   redirect('/painel/imprensa')
+}
+
+export async function retirarSubmissao(formData: FormData) {
+  const supabase = createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/painel/login')
+
+  const { data: fellow } = await supabase
+    .from('fellows')
+    .select('id, nome')
+    .eq('email', user.email)
+    .maybeSingle()
+
+  if (!fellow) {
+    return { error: 'Perfil de fellow não encontrado. Contacte o administrador.' }
+  }
+
+  const submissaoId = formData.get('submissao_id') as string
+  if (!submissaoId) {
+    return { error: 'Submissão inválida.' }
+  }
+
+  const { data: submissao } = await supabase
+    .from('submissoes')
+    .select('id, titulo, fellow_id, status')
+    .eq('id', submissaoId)
+    .eq('fellow_id', fellow.id)
+    .single()
+
+  if (!submissao) {
+    return { error: 'Submissão não encontrada.' }
+  }
+
+  if (['publicado', 'rejeitado', 'retirado_fellow'].includes(submissao.status)) {
+    return { error: 'Esta submissão não pode mais ser retirada.' }
+  }
+
+  const { error } = await supabase
+    .from('submissoes')
+    .update({
+      status: 'retirado_fellow',
+    })
+    .eq('id', submissaoId)
+    .eq('fellow_id', fellow.id)
+
+  if (error) {
+    return { error: 'Erro ao retirar submissão. Tente novamente.' }
+  }
+
+  await supabase.from('notificacoes').insert({
+    fellow_id: null,
+    is_admin: true,
+    tipo: 'retirado_fellow',
+    titulo: 'Submissão retirada pelo fellow',
+    mensagem: `${fellow.nome} retirou a submissão "${submissao.titulo}".`,
+    submissao_id: submissaoId,
+  })
+
+  revalidatePath('/painel/imprensa')
+  revalidatePath('/painel/admin/imprensa')
+  revalidatePath(`/painel/admin/imprensa/${submissaoId}`)
+  revalidatePath('/painel/admin/notificacoes')
+  revalidatePath('/painel/admin/fellows')
+  revalidatePath(`/painel/admin/fellows/${fellow.id}`)
+
+  redirect('/painel/imprensa?retirada=1')
 }
 
 export async function marcarNotificacaoLida(notificacaoId: string) {
