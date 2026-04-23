@@ -1,10 +1,11 @@
 // app/painel/admin/imprensa/[id]/page.tsx
-// Painel de revisão individual — admin avalia e toma decisão sobre a submissão
+// Painel de revisão individual — avalia submissão e gerencia tentativas de placement
 
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { atualizarSubmissao } from '../actions'
+import { registrarTentativa, atualizarTentativa } from '../../tentativas/actions'
 
 const STATUS_OPTIONS = [
   { value: 'recebido',            label: 'Recebido',           emoji: '📬', desc: 'Aguardando avaliação'              },
@@ -16,6 +17,13 @@ const STATUS_OPTIONS = [
   { value: 'rejeitado',           label: 'Recusado',           emoji: '❌', desc: 'Não seguirá para publicação'      },
 ]
 
+const TENTATIVA_STATUS = {
+  aguardando:   { label: 'Aguardando',   emoji: '⏳', color: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/20' },
+  sem_retorno:  { label: 'Sem retorno',  emoji: '🔇', color: 'bg-orange-500/15 text-orange-400 border-orange-500/20' },
+  negativo:     { label: 'Negativo',     emoji: '❌', color: 'bg-red-500/15 text-red-400 border-red-500/20'          },
+  publicado:    { label: 'Publicado',    emoji: '🎉', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' },
+} as const
+
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', {
     day: '2-digit', month: 'short', year: 'numeric',
@@ -23,12 +31,23 @@ function formatDateTime(iso: string) {
   })
 }
 
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('pt-BR', {
+    day: '2-digit', month: 'short', year: 'numeric',
+  })
+}
+
+function toInputDate(iso?: string | null) {
+  if (!iso) return ''
+  return iso.slice(0, 10)
+}
+
 export default async function AdminImprensaReviewPage({
   params,
   searchParams,
 }: {
   params: { id: string }
-  searchParams: { sucesso?: string }
+  searchParams: { sucesso?: string; tentativa?: string; atualizado?: string }
 }) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -42,15 +61,25 @@ export default async function AdminImprensaReviewPage({
 
   if (!sub) redirect('/painel/admin/imprensa')
 
-  // Lista de veículos para o select
+  // Lista de veículos ativos para selects
   const { data: veiculos } = await supabase
     .from('veiculos')
     .select('id, nome, tipo_relacionamento')
     .eq('ativo', true)
     .order('nome')
 
+  // Tentativas de placement desta submissão
+  const { data: tentativas } = await supabase
+    .from('tentativas_placement')
+    .select('*, veiculos(id, nome, tipo_relacionamento)')
+    .eq('submissao_id', params.id)
+    .order('enviado_em', { ascending: false })
+
   const fellow = sub.fellows as any
   const veiculoAtual = sub.veiculos as any
+  const podeTentativa = ['aprovado', 'enviado_imprensa', 'publicado'].includes(sub.status)
+
+  const today = new Date().toISOString().slice(0, 10)
 
   return (
     <div className="space-y-6">
@@ -64,10 +93,20 @@ export default async function AdminImprensaReviewPage({
         <span className="text-gray-400 truncate max-w-xs">{sub.titulo}</span>
       </div>
 
-      {/* ── Sucesso ──────────────────────────────────────────────── */}
+      {/* ── Alertas de sucesso ───────────────────────────────────── */}
       {searchParams.sucesso && (
         <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-emerald-400 text-sm">
           ✅ Submissão atualizada e fellow notificado com sucesso.
+        </div>
+      )}
+      {searchParams.tentativa && (
+        <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-blue-400 text-sm">
+          📋 Tentativa de placement registrada com sucesso.
+        </div>
+      )}
+      {searchParams.atualizado && (
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-emerald-400 text-sm">
+          ✅ Resultado da tentativa atualizado.
         </div>
       )}
 
@@ -91,7 +130,6 @@ export default async function AdminImprensaReviewPage({
 
             <h2 className="text-lg font-bold text-white leading-snug mb-4">{sub.titulo}</h2>
 
-            {/* Google Doc */}
             {sub.google_doc_url ? (
               <a
                 href={sub.google_doc_url}
@@ -108,7 +146,6 @@ export default async function AdminImprensaReviewPage({
               <p className="text-sm text-gray-600 italic">Nenhum documento anexado.</p>
             )}
 
-            {/* Feedback atual */}
             {sub.feedback && (
               <div className="mt-4 p-3 bg-gray-800 rounded-xl border border-gray-700">
                 <p className="text-xs text-gray-500 mb-1">Último feedback:</p>
@@ -116,7 +153,6 @@ export default async function AdminImprensaReviewPage({
               </div>
             )}
 
-            {/* Artigo publicado */}
             {sub.artigo_url && (
               <div className="mt-4">
                 <a
@@ -134,9 +170,19 @@ export default async function AdminImprensaReviewPage({
             )}
           </div>
 
-          {/* Card do fellow */}
+          {/* Card do fellow — com link para o perfil */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-4">Fellow</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs text-gray-500 uppercase tracking-wider">Fellow</h3>
+              {fellow?.id && (
+                <Link
+                  href={`/painel/admin/fellows/${fellow.id}`}
+                  className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+                >
+                  Ver perfil completo →
+                </Link>
+              )}
+            </div>
             <div className="flex items-center gap-3">
               {fellow?.foto_url ? (
                 <img src={fellow.foto_url} alt={fellow.nome} className="w-10 h-10 rounded-full object-cover border border-gray-700" />
@@ -159,15 +205,181 @@ export default async function AdminImprensaReviewPage({
               <h3 className="text-xs text-gray-500 uppercase tracking-wider mb-3">Veículo selecionado</h3>
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-white">{veiculoAtual.nome}</p>
-                <Link href="/painel/admin/veiculos" className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
-                  Ver CRM →
+                <Link href={`/painel/admin/veiculos/${veiculoAtual.id}/view`} className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
+                  Ver ficha →
                 </Link>
               </div>
             </div>
           )}
+
+          {/* ── Tentativas de placement ──────────────────────────── */}
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-sm font-semibold text-white">Tentativas de placement</h3>
+              <span className="text-xs text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full">
+                {tentativas?.length ?? 0}
+              </span>
+            </div>
+
+            {/* Timeline de tentativas */}
+            {tentativas && tentativas.length > 0 ? (
+              <div className="space-y-4 mb-6">
+                {(tentativas as any[]).map((t) => {
+                  const st = TENTATIVA_STATUS[t.status as keyof typeof TENTATIVA_STATUS] ?? TENTATIVA_STATUS.aguardando
+                  const vt = t.veiculos as any
+                  return (
+                    <div key={t.id} className="border border-gray-800 rounded-xl p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-3 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-white">{vt?.nome ?? '—'}</span>
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border ${st.color}`}>
+                            {st.emoji} {st.label}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-600 flex-shrink-0">
+                          Enviado {formatDate(t.enviado_em)}
+                          {t.respondido_em ? ` · Resp. ${formatDate(t.respondido_em)}` : ''}
+                        </span>
+                      </div>
+
+                      {t.responsavel_nome && (
+                        <p className="text-xs text-gray-500">Por {t.responsavel_nome}</p>
+                      )}
+                      {t.notas && (
+                        <p className="text-xs text-gray-400 leading-relaxed">{t.notas}</p>
+                      )}
+                      {t.motivo && (
+                        <p className="text-xs text-orange-400 leading-relaxed">Motivo: {t.motivo}</p>
+                      )}
+
+                      {/* Form de atualização de resultado — só para tentativas ainda abertas */}
+                      {t.status === 'aguardando' && (
+                        <form action={atualizarTentativa} className="pt-3 border-t border-gray-800 space-y-3">
+                          <input type="hidden" name="tentativa_id" value={t.id} />
+                          <p className="text-xs text-gray-500 uppercase tracking-wider">Atualizar resultado</p>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            {(['sem_retorno', 'negativo', 'publicado'] as const).map((s) => {
+                              const opt = TENTATIVA_STATUS[s]
+                              return (
+                                <label key={s} className="cursor-pointer">
+                                  <input type="radio" name="status" value={s} className="sr-only peer" />
+                                  <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border cursor-pointer peer-checked:ring-1 peer-checked:ring-emerald-500 ${opt.color} transition-all`}>
+                                    {opt.emoji} {opt.label}
+                                  </span>
+                                </label>
+                              )
+                            })}
+                          </div>
+
+                          <input
+                            name="respondido_em"
+                            type="date"
+                            defaultValue={today}
+                            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/60 transition-colors"
+                          />
+
+                          <input
+                            name="artigo_url"
+                            type="url"
+                            placeholder="URL do artigo (só se publicado)"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
+                          />
+
+                          <textarea
+                            name="motivo"
+                            rows={2}
+                            placeholder="Motivo da negativa ou observações…"
+                            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-emerald-500/60 transition-colors"
+                          />
+
+                          <button
+                            type="submit"
+                            className="w-full bg-gray-700 hover:bg-gray-600 text-white text-xs font-semibold py-2 rounded-xl transition-colors"
+                          >
+                            Salvar resultado
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600 italic mb-5">Nenhuma tentativa registrada ainda.</p>
+            )}
+
+            {/* Formulário: Nova tentativa */}
+            {podeTentativa && (
+              <div className="border-t border-gray-800 pt-5">
+                <p className="text-xs text-gray-500 uppercase tracking-wider mb-4">Registrar nova tentativa</p>
+                <form action={registrarTentativa} className="space-y-3">
+                  <input type="hidden" name="submissao_id" value={sub.id} />
+
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1.5">Veículo <span className="text-red-400">*</span></label>
+                    <select
+                      name="veiculo_id"
+                      required
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/60 transition-colors"
+                    >
+                      <option value="">— Selecionar veículo —</option>
+                      {(veiculos as any[])?.map((v) => (
+                        <option key={v.id} value={v.id}>{v.nome}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1.5">Responsável</label>
+                      <input
+                        name="responsavel_nome"
+                        type="text"
+                        placeholder="Nome de quem enviou"
+                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1.5">Data de envio</label>
+                      <input
+                        name="enviado_em"
+                        type="date"
+                        defaultValue={today}
+                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/60 transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1.5">Observações</label>
+                    <textarea
+                      name="notas"
+                      rows={2}
+                      placeholder="Canal usado, detalhes do envio, contexto…"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-emerald-500/60 transition-colors"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 text-sm font-semibold py-2.5 rounded-xl transition-colors"
+                  >
+                    📋 Registrar tentativa
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {!podeTentativa && (
+              <p className="text-xs text-gray-600 italic">
+                Tentativas de placement ficam disponíveis quando a submissão é aprovada.
+              </p>
+            )}
+          </div>
         </div>
 
-        {/* ── Coluna direita: painel de ação ────────────────────────── */}
+        {/* ── Coluna direita: painel de ação editorial ─────────────── */}
         <div className="lg:col-span-2">
           <form action={atualizarSubmissao} className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-5 sticky top-20">
             <h3 className="text-sm font-semibold text-white">Atualizar submissão</h3>
@@ -236,7 +448,7 @@ export default async function AdminImprensaReviewPage({
                 name="feedback"
                 rows={4}
                 defaultValue={sub.feedback || ''}
-                placeholder="Explique sua decisão, oriente o fellow sobre os próximos passos ou informe o status de envio..."
+                placeholder="Explique sua decisão, oriente o fellow sobre os próximos passos…"
                 className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-emerald-500/60 transition-colors"
               />
               <p className="text-xs text-gray-600 mt-1">Obrigatório para ajustes e recusa. Visível para o fellow.</p>
@@ -257,7 +469,6 @@ export default async function AdminImprensaReviewPage({
               />
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               className="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-black font-semibold text-sm py-2.5 rounded-xl transition-all"
