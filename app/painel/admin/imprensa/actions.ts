@@ -27,9 +27,10 @@ export async function atualizarSubmissao(formData: FormData) {
   const nextStatus  = formData.get('next_status') as string | null
   const currentStatus = formData.get('status') as string | null
   const status      = (nextStatus || currentStatus || '').trim()
-  const feedback    = formData.get('feedback') as string
-  const veiculo_id  = formData.get('veiculo_id') as string || null
-  const artigo_url  = formData.get('artigo_url') as string || null
+  const feedback          = formData.get('feedback') as string
+  const veiculo_id        = formData.get('veiculo_id') as string || null
+  const artigo_url        = formData.get('artigo_url') as string || null
+  const doc_imprensa_url  = formData.get('doc_imprensa_url') as string || null
 
   if (!status) return { error: 'Status inválido.' }
 
@@ -51,9 +52,10 @@ export async function atualizarSubmissao(formData: FormData) {
     .from('submissoes')
     .update({
       status,
-      feedback:    feedback?.trim() || null,
-      veiculo_id:  veiculo_id || null,
-      artigo_url:  artigo_url?.trim() || null,
+      feedback:          feedback?.trim() || null,
+      veiculo_id:        veiculo_id || null,
+      artigo_url:        artigo_url?.trim() || null,
+      doc_imprensa_url:  doc_imprensa_url?.trim() || null,
     })
     .eq('id', submissaoId)
 
