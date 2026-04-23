@@ -396,6 +396,7 @@ export default async function AdminImprensaReviewPage({
                     type="submit"
                     name="next_status"
                     value={opt.value}
+                    formNoValidate
                     className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all hover:border-gray-600 ${
                       sub.status === opt.value
                         ? 'bg-emerald-500/10 border-emerald-500/30'
