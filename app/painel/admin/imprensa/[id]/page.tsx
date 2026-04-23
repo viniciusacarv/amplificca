@@ -131,21 +131,37 @@ export default async function AdminImprensaReviewPage({
 
             <h2 className="text-lg font-bold text-white leading-snug mb-4">{sub.titulo}</h2>
 
-            {sub.google_doc_url ? (
-              <a
-                href={sub.google_doc_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 text-blue-400 text-sm px-4 py-2.5 rounded-xl font-medium transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                </svg>
-                Abrir Google Doc
-              </a>
-            ) : (
-              <p className="text-sm text-gray-600 italic">Nenhum documento anexado.</p>
-            )}
+            <div className="flex flex-wrap gap-2">
+              {sub.google_doc_url ? (
+                <a
+                  href={sub.google_doc_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 hover:bg-blue-500/20 text-blue-400 text-sm px-4 py-2.5 rounded-xl font-medium transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                  </svg>
+                  Doc do fellow
+                </a>
+              ) : (
+                <p className="text-sm text-gray-600 italic">Nenhum documento anexado.</p>
+              )}
+
+              {sub.doc_imprensa_url && (
+                <a
+                  href={sub.doc_imprensa_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 text-purple-400 text-sm px-4 py-2.5 rounded-xl font-medium transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                  </svg>
+                  Doc para imprensa
+                </a>
+              )}
+            </div>
 
             {sub.feedback && (
               <div className="mt-4 p-3 bg-gray-800 rounded-xl border border-gray-700">
@@ -439,6 +455,22 @@ export default async function AdminImprensaReviewPage({
                   <option key={v.id} value={v.id}>{v.nome}</option>
                 ))}
               </select>
+            </div>
+
+            {/* Doc para imprensa */}
+            <div>
+              <label htmlFor="doc_imprensa_url" className="block text-xs text-gray-500 uppercase tracking-wider mb-2">
+                Doc para assessor de imprensa
+              </label>
+              <input
+                id="doc_imprensa_url"
+                name="doc_imprensa_url"
+                type="url"
+                defaultValue={sub.doc_imprensa_url || ''}
+                placeholder="https://docs.google.com/..."
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/60 transition-colors"
+              />
+              <p className="text-xs text-gray-600 mt-1">Link do Google Docs em branco compartilhado com o assessor de imprensa.</p>
             </div>
 
             {/* Feedback */}
