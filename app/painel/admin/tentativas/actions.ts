@@ -28,9 +28,8 @@ export async function registrarTentativa(formData: FormData) {
   const enviado_em       = formData.get('enviado_em') as string
   const notas            = formData.get('notas') as string
 
-  if (!submissao_id || !veiculo_id) {
-    redirect(`/painel/admin/imprensa/${submissao_id || ''}?erro=tentativa`)
-  }
+  if (!submissao_id) redirect('/painel/admin/imprensa')
+  if (!veiculo_id)   redirect(`/painel/admin/imprensa/${submissao_id}?erro=tentativa`)
 
   // Busca fellow_id, titulo e status da submissão
   const { data: sub } = await supabase
@@ -41,14 +40,14 @@ export async function registrarTentativa(formData: FormData) {
 
   if (!sub) redirect(`/painel/admin/imprensa/${submissao_id}?erro=submissao`)
 
-  const fellowId = (sub as any).fellow_id as string | null
-  const statusAtual = (sub as any).status as string
+  const fellow_id   = sub.fellow_id   as string | null
+  const statusAtual = sub.status      as string
 
   const { error } = await supabase
     .from('tentativas_placement')
     .insert({
       submissao_id,
-      fellow_id:        fellowId,
+      fellow_id,
       veiculo_id,
       responsavel_nome: responsavel_nome?.trim() || null,
       status:           'aguardando',
@@ -58,8 +57,8 @@ export async function registrarTentativa(formData: FormData) {
 
   if (error) redirect(`/painel/admin/imprensa/${submissao_id}?erro=tentativa`)
 
-  // Avança para 'enviado_imprensa' na primeira tentativa (quando status é 'aprovado').
-  // Tentativas subsequentes preservam o histórico sem sobrescrever o veículo principal.
+  // Avança para 'enviado_imprensa' na primeira tentativa.
+  // Tentativas subsequentes NÃO sobrescrevem o veículo principal da submissão.
   if (statusAtual === 'aprovado') {
     await supabase
       .from('submissoes')
@@ -72,7 +71,7 @@ export async function registrarTentativa(formData: FormData) {
   revalidatePath('/painel/admin/veiculos')
   revalidatePath(`/painel/admin/veiculos/${veiculo_id}`)
   revalidatePath(`/painel/admin/veiculos/${veiculo_id}/view`)
-  if (fellowId) revalidatePath(`/painel/admin/fellows/${fellowId}`)
+  if (fellow_id) revalidatePath(`/painel/admin/fellows/${fellow_id}`)
   redirect(`/painel/admin/imprensa/${submissao_id}?tentativa=1`)
 }
 
@@ -80,13 +79,13 @@ export async function registrarTentativa(formData: FormData) {
 export async function atualizarTentativa(formData: FormData) {
   const { supabase } = await assertAdmin()
 
-  const tentativa_id   = formData.get('tentativa_id') as string
-  const status         = formData.get('status') as string
-  const motivo         = formData.get('motivo') as string
-  const respondido_em  = formData.get('respondido_em') as string
-  const notas          = formData.get('notas') as string
+  const tentativa_id  = formData.get('tentativa_id') as string
+  const status        = formData.get('status') as string
+  const motivo        = formData.get('motivo') as string
+  const respondido_em = formData.get('respondido_em') as string
+  const notas         = formData.get('notas') as string
 
-  if (!tentativa_id || !status) return { error: 'Dados inválidos.' }
+  if (!tentativa_id) redirect('/painel/admin/imprensa')
 
   // Busca a tentativa para pegar submissao_id, fellow_id, veiculo_id
   const { data: tentativa } = await supabase
@@ -95,7 +94,12 @@ export async function atualizarTentativa(formData: FormData) {
     .eq('id', tentativa_id)
     .single()
 
-  if (!tentativa) return { error: 'Tentativa não encontrada.' }
+  if (!tentativa) redirect('/painel/admin/imprensa')
+
+  const submissao_id = tentativa.submissao_id as string
+
+  // Se nenhum status foi selecionado nos radio buttons, volta sem alterar
+  if (!status) redirect(`/painel/admin/imprensa/${submissao_id}?atualizado=1`)
 
   const { error } = await supabase
     .from('tentativas_placement')
@@ -107,7 +111,7 @@ export async function atualizarTentativa(formData: FormData) {
     })
     .eq('id', tentativa_id)
 
-  if (error) return { error: 'Erro ao atualizar tentativa.' }
+  if (error) redirect(`/painel/admin/imprensa/${submissao_id}?erro=tentativa`)
 
   // Se publicado: atualiza submissão e notifica fellow
   if (status === 'publicado') {
@@ -116,13 +120,12 @@ export async function atualizarTentativa(formData: FormData) {
     await supabase
       .from('submissoes')
       .update({ status: 'publicado', artigo_url: artigo_url?.trim() || null })
-      .eq('id', tentativa.submissao_id)
+      .eq('id', submissao_id)
 
-    // Busca título da submissão para a notificação
     const { data: sub } = await supabase
       .from('submissoes')
       .select('titulo')
-      .eq('id', tentativa.submissao_id)
+      .eq('id', submissao_id)
       .single()
 
     if (sub && tentativa.fellow_id) {
@@ -132,15 +135,16 @@ export async function atualizarTentativa(formData: FormData) {
         tipo:         'publicado',
         titulo:       'Texto publicado! 🎉',
         mensagem:     `Seu texto "${sub.titulo}" foi publicado. Parabéns!`,
-        submissao_id: tentativa.submissao_id,
+        submissao_id,
       })
     }
   }
 
-  revalidatePath(`/painel/admin/imprensa/${tentativa.submissao_id}`)
-  revalidatePath(`/painel/admin/fellows/${tentativa.fellow_id}`)
+  revalidatePath(`/painel/admin/imprensa/${submissao_id}`)
+  revalidatePath('/painel/admin/imprensa')
   revalidatePath('/painel/admin/veiculos')
   revalidatePath(`/painel/admin/veiculos/${tentativa.veiculo_id}`)
   revalidatePath(`/painel/admin/veiculos/${tentativa.veiculo_id}/view`)
-  redirect(`/painel/admin/imprensa/${tentativa.submissao_id}?atualizado=1`)
+  if (tentativa.fellow_id) revalidatePath(`/painel/admin/fellows/${tentativa.fellow_id}`)
+  redirect(`/painel/admin/imprensa/${submissao_id}?atualizado=1`)
 }
