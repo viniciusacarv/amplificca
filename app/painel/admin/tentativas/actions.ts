@@ -64,6 +64,8 @@ export async function registrarTentativa(formData: FormData) {
 
   revalidatePath(`/painel/admin/imprensa/${submissao_id}`)
   revalidatePath(`/painel/admin/fellows/${sub.fellow_id}`)
+  revalidatePath('/painel/admin/veiculos')
+  revalidatePath(`/painel/admin/veiculos/${veiculo_id}`)
   revalidatePath(`/painel/admin/veiculos/${veiculo_id}/view`)
   redirect(`/painel/admin/imprensa/${submissao_id}?tentativa=1`)
 }
@@ -131,6 +133,8 @@ export async function atualizarTentativa(formData: FormData) {
 
   revalidatePath(`/painel/admin/imprensa/${tentativa.submissao_id}`)
   revalidatePath(`/painel/admin/fellows/${tentativa.fellow_id}`)
+  revalidatePath('/painel/admin/veiculos')
+  revalidatePath(`/painel/admin/veiculos/${tentativa.veiculo_id}`)
   revalidatePath(`/painel/admin/veiculos/${tentativa.veiculo_id}/view`)
   redirect(`/painel/admin/imprensa/${tentativa.submissao_id}?atualizado=1`)
 }
