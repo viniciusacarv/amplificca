@@ -18,6 +18,11 @@ function formatRelative(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
 
+const TIPO_CONFIG: Record<string, string> = {
+  nova_submissao: '📬',
+  retirado_fellow: '↩️',
+}
+
 export default async function AdminNotificacoesPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
