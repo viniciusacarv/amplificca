@@ -24,7 +24,11 @@ const CATEGORIA_LABEL: Record<string, string> = {
   judiciario_direito:        'Judiciário e Direito',
   radio:                     'Rádio',
   tv_canais_noticia:         'TV e Canais de Notícia',
+  municipal:                 'Municipal',
+  estadual:                  'Estadual',
   regional:                  'Regional',
+  nacional:                  'Nacional',
+  internacional:             'Internacional',
 }
 
 export default async function AdminVeiculosPage({
@@ -56,14 +60,6 @@ export default async function AdminVeiculosPage({
   todos?.forEach((v: any) => {
     countMap[v.tipo_relacionamento] = (countMap[v.tipo_relacionamento] || 0) + 1
   })
-
-  const filtros = [
-    { key: 'todos',       label: 'Todos',         count: todos?.length || 0              },
-    { key: 'parceiro',    label: 'Parceiros',      count: countMap['parceiro'] || 0        },
-    { key: 'acessivel',   label: 'Acessíveis',     count: countMap['acessivel'] || 0       },
-    { key: 'a_conquistar',label: 'A conquistar',   count: countMap['a_conquistar'] || 0    },
-    { key: 'inexistente', label: 'Inexistente',    count: countMap['inexistente'] || 0     },
-  ]
 
   return (
     <div className="space-y-8">
@@ -98,15 +94,19 @@ export default async function AdminVeiculosPage({
         </div>
       )}
 
-      {/* ── Cards de resumo ──────────────────────────────────────── */}
+      {/* ── Cards de resumo (clicáveis como filtros) ─────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { key: 'parceiro',    label: 'Parceiros',    count: countMap['parceiro'] || 0,     emoji: '🤝', color: 'from-emerald-600/10 to-teal-700/5 border-emerald-600/20'  },
-          { key: 'acessivel',   label: 'Acessíveis',   count: countMap['acessivel'] || 0,    emoji: '📨', color: 'from-blue-600/10 to-blue-700/5 border-blue-600/20'         },
-          { key: 'a_conquistar',label: 'A conquistar', count: countMap['a_conquistar'] || 0, emoji: '🎯', color: 'from-yellow-600/10 to-yellow-700/5 border-yellow-600/20'   },
-          { key: 'inexistente', label: 'Inexistente',  count: countMap['inexistente'] || 0,  emoji: '🧭', color: 'from-gray-600/10 to-gray-700/5 border-gray-600/20'         },
+          { key: 'parceiro',    label: 'Parceiros',    count: countMap['parceiro'] || 0,     emoji: '🤝', color: 'from-emerald-600/10 to-teal-700/5 border-emerald-600/20',   activeRing: 'ring-2 ring-emerald-500/40' },
+          { key: 'acessivel',   label: 'Acessíveis',   count: countMap['acessivel'] || 0,    emoji: '📨', color: 'from-blue-600/10 to-blue-700/5 border-blue-600/20',          activeRing: 'ring-2 ring-blue-500/40'    },
+          { key: 'a_conquistar',label: 'A conquistar', count: countMap['a_conquistar'] || 0, emoji: '🎯', color: 'from-yellow-600/10 to-yellow-700/5 border-yellow-600/20',    activeRing: 'ring-2 ring-yellow-500/40'  },
+          { key: 'inexistente', label: 'Inexistente',  count: countMap['inexistente'] || 0,  emoji: '🧭', color: 'from-gray-600/10 to-gray-700/5 border-gray-600/20',          activeRing: 'ring-2 ring-gray-500/40'    },
         ].map((c) => (
-          <div key={c.key} className={`bg-gradient-to-br ${c.color} border rounded-2xl p-5`}>
+          <Link
+            key={c.key}
+            href={filtroTipo === c.key ? '/painel/admin/veiculos?tipo=todos' : `/painel/admin/veiculos?tipo=${c.key}`}
+            className={`bg-gradient-to-br ${c.color} border rounded-2xl p-5 transition-all hover:opacity-90 ${filtroTipo === c.key ? c.activeRing : ''}`}
+          >
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{c.label}</p>
@@ -114,28 +114,6 @@ export default async function AdminVeiculosPage({
               </div>
               <span className="text-2xl">{c.emoji}</span>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Filtros ───────────────────────────────────────────────── */}
-      <div className="flex items-center gap-2">
-        {filtros.map((f) => (
-          <Link
-            key={f.key}
-            href={`/painel/admin/veiculos?tipo=${f.key}`}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium border transition-all ${
-              filtroTipo === f.key
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                : 'bg-gray-900 border-gray-800 text-gray-400 hover:text-gray-300 hover:border-gray-700'
-            }`}
-          >
-            {f.label}
-            <span className={`text-xs px-1.5 py-0.5 rounded-md ${
-              filtroTipo === f.key ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-800 text-gray-500'
-            }`}>
-              {f.count}
-            </span>
           </Link>
         ))}
       </div>
@@ -167,7 +145,9 @@ export default async function AdminVeiculosPage({
                 <div key={v.id} className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-gray-800/40 transition-colors items-center">
                   {/* Nome + site */}
                   <div className="col-span-3 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{v.nome}</p>
+                    <Link href={`/painel/admin/veiculos/${v.id}/view`} className="text-sm font-medium text-white truncate hover:text-emerald-400 transition-colors block">
+                      {v.nome}
+                    </Link>
                     {v.website && (
                       <a href={v.website} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-500 hover:text-gray-300 transition-colors truncate block">
                         {v.website.replace('https://', '').replace('http://', '')}
