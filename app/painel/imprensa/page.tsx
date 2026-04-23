@@ -288,7 +288,7 @@ export default async function ImprensaPage({
                           : 'border-blue-500/20 bg-blue-500/10 text-blue-200'
                       }`}
                     >
-                      <span className="font-semibold">Atualização da Sara: </span>
+                      <span className="font-semibold">Atualização Amplifica: </span>
                       {sub.feedback}
                     </div>
                   )}
