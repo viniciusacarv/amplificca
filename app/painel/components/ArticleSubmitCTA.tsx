@@ -1,9 +1,9 @@
 'use client'
 // app/painel/components/ArticleSubmitCTA.tsx
-// CTA de submissão de artigos — efeito spotlight + identidade Amplifica
+// CTA de submissao de artigos - efeito spotlight + identidade Amplifica
 
 import Link from 'next/link'
-import { useState, useRef } from 'react'
+import { useRef, useState } from 'react'
 
 export default function ArticleSubmitCTA() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -25,7 +25,6 @@ export default function ArticleSubmitCTA() {
       className="relative overflow-hidden rounded-2xl border border-gray-800 bg-gray-900 p-6 md:p-8"
       style={{ isolation: 'isolate' }}
     >
-      {/* ── Spotlight radial (verde Amplifica) ─────────────────────── */}
       <div
         className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-300"
         style={{
@@ -36,15 +35,10 @@ export default function ArticleSubmitCTA() {
         }}
       />
 
-      {/* ── Linha de borda superior verde (sutil) ──────────────────── */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#7ED321]/30 to-transparent" />
 
-      {/* ── Conteúdo ────────────────────────────────────────────────── */}
       <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-
-        {/* Texto */}
         <div className="flex-1">
-          {/* Tag */}
           <span
             className="mb-3 inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-[10px] font-bold tracking-widest"
             style={{
@@ -54,7 +48,6 @@ export default function ArticleSubmitCTA() {
               fontFamily: 'var(--font-body)',
             }}
           >
-            {/* Ícone folha / artigo */}
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="11"
@@ -72,10 +65,9 @@ export default function ArticleSubmitCTA() {
               <line x1="16" y1="17" x2="8" y2="17" />
               <polyline points="10 9 9 9 8 9" />
             </svg>
-            PUBLICAÇÃO
+            PUBLICACAO
           </span>
 
-          {/* Headline Bebas Neue */}
           <h2
             className="leading-none tracking-wide text-white"
             style={{
@@ -87,65 +79,68 @@ export default function ArticleSubmitCTA() {
             SUBMETA SEU ARTIGO PUBLICADO
           </h2>
 
-          {/* Descrição */}
           <p
             className="mt-2 max-w-md text-sm leading-relaxed text-gray-400"
             style={{ fontFamily: 'var(--font-body)' }}
           >
-            Publique sua análise e ganhe pontos no ranking. Mostre seu argumento ao Brasil.
+            Publique sua analise e ganhe pontos no ranking. Mostre seu argumento ao Brasil.
           </p>
 
-          {/* Micro-info: pontuação */}
           <div className="mt-3 flex flex-wrap gap-3">
             <PointBadge emoji="🗞️" label="Nacional" pts="+15 pts" color="#7ED321" />
-            <PointBadge emoji="📰" label="Regional" pts="+8 pts"  color="#94a3b8" />
+            <PointBadge emoji="📰" label="Regional" pts="+8 pts" color="#94a3b8" />
           </div>
         </div>
 
-        {/* Botão CTA */}
         <div className="flex-shrink-0">
-          <Link
-            href="/painel/imprensa/nova"
-            className="group/btn inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold text-black transition-all duration-300"
-            style={{
-              background: 'linear-gradient(135deg, #7ED321 0%, #5fb800 100%)',
-              boxShadow: '0 0 0 0 rgba(126,211,33,0.4)',
-              fontFamily: 'var(--font-body)',
-            }}
-            onMouseEnter={(e) => {
-              ;(e.currentTarget as HTMLAnchorElement).style.boxShadow =
-                '0 0 20px 4px rgba(126,211,33,0.25)'
-            }}
-            onMouseLeave={(e) => {
-              ;(e.currentTarget as HTMLAnchorElement).style.boxShadow =
-                '0 0 0 0 rgba(126,211,33,0.4)'
-            }}
-          >
-            Enviar artigo
-            {/* Seta animada */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="transition-transform duration-300 group-hover/btn:translate-x-1"
+          <div className="flex flex-col gap-2 sm:items-end">
+            <Link
+              href="/painel/imprensa/nova"
+              className="group/btn inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-semibold text-black transition-all duration-300"
+              style={{
+                background: 'linear-gradient(135deg, #7ED321 0%, #5fb800 100%)',
+                boxShadow: '0 0 0 0 rgba(126,211,33,0.4)',
+                fontFamily: 'var(--font-body)',
+              }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 0 20px 4px rgba(126,211,33,0.25)'
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 0 0 0 rgba(126,211,33,0.4)'
+              }}
             >
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </Link>
+              Enviar artigo
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="transition-transform duration-300 group-hover/btn:translate-x-1"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </Link>
 
-          {/* Aviso prazo */}
+            <Link
+              href="/painel/imprensa"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-gray-700 bg-gray-800/80 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-gray-700"
+              style={{ fontFamily: 'var(--font-body)' }}
+            >
+              Ver meus artigos enviados
+            </Link>
+          </div>
+
           <p
-            className="mt-2 text-center text-[11px] text-gray-600"
+            className="mt-2 text-center text-[11px] text-gray-600 sm:text-right"
             style={{ fontFamily: 'var(--font-body)' }}
           >
-            Toda sexta-feira · revisão em 15 min
+            Toda sexta-feira · revisao em 15 min
           </p>
         </div>
       </div>
@@ -153,7 +148,6 @@ export default function ArticleSubmitCTA() {
   )
 }
 
-// ── Sub-componente de badge de pontuação ─────────────────────────────
 function PointBadge({
   emoji,
   label,
