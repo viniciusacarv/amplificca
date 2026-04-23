@@ -48,7 +48,7 @@ export default async function AdminImprensaReviewPage({
   searchParams,
 }: {
   params: { id: string }
-  searchParams: { sucesso?: string; tentativa?: string; atualizado?: string }
+  searchParams: { sucesso?: string; tentativa?: string; atualizado?: string; erro?: string }
 }) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -108,6 +108,16 @@ export default async function AdminImprensaReviewPage({
       {searchParams.atualizado && (
         <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-emerald-400 text-sm">
           ✅ Resultado da tentativa atualizado.
+        </div>
+      )}
+      {searchParams.erro === 'tentativa' && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm">
+          ❌ Não foi possível registrar a tentativa. Verifique se este veículo já está cadastrado para esta submissão.
+        </div>
+      )}
+      {searchParams.erro === 'submissao' && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm">
+          ❌ Submissão não encontrada.
         </div>
       )}
 
@@ -459,9 +469,18 @@ export default async function AdminImprensaReviewPage({
 
             {/* Doc para imprensa */}
             <div>
-              <label htmlFor="doc_imprensa_url" className="block text-xs text-gray-500 uppercase tracking-wider mb-2">
-                Doc para assessor de imprensa
-              </label>
+              <div className="flex items-center gap-1.5 mb-2">
+                <label htmlFor="doc_imprensa_url" className="text-xs text-gray-500 uppercase tracking-wider">
+                  Doc para assessor de imprensa
+                </label>
+                <div className="relative group">
+                  <span className="flex items-center justify-center w-4 h-4 rounded-full bg-gray-700 text-gray-400 text-[10px] font-bold cursor-default select-none">?</span>
+                  <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 rounded-xl bg-gray-700 border border-gray-600 px-3 py-2 text-xs text-gray-200 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                    Link do Google Docs do texto em versão final a ser compartilhado com o assessor de imprensa.
+                    <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-700" />
+                  </div>
+                </div>
+              </div>
               <input
                 id="doc_imprensa_url"
                 name="doc_imprensa_url"
@@ -470,7 +489,6 @@ export default async function AdminImprensaReviewPage({
                 placeholder="https://docs.google.com/..."
                 className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/60 transition-colors"
               />
-              <p className="text-xs text-gray-600 mt-1">Link do Google Docs em branco compartilhado com o assessor de imprensa.</p>
             </div>
 
             {/* Feedback */}
