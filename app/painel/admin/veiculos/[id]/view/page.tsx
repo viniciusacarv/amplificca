@@ -60,12 +60,21 @@ const TAG_LABEL: Record<string, string> = Object.fromEntries(
   TAG_GRUPOS.flatMap((g) => g.tags.map((t) => [t.value, t.label]))
 )
 
-function InfoRow({ label, value }: { label: string; value?: string | null }) {
-  if (!value) return null
+function Campo({ label, valor, link }: { label: string; valor?: string | null; link?: string }) {
   return (
     <div>
       <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{label}</p>
-      <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-line">{value}</p>
+      {valor ? (
+        link ? (
+          <a href={link} target="_blank" rel="noopener noreferrer" className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors break-all">
+            {valor} ↗
+          </a>
+        ) : (
+          <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-line">{valor}</p>
+        )
+      ) : (
+        <p className="text-sm text-gray-600 italic">Não informado</p>
+      )}
     </div>
   )
 }
@@ -102,7 +111,7 @@ export default async function VisualizarVeiculoPage({
         <span className="text-gray-400 truncate max-w-xs">{veiculo.nome}</span>
       </div>
 
-      {/* ── Header com nome e badge ───────────────────────────────── */}
+      {/* ── Header ───────────────────────────────────────────────── */}
       <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
@@ -115,11 +124,9 @@ export default async function VisualizarVeiculoPage({
                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${tipo.color} ${tipo.border}`}>
                   {tipo.emoji} {tipo.label}
                 </span>
-                {veiculo.area_cobertura && (
-                  <span className="text-xs text-gray-500 bg-gray-800 border border-gray-700 px-2.5 py-1 rounded-lg">
-                    {CATEGORIAS_LABEL[veiculo.area_cobertura] ?? veiculo.area_cobertura}
-                  </span>
-                )}
+                <span className="text-xs text-gray-500 bg-gray-800 border border-gray-700 px-2.5 py-1 rounded-lg">
+                  {veiculo.area_cobertura ? (CATEGORIAS_LABEL[veiculo.area_cobertura] ?? veiculo.area_cobertura) : 'Sem categoria'}
+                </span>
                 {veiculo.website && (
                   <a
                     href={veiculo.website}
@@ -134,7 +141,6 @@ export default async function VisualizarVeiculoPage({
             </div>
           </div>
 
-          {/* Botão editar */}
           <Link
             href={`/painel/admin/veiculos/${veiculo.id}`}
             className="flex-shrink-0 inline-flex items-center gap-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-sm px-4 py-2.5 rounded-xl transition-colors"
@@ -147,77 +153,68 @@ export default async function VisualizarVeiculoPage({
         </div>
 
         {/* Tags */}
-        {tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-4 pt-4 border-t border-gray-800">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
-              >
-                {TAG_LABEL[tag] ?? tag}
-              </span>
-            ))}
-          </div>
-        )}
+        <div className="mt-4 pt-4 border-t border-gray-800">
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Tags</p>
+          {tags.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                >
+                  {TAG_LABEL[tag] ?? tag}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-600 italic">Nenhuma tag cadastrada</p>
+          )}
+        </div>
       </div>
 
-      {/* ── Grid de informações ───────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* Contato */}
-        {(veiculo.contato_nome || veiculo.contato_email || veiculo.contato_whatsapp) && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4">
-            <h2 className="text-xs text-gray-500 uppercase tracking-wider">Contato principal</h2>
-            <div className="space-y-3">
-              <InfoRow label="Nome" value={veiculo.contato_nome} />
-              {veiculo.contato_email && (
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">E-mail</p>
-                  <a href={`mailto:${veiculo.contato_email}`} className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
-                    {veiculo.contato_email}
-                  </a>
-                </div>
-              )}
-              {veiculo.contato_whatsapp && (
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">WhatsApp</p>
-                  <a
-                    href={`https://wa.me/${veiculo.contato_whatsapp.replace(/\D/g, '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
-                  >
-                    📱 {veiculo.contato_whatsapp}
-                  </a>
-                </div>
-              )}
-            </div>
+      {/* ── Contato ───────────────────────────────────────────────── */}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <h2 className="text-sm font-semibold text-white mb-5">Contato principal</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <Campo label="Nome" valor={veiculo.contato_nome} />
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">E-mail</p>
+            {veiculo.contato_email ? (
+              <a href={`mailto:${veiculo.contato_email}`} className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors break-all">
+                {veiculo.contato_email}
+              </a>
+            ) : (
+              <p className="text-sm text-gray-600 italic">Não informado</p>
+            )}
           </div>
-        )}
-
-        {/* Notas de abordagem */}
-        {veiculo.notas_abordagem && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4">
-            <h2 className="text-xs text-gray-500 uppercase tracking-wider">Notas de abordagem</h2>
-            <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">{veiculo.notas_abordagem}</p>
+          <div>
+            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">WhatsApp</p>
+            {veiculo.contato_whatsapp ? (
+              <a
+                href={`https://wa.me/${veiculo.contato_whatsapp.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
+              >
+                📱 {veiculo.contato_whatsapp}
+              </a>
+            ) : (
+              <p className="text-sm text-gray-600 italic">Não informado</p>
+            )}
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* Estratégia de aproximação */}
-        {veiculo.estrategia_aproximacao && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4">
-            <h2 className="text-xs text-gray-500 uppercase tracking-wider">Estratégia de aproximação</h2>
-            <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">{veiculo.estrategia_aproximacao}</p>
-          </div>
-        )}
-
-        {/* Próximos passos */}
-        {veiculo.proximos_passos && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-4">
-            <h2 className="text-xs text-gray-500 uppercase tracking-wider">Próximos passos</h2>
-            <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">{veiculo.proximos_passos}</p>
-          </div>
-        )}
+      {/* ── Abordagem ─────────────────────────────────────────────── */}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-6">
+        <h2 className="text-sm font-semibold text-white">Abordagem</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <Campo label="Notas de abordagem" valor={veiculo.notas_abordagem} />
+          <Campo label="Estratégia de aproximação" valor={veiculo.estrategia_aproximacao} />
+        </div>
+        <div className="pt-2 border-t border-gray-800">
+          <Campo label="Próximos passos" valor={veiculo.proximos_passos} />
+        </div>
       </div>
 
     </div>
