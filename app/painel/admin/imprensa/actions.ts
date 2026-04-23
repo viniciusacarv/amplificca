@@ -90,6 +90,19 @@ export async function marcarNotificacoesAdminLidas() {
   revalidatePath('/painel/admin/notificacoes')
 }
 
+// Exclui um veículo (soft delete: ativo = false)
+export async function excluirVeiculo(formData: FormData) {
+  const { supabase } = await assertAdmin()
+
+  const id = formData.get('id') as string
+  if (!id) return { error: 'ID inválido.' }
+
+  await supabase.from('veiculos').update({ ativo: false }).eq('id', id)
+
+  revalidatePath('/painel/admin/veiculos')
+  redirect('/painel/admin/veiculos')
+}
+
 // Salva um veículo (novo ou edição)
 export async function salvarVeiculo(formData: FormData) {
   const { supabase } = await assertAdmin()
