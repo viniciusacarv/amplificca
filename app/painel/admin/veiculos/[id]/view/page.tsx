@@ -109,12 +109,19 @@ export default async function VisualizarVeiculoPage({
 
   if (!veiculo) redirect('/painel/admin/veiculos')
 
-  // Histórico de tentativas neste veículo
+  // Histórico de tentativas neste veículo (CRM interno do Amplifica)
   const { data: tentativas } = await supabase
     .from('tentativas_placement')
     .select('*, submissoes(id, titulo), fellows(id, nome, foto_url)')
     .eq('veiculo_id', params.id)
     .order('enviado_em', { ascending: false })
+
+  // Artigos já publicados neste veículo — match por nome (tabela artigos usa texto livre)
+  const { data: artigos } = await supabase
+    .from('artigos')
+    .select('id, titulo, url, fellow_nome, fellow_id, data_publicacao')
+    .eq('veiculo', veiculo.nome)
+    .order('data_publicacao', { ascending: false })
 
   const tipo = TIPO_CONFIG[veiculo.tipo_relacionamento] ?? TIPO_CONFIG.inexistente
   const tags: string[] = veiculo.tags ?? []
@@ -237,10 +244,66 @@ export default async function VisualizarVeiculoPage({
         </div>
       </div>
 
-      {/* ── Histórico de tentativas ───────────────────────────────── */}
+      {/* ── Artigos publicados (fonte: tabela artigos) ───────────────── */}
       <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-sm font-semibold text-white">Histórico de tentativas</h2>
+          <div>
+            <h2 className="text-sm font-semibold text-white">Artigos publicados aqui</h2>
+            <p className="text-xs text-gray-600 mt-0.5">Fellows que já publicaram neste veículo</p>
+          </div>
+          <span className="text-xs text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full">
+            {artigos?.length ?? 0}
+          </span>
+        </div>
+
+        {!artigos || artigos.length === 0 ? (
+          <p className="text-sm text-gray-600 italic">
+            Nenhum artigo registrado para este veículo.
+            {' '}
+            <span className="text-gray-700">
+              (O nome no cadastro de artigos precisa ser idêntico ao nome "{veiculo.nome}" cadastrado aqui.)
+            </span>
+          </p>
+        ) : (
+          <div className="divide-y divide-gray-800">
+            {(artigos as any[]).map((a) => (
+              <a
+                key={a.id}
+                href={a.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 py-3 hover:bg-gray-800/30 -mx-2 px-2 rounded-xl transition-colors group"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-white group-hover:text-emerald-400 transition-colors truncate">
+                    {a.titulo}
+                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-xs text-gray-500 font-medium">{a.fellow_nome}</span>
+                    <span className="text-xs text-gray-700">·</span>
+                    <span className="text-xs text-gray-600">
+                      {new Date(a.data_publicacao + 'T12:00:00').toLocaleDateString('pt-BR', {
+                        day: '2-digit', month: 'short', year: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-gray-600 group-hover:text-emerald-400 flex-shrink-0 transition-colors">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Histórico de tentativas (CRM interno) ───────────────────── */}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="text-sm font-semibold text-white">Tentativas de placement (Amplifica)</h2>
+            <p className="text-xs text-gray-600 mt-0.5">Envios registrados pela equipe de assessoria</p>
+          </div>
           <span className="text-xs text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full">
             {tentativas?.length ?? 0}
           </span>
