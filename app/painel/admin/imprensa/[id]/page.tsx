@@ -3,6 +3,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
+import { unstable_noStore as noStore } from 'next/cache'
 import Link from 'next/link'
 import { atualizarSubmissao } from '../actions'
 import { registrarTentativa, atualizarTentativa } from '../../tentativas/actions'
@@ -50,6 +51,7 @@ export default async function AdminImprensaReviewPage({
   params: { id: string }
   searchParams: { sucesso?: string; tentativa?: string; atualizado?: string; erro?: string }
 }) {
+  noStore()
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/painel/login')
