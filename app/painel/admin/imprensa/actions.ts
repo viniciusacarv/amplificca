@@ -24,10 +24,18 @@ export async function atualizarSubmissao(formData: FormData) {
   const { supabase } = await assertAdmin()
 
   const submissaoId = formData.get('submissao_id') as string
-  const status      = formData.get('status') as string
+  const nextStatus  = formData.get('next_status') as string | null
+  const currentStatus = formData.get('status') as string | null
+  const status      = (nextStatus || currentStatus || '').trim()
   const feedback    = formData.get('feedback') as string
   const veiculo_id  = formData.get('veiculo_id') as string || null
   const artigo_url  = formData.get('artigo_url') as string || null
+
+  if (!status) return { error: 'Status inválido.' }
+
+  if (['ajustes_solicitados', 'rejeitado'].includes(status) && !feedback?.trim()) {
+    return { error: 'Feedback é obrigatório para ajustes solicitados e recusa.' }
+  }
 
   // Busca a submissão para obter fellow_id e titulo
   const { data: submissao } = await supabase
@@ -75,6 +83,9 @@ export async function atualizarSubmissao(formData: FormData) {
 
   revalidatePath('/painel/admin/imprensa')
   revalidatePath(`/painel/admin/imprensa/${submissaoId}`)
+  revalidatePath('/painel/imprensa')
+  revalidatePath('/painel/notificacoes')
+  revalidatePath('/painel/admin/notificacoes')
   redirect(`/painel/admin/imprensa/${submissaoId}?sucesso=1`)
 }
 
