@@ -62,6 +62,22 @@ export default async function AdminVeiculosPage({
     countMap[v.tipo_relacionamento] = (countMap[v.tipo_relacionamento] || 0) + 1
   })
 
+  // Contagem de tentativas de placement por veículo (sincroniza com painel de imprensa)
+  const { data: tentativas } = await supabase
+    .from('tentativas_placement')
+    .select('veiculo_id, status')
+
+  const tentativasPorVeiculo: Record<string, { total: number; publicado: number; aguardando: number }> = {}
+  tentativas?.forEach((t: any) => {
+    const key = String(t.veiculo_id)
+    if (!tentativasPorVeiculo[key]) {
+      tentativasPorVeiculo[key] = { total: 0, publicado: 0, aguardando: 0 }
+    }
+    tentativasPorVeiculo[key].total += 1
+    if (t.status === 'publicado')  tentativasPorVeiculo[key].publicado  += 1
+    if (t.status === 'aguardando') tentativasPorVeiculo[key].aguardando += 1
+  })
+
   const buildFilterHref = (tipo: string, includeSearch = true) => {
     const params = new URLSearchParams()
 
@@ -200,12 +216,14 @@ export default async function AdminVeiculosPage({
               <div className="col-span-3">Veículo</div>
               <div className="col-span-2">Proximidade</div>
               <div className="col-span-2">Cobertura</div>
-              <div className="col-span-3">Tags</div>
-              <div className="col-span-2 text-right">Ações</div>
+              <div className="col-span-2">Tags</div>
+              <div className="col-span-2">Placements</div>
+              <div className="col-span-1 text-right">Ações</div>
             </div>
 
             {(veiculos as any[]).map((v) => {
               const tipo = TIPO_CONFIG[v.tipo_relacionamento as keyof typeof TIPO_CONFIG] ?? TIPO_CONFIG.a_conquistar
+              const stats = tentativasPorVeiculo[String(v.id)] ?? { total: 0, publicado: 0, aguardando: 0 }
 
               return (
                 <div key={v.id} className="grid grid-cols-12 items-center gap-4 px-6 py-4 transition-colors hover:bg-gray-800/40">
@@ -240,10 +258,10 @@ export default async function AdminVeiculosPage({
                     </span>
                   </div>
 
-                  <div className="col-span-3 min-w-0">
+                  <div className="col-span-2 min-w-0">
                     {v.tags && v.tags.length > 0 ? (
                       <div className="flex flex-wrap gap-1">
-                        {(v.tags as string[]).slice(0, 3).map((tag: string) => (
+                        {(v.tags as string[]).slice(0, 2).map((tag: string) => (
                           <span
                             key={tag}
                             className="inline-flex items-center rounded-full border border-gray-700 bg-gray-800 px-1.5 py-0.5 text-xs font-medium text-gray-400"
@@ -251,14 +269,39 @@ export default async function AdminVeiculosPage({
                             {tag}
                           </span>
                         ))}
-                        {v.tags.length > 3 && <span className="text-xs text-gray-600">+{v.tags.length - 3}</span>}
+                        {v.tags.length > 2 && <span className="text-xs text-gray-600">+{v.tags.length - 2}</span>}
                       </div>
                     ) : (
                       <span className="text-sm text-gray-700">—</span>
                     )}
                   </div>
 
-                  <div className="col-span-2 flex justify-end">
+                  <div className="col-span-2">
+                    {stats.total === 0 ? (
+                      <span className="text-xs text-gray-600">—</span>
+                    ) : (
+                      <Link
+                        href={`/painel/admin/veiculos/${v.id}/view`}
+                        className="inline-flex items-center gap-1.5 flex-wrap"
+                      >
+                        <span className="inline-flex items-center rounded-md border border-gray-700 bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-300">
+                          {stats.total} total
+                        </span>
+                        {stats.publicado > 0 && (
+                          <span className="inline-flex items-center rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                            🎉 {stats.publicado}
+                          </span>
+                        )}
+                        {stats.aguardando > 0 && (
+                          <span className="inline-flex items-center rounded-md border border-yellow-500/20 bg-yellow-500/10 px-2 py-0.5 text-xs font-medium text-yellow-400">
+                            ⏳ {stats.aguardando}
+                          </span>
+                        )}
+                      </Link>
+                    )}
+                  </div>
+
+                  <div className="col-span-1 flex justify-end">
                     <Link
                       href={`/painel/admin/veiculos/${v.id}`}
                       className="rounded-lg px-3 py-1.5 text-xs text-gray-500 transition-colors hover:bg-emerald-500/10 hover:text-emerald-400"
