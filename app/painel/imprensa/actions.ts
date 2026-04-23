@@ -108,7 +108,7 @@ export async function retirarSubmissao(formData: FormData) {
     return { error: 'Submissão não encontrada.' }
   }
 
-  if (['publicado', 'rejeitado', 'retirado_fellow'].includes(submissao.status)) {
+  if (['aprovado', 'enviado_imprensa', 'publicado', 'rejeitado', 'retirado_fellow'].includes(submissao.status)) {
     return { error: 'Esta submissão não pode mais ser retirada.' }
   }
 
