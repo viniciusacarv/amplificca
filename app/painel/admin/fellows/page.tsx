@@ -25,17 +25,25 @@ export default async function AdminFellowsPage({
 
   const { data: fellows } = await query
 
-  // Contagem de submissões por fellow
+  // Contagem de submissões internas por fellow
   const { data: contagens } = await supabase
     .from('submissoes')
-    .select('fellow_id, status')
+    .select('fellow_id')
 
   const submCount: Record<string, number> = {}
-  const pubCount: Record<string, number> = {}
   contagens?.forEach((s: any) => {
     submCount[s.fellow_id] = (submCount[s.fellow_id] || 0) + 1
-    if (s.status === 'publicado') {
-      pubCount[s.fellow_id] = (pubCount[s.fellow_id] || 0) + 1
+  })
+
+  // Publicações reais = tabela artigos (inclui publicações independentes do Amplifica)
+  const { data: artigos } = await supabase
+    .from('artigos')
+    .select('fellow_id')
+
+  const pubCount: Record<number, number> = {}
+  artigos?.forEach((a: any) => {
+    if (a.fellow_id != null) {
+      pubCount[a.fellow_id] = (pubCount[a.fellow_id] || 0) + 1
     }
   })
 
