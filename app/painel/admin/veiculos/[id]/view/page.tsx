@@ -125,6 +125,7 @@ export default async function VisualizarVeiculoPage({
 
   const tipo = TIPO_CONFIG[veiculo.tipo_relacionamento] ?? TIPO_CONFIG.inexistente
   const tags: string[] = veiculo.tags ?? []
+  const contatos: any[] = Array.isArray(veiculo.contatos) ? veiculo.contatos : []
 
   return (
     <div className="space-y-6">
@@ -199,37 +200,91 @@ export default async function VisualizarVeiculoPage({
         </div>
       </div>
 
-      {/* ── Contato ───────────────────────────────────────────────── */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-        <h2 className="text-sm font-semibold text-white mb-5">Contato principal</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <Campo label="Nome" valor={veiculo.contato_nome} />
-          <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">E-mail</p>
-            {veiculo.contato_email ? (
-              <a href={`mailto:${veiculo.contato_email}`} className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors break-all">
-                {veiculo.contato_email}
-              </a>
-            ) : (
-              <p className="text-sm text-gray-600 italic">Não informado</p>
-            )}
+      {/* ── Contatos ─────────────────────────────────────────────── */}
+      <div className="bg-gray-900 border-2 border-emerald-500/20 rounded-2xl p-6 shadow-[0_0_30px_rgba(16,185,129,0.04)]">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-base flex-shrink-0">
+            📇
           </div>
-          <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">WhatsApp</p>
-            {veiculo.contato_whatsapp ? (
-              <a
-                href={`https://wa.me/${veiculo.contato_whatsapp.replace(/\D/g, '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
-              >
-                📱 {veiculo.contato_whatsapp}
-              </a>
-            ) : (
-              <p className="text-sm text-gray-600 italic">Não informado</p>
-            )}
+          <div className="flex-1">
+            <h2 className="text-sm font-semibold text-white">Contatos</h2>
+            <p className="text-xs text-gray-500 mt-0.5">Pessoas-chave para placement neste veículo</p>
           </div>
+          <Link
+            href={`/painel/admin/veiculos/${veiculo.id}`}
+            className="text-xs text-gray-600 hover:text-emerald-400 transition-colors flex items-center gap-1"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-3.5 h-3.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+            </svg>
+            Editar contatos
+          </Link>
         </div>
+
+        {contatos.length === 0 ? (
+          <div className="text-center py-6 border border-dashed border-gray-700 rounded-xl">
+            <p className="text-sm text-gray-500">Nenhum contato cadastrado.</p>
+            <Link href={`/painel/admin/veiculos/${veiculo.id}`} className="text-xs text-emerald-500 hover:text-emerald-400 transition-colors mt-1 inline-block">
+              Adicionar contato →
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {contatos.map((c: any, idx: number) => (
+              <div key={idx} className="bg-gray-800/50 border border-gray-700/60 rounded-xl p-4">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-semibold text-white">{c.nome || '—'}</p>
+                      {c.funcao && (
+                        <span className="text-xs bg-gray-700/60 border border-gray-600/60 text-gray-400 px-2 py-0.5 rounded-md">
+                          {c.funcao}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 mt-2 flex-wrap">
+                      {c.email && (
+                        <a href={`mailto:${c.email}`} className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
+                          ✉ {c.email}
+                        </a>
+                      )}
+                      {c.whatsapp && (
+                        <a
+                          href={`https://wa.me/${c.whatsapp.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+                        >
+                          📱 {c.whatsapp}
+                        </a>
+                      )}
+                      {!c.email && !c.whatsapp && (
+                        <span className="text-xs text-gray-600 italic">Sem dados de contato</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Admin responsável */}
+                  {c.admin_nome && (
+                    <div className="flex items-center gap-2 flex-shrink-0 bg-gray-700/40 border border-gray-600/40 rounded-lg px-3 py-1.5">
+                      {c.admin_foto ? (
+                        <img src={c.admin_foto} alt={c.admin_nome} className="w-5 h-5 rounded-full object-cover border border-gray-600" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                          <span className="text-emerald-400 text-xs font-bold">{c.admin_nome.charAt(0)}</span>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-xs text-gray-500 leading-none">Responsável</p>
+                        <p className="text-xs font-medium text-gray-300 mt-0.5">{c.admin_nome}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Abordagem ─────────────────────────────────────────────── */}
