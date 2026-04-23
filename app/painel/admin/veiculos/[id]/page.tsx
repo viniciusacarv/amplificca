@@ -1,11 +1,13 @@
 // app/painel/admin/veiculos/[id]/page.tsx
-// Ficha completa do veículo — visualização + edição inline
+// Ficha completa do veículo — edição
 
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { salvarVeiculo } from '../actions'
 import { DeleteVeiculoButton } from './DeleteVeiculoButton'
+import { ContatosEditor } from './ContatosEditor'
+import type { ContatoItem, AdminOpcao } from './ContatosEditor'
 
 const CATEGORIAS = [
   { group: 'Mídias de Orientação Liberal', options: [
@@ -93,8 +95,22 @@ export default async function FichaVeiculoPage({
 
   if (!veiculo) redirect('/painel/admin/veiculos')
 
+  // Busca lista de admins para o seletor de responsável
+  const { data: equipe } = await supabase
+    .from('equipe')
+    .select('id, nome, foto_url, email')
+    .order('nome')
+
+  const admins: AdminOpcao[] = (equipe ?? []).map((a: any) => ({
+    id: a.id,
+    nome: a.nome ?? a.email ?? 'Admin',
+    foto_url: a.foto_url ?? null,
+    email: a.email ?? '',
+  }))
+
   const tipo = TIPO_CONFIG[veiculo.tipo_relacionamento] ?? TIPO_CONFIG.inexistente
   const tags: string[] = veiculo.tags ?? []
+  const contatosIniciais: ContatoItem[] = Array.isArray(veiculo.contatos) ? veiculo.contatos : []
 
   return (
     <div className="space-y-8">
@@ -115,106 +131,63 @@ export default async function FichaVeiculoPage({
         </div>
       )}
 
-      {/* ── Header — Ficha visual ─────────────────────────────────── */}
+      {/* ── Header — resumo visual ────────────────────────────────── */}
       <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-4">
-            {/* Ícone do veículo */}
-            <div className="w-14 h-14 rounded-2xl bg-gray-800 border border-gray-700 flex items-center justify-center text-2xl flex-shrink-0">
-              📰
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">{veiculo.nome}</h1>
-              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${tipo.color} ${tipo.border}`}>
-                  {tipo.emoji} {tipo.label}
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-gray-800 border border-gray-700 flex items-center justify-center text-2xl flex-shrink-0">
+            📰
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white">{veiculo.nome}</h1>
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${tipo.color} ${tipo.border}`}>
+                {tipo.emoji} {tipo.label}
+              </span>
+              {veiculo.area_cobertura && (
+                <span className="text-xs text-gray-500 bg-gray-800 border border-gray-700 px-2.5 py-1 rounded-lg">
+                  {CATEGORIA_LABEL[veiculo.area_cobertura] ?? veiculo.area_cobertura}
                 </span>
-                {veiculo.area_cobertura && (
-                  <span className="text-xs text-gray-500 bg-gray-800 border border-gray-700 px-2.5 py-1 rounded-lg">
-                    {CATEGORIA_LABEL[veiculo.area_cobertura] ?? veiculo.area_cobertura}
-                  </span>
-                )}
-                {veiculo.website && (
-                  <a
-                    href={veiculo.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-gray-500 hover:text-emerald-400 transition-colors"
-                  >
-                    {veiculo.website.replace(/^https?:\/\//, '')} ↗
-                  </a>
-                )}
-              </div>
+              )}
+              {veiculo.website && (
+                <a href={veiculo.website} target="_blank" rel="noopener noreferrer" className="text-xs text-gray-500 hover:text-emerald-400 transition-colors">
+                  {veiculo.website.replace(/^https?:\/\//, '')} ↗
+                </a>
+              )}
             </div>
           </div>
         </div>
-
-        {/* Tags */}
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-4 pt-4 border-t border-gray-800">
             {tags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
-              >
+              <span key={tag} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
                 {TAG_LABEL[tag] ?? tag}
               </span>
             ))}
           </div>
         )}
-
-        {/* Info rápida: contato */}
-        {(veiculo.contato_nome || veiculo.contato_email || veiculo.contato_whatsapp) && (
-          <div className="mt-4 pt-4 border-t border-gray-800">
-            <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Contato principal</p>
-            <div className="flex items-center gap-3 flex-wrap">
-              {veiculo.contato_nome && (
-                <span className="text-sm text-gray-300 font-medium">{veiculo.contato_nome}</span>
-              )}
-              {veiculo.contato_email && (
-                <a href={`mailto:${veiculo.contato_email}`} className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
-                  {veiculo.contato_email}
-                </a>
-              )}
-              {veiculo.contato_whatsapp && (
-                <a
-                  href={`https://wa.me/${veiculo.contato_whatsapp.replace(/\D/g, '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-gray-500 hover:text-emerald-400 transition-colors"
-                >
-                  📱 {veiculo.contato_whatsapp}
-                </a>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Estratégia e próximos passos (read-only, visível rapidamente) */}
-        {(veiculo.estrategia_aproximacao || veiculo.proximos_passos) && (
-          <div className="mt-4 pt-4 border-t border-gray-800 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {veiculo.estrategia_aproximacao && (
-              <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1.5">Estratégia</p>
-                <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">{veiculo.estrategia_aproximacao}</p>
-              </div>
-            )}
-            {veiculo.proximos_passos && (
-              <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1.5">Próximos passos</p>
-                <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line">{veiculo.proximos_passos}</p>
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* ── Formulário de edição ─────────────────────────────────── */}
-      <div>
-        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Editar ficha</h2>
+      <form action={salvarVeiculo} className="space-y-6">
+        <input type="hidden" name="id" value={veiculo.id} />
 
-        <form action={salvarVeiculo} className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-6">
-          <input type="hidden" name="id" value={veiculo.id} />
+        {/* ══ CONTATOS — destaque principal ══════════════════════════ */}
+        <div className="bg-gray-900 border-2 border-emerald-500/25 rounded-2xl p-6 shadow-[0_0_30px_rgba(16,185,129,0.05)]">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-base">
+              📇
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-white">Contatos</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Pessoas-chave para placement neste veículo</p>
+            </div>
+          </div>
+          <ContatosEditor inicial={contatosIniciais} admins={admins} />
+        </div>
+
+        {/* ══ Ficha do veículo ═══════════════════════════════════════ */}
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-6">
+          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Ficha do veículo</h2>
 
           {/* Nome */}
           <div>
@@ -262,78 +235,38 @@ export default async function FichaVeiculoPage({
             </div>
           </div>
 
-          {/* Website */}
-          <div>
-            <label htmlFor="website" className="block text-sm font-medium text-gray-300 mb-2">Website</label>
-            <input
-              id="website"
-              name="website"
-              type="url"
-              defaultValue={veiculo.website || ''}
-              placeholder="https://..."
-              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
-            />
-          </div>
-
-          {/* Categoria editorial */}
-          <div>
-            <label htmlFor="area_cobertura" className="block text-sm font-medium text-gray-300 mb-2">
-              Categoria editorial
-            </label>
-            <select
-              id="area_cobertura"
-              name="area_cobertura"
-              defaultValue={veiculo.area_cobertura || ''}
-              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500/60 transition-colors appearance-none"
-            >
-              <option value="">Selecione uma categoria…</option>
-              {CATEGORIAS.map((grupo) => (
-                <optgroup key={grupo.group} label={grupo.group}>
-                  {grupo.options.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </div>
-
-          {/* Contato */}
-          <div>
-            <p className="text-sm font-medium text-gray-300 mb-3">Informações de contato</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="contato_nome" className="block text-xs text-gray-500 mb-1.5">Nome</label>
-                <input
-                  id="contato_nome"
-                  name="contato_nome"
-                  type="text"
-                  defaultValue={veiculo.contato_nome || ''}
-                  placeholder="Editor / responsável"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
-                />
-              </div>
-              <div>
-                <label htmlFor="contato_email" className="block text-xs text-gray-500 mb-1.5">E-mail</label>
-                <input
-                  id="contato_email"
-                  name="contato_email"
-                  type="email"
-                  defaultValue={veiculo.contato_email || ''}
-                  placeholder="email@veiculo.com"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
-                />
-              </div>
-              <div>
-                <label htmlFor="contato_whatsapp" className="block text-xs text-gray-500 mb-1.5">WhatsApp</label>
-                <input
-                  id="contato_whatsapp"
-                  name="contato_whatsapp"
-                  type="text"
-                  defaultValue={veiculo.contato_whatsapp || ''}
-                  placeholder="+55 11 9 0000-0000"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
-                />
-              </div>
+          {/* Website + Categoria */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="website" className="block text-sm font-medium text-gray-300 mb-2">Website</label>
+              <input
+                id="website"
+                name="website"
+                type="url"
+                defaultValue={veiculo.website || ''}
+                placeholder="https://..."
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
+              />
+            </div>
+            <div>
+              <label htmlFor="area_cobertura" className="block text-sm font-medium text-gray-300 mb-2">
+                Categoria editorial
+              </label>
+              <select
+                id="area_cobertura"
+                name="area_cobertura"
+                defaultValue={veiculo.area_cobertura || ''}
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-emerald-500/60 transition-colors appearance-none"
+              >
+                <option value="">Selecione uma categoria…</option>
+                {CATEGORIAS.map((grupo) => (
+                  <optgroup key={grupo.group} label={grupo.group}>
+                    {grupo.options.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -364,7 +297,7 @@ export default async function FichaVeiculoPage({
               name="estrategia_aproximacao"
               rows={3}
               defaultValue={veiculo.estrategia_aproximacao || ''}
-              placeholder="ex: Abordar via Mano Ferreira. Mandar pitch personalizado para o editor de opinião. Usar publicação anterior como referência..."
+              placeholder="ex: Abordar via Mano Ferreira. Mandar pitch personalizado para o editor de opinião..."
               className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-emerald-500/60 transition-colors"
             />
           </div>
@@ -415,32 +348,32 @@ export default async function FichaVeiculoPage({
               ))}
             </div>
           </div>
-
-          {/* Botões */}
-          <div className="flex items-center gap-3 pt-2">
-            <button
-              type="submit"
-              className="flex-1 sm:flex-none bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-black font-semibold text-sm px-6 py-2.5 rounded-xl transition-all"
-            >
-              Salvar alterações
-            </button>
-            <Link
-              href="/painel/admin/veiculos"
-              className="text-sm text-gray-500 hover:text-gray-300 transition-colors px-4 py-2.5"
-            >
-              Cancelar
-            </Link>
-          </div>
-        </form>
-
-        {/* ── Zona de perigo: excluir veículo ──────────────────────── */}
-        <div className="mt-8 border border-red-500/20 rounded-2xl p-6 bg-red-500/5">
-          <h3 className="text-sm font-semibold text-red-400 mb-1">Zona de perigo</h3>
-          <p className="text-xs text-gray-500 mb-4">
-            Excluir este veículo o remove permanentemente do CRM. Esta ação não pode ser desfeita.
-          </p>
-          <DeleteVeiculoButton veiculoId={veiculo.id} veiculoNome={veiculo.nome} />
         </div>
+
+        {/* Botões de salvar */}
+        <div className="flex items-center gap-3">
+          <button
+            type="submit"
+            className="flex-1 sm:flex-none bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-black font-semibold text-sm px-6 py-3 rounded-xl transition-all"
+          >
+            Salvar alterações
+          </button>
+          <Link
+            href="/painel/admin/veiculos"
+            className="text-sm text-gray-500 hover:text-gray-300 transition-colors px-4 py-3"
+          >
+            Cancelar
+          </Link>
+        </div>
+      </form>
+
+      {/* ── Zona de perigo ───────────────────────────────────────── */}
+      <div className="border border-red-500/20 rounded-2xl p-6 bg-red-500/5">
+        <h3 className="text-sm font-semibold text-red-400 mb-1">Zona de perigo</h3>
+        <p className="text-xs text-gray-500 mb-4">
+          Excluir este veículo o remove permanentemente do CRM. Esta ação não pode ser desfeita.
+        </p>
+        <DeleteVeiculoButton veiculoId={veiculo.id} veiculoNome={veiculo.nome} />
       </div>
     </div>
   )
