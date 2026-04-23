@@ -13,6 +13,7 @@ const STATUS_CONFIG: Record<string, { label: string; emoji: string; color: strin
   enviado_imprensa:    { label: 'Na imprensa',      emoji: '📤', color: 'bg-blue-500/15 text-blue-400 border-blue-500/20'         },
   publicado:           { label: 'Publicado',        emoji: '🎉', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20'},
   rejeitado:           { label: 'Recusado',         emoji: '❌', color: 'bg-red-500/15 text-red-400 border-red-500/20'           },
+  retirado_fellow:     { label: 'Retirado',         emoji: '↩️', color: 'bg-gray-500/15 text-gray-300 border-gray-500/20'       },
 }
 
 const TENTATIVA_STATUS: Record<string, { label: string; emoji: string; color: string }> = {
