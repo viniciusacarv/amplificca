@@ -384,40 +384,41 @@ export default async function AdminImprensaReviewPage({
           <form action={atualizarSubmissao} className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-5 sticky top-20">
             <h3 className="text-sm font-semibold text-white">Atualizar submissão</h3>
             <input type="hidden" name="submissao_id" value={sub.id} />
+            <input type="hidden" name="status" value={sub.status} />
 
             {/* Status */}
             <div>
               <label className="block text-xs text-gray-500 uppercase tracking-wider mb-3">Status</label>
               <div className="space-y-2">
                 {STATUS_OPTIONS.map((opt) => (
-                  <label
+                  <button
                     key={opt.value}
-                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:border-gray-600 ${
+                    type="submit"
+                    name="next_status"
+                    value={opt.value}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all hover:border-gray-600 ${
                       sub.status === opt.value
                         ? 'bg-emerald-500/10 border-emerald-500/30'
                         : 'bg-gray-800/40 border-gray-700/40'
                     }`}
                   >
-                    <input
-                      type="radio"
-                      name="status"
-                      value={opt.value}
-                      defaultChecked={sub.status === opt.value}
-                      className="sr-only"
-                    />
                     <span className="text-base">{opt.emoji}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-white">{opt.label}</p>
                       <p className="text-xs text-gray-600 leading-tight">{opt.desc}</p>
                     </div>
                     {sub.status === opt.value && (
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-emerald-400 flex-shrink-0">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                      </svg>
+                      <span className="text-[11px] font-semibold text-emerald-400 flex-shrink-0">Atual</span>
                     )}
-                  </label>
+                    {sub.status !== opt.value && (
+                      <span className="text-[11px] font-semibold text-gray-500 flex-shrink-0">Mover</span>
+                    )}
+                  </button>
                 ))}
               </div>
+              <p className="text-xs text-gray-600 mt-2">
+                Clique em uma etapa para mudar o status imediatamente. O botao abaixo salva feedback, veiculo e URL sem alterar a fase atual.
+              </p>
             </div>
 
             {/* Veículo */}
@@ -473,7 +474,7 @@ export default async function AdminImprensaReviewPage({
               type="submit"
               className="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-black font-semibold text-sm py-2.5 rounded-xl transition-all"
             >
-              Salvar e notificar fellow
+              Salvar feedback e campos
             </button>
           </form>
         </div>
