@@ -52,14 +52,21 @@ export default async function FellowPerfilPage({
 
   if (!fellow) redirect('/painel/admin/fellows')
 
-  // Todas as submissões do fellow
+  // Todas as submissões internas do fellow
   const { data: submissoes } = await supabase
     .from('submissoes')
     .select('id, titulo, tipo, status, created_at, updated_at, artigo_url, veiculos(id, nome)')
     .eq('fellow_id', params.id)
     .order('created_at', { ascending: false })
 
-  // Todas as tentativas de placement do fellow (histórico completo)
+  // Artigos publicados reais (tabela artigos — inclui publicações independentes)
+  const { data: artigos } = await supabase
+    .from('artigos')
+    .select('id, titulo, url, veiculo, data_publicacao')
+    .eq('fellow_id', Number(params.id))
+    .order('data_publicacao', { ascending: false })
+
+  // Todas as tentativas de placement do fellow (histórico do CRM interno)
   const { data: tentativas } = await supabase
     .from('tentativas_placement')
     .select('*, submissoes(id, titulo), veiculos(id, nome, tipo_relacionamento)')
@@ -67,8 +74,9 @@ export default async function FellowPerfilPage({
     .order('enviado_em', { ascending: false })
 
   // Métricas rápidas
-  const totalSub = submissoes?.length ?? 0
-  const totalPub = submissoes?.filter((s: any) => s.status === 'publicado').length ?? 0
+  const totalSub       = submissoes?.length ?? 0
+  // Publicações reais vêm da tabela artigos, não de submissoes
+  const totalPub       = artigos?.length ?? 0
   const totalTentativas = tentativas?.length ?? 0
   const totalPublicadas = tentativas?.filter((t: any) => t.status === 'publicado').length ?? 0
   const taxaAceite = totalTentativas > 0
@@ -137,10 +145,61 @@ export default async function FellowPerfilPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-        {/* ── Coluna esquerda: submissões ──────────────────────────── */}
-        <div className="lg:col-span-3 space-y-5">
+        {/* ── Coluna esquerda: artigos publicados + submissões ────── */}
+        <div className="lg:col-span-3 space-y-8">
+
+          {/* Artigos publicados — fonte: tabela artigos (verdade absoluta) */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-white uppercase tracking-wider">
+                Artigos publicados ({totalPub})
+              </h2>
+              <span className="text-xs text-gray-600">inclui publicações independentes</span>
+            </div>
+
+            {!artigos || artigos.length === 0 ? (
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center">
+                <p className="text-gray-500 text-sm">Nenhum artigo publicado ainda.</p>
+              </div>
+            ) : (
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+                <div className="divide-y divide-gray-800">
+                  {(artigos as any[]).map((a) => (
+                    <a
+                      key={a.id}
+                      href={a.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-4 px-5 py-4 hover:bg-gray-800/50 transition-colors group"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white group-hover:text-emerald-400 transition-colors truncate">
+                          {a.titulo}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          <span className="text-xs text-emerald-600 font-medium">{a.veiculo}</span>
+                          <span className="text-xs text-gray-700">·</span>
+                          <span className="text-xs text-gray-600">
+                            {new Date(a.data_publicacao + 'T12:00:00').toLocaleDateString('pt-BR', {
+                              day: '2-digit', month: 'short', year: 'numeric',
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-gray-600 group-hover:text-emerald-400 flex-shrink-0 transition-colors">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                      </svg>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Submissões internas ao Amplifica */}
+          <div className="space-y-4">
           <h2 className="text-sm font-semibold text-white uppercase tracking-wider">
-            Submissões ({totalSub})
+            Submissões internas ({totalSub})
           </h2>
 
           {!submissoes || submissoes.length === 0 ? (
@@ -203,7 +262,8 @@ export default async function FellowPerfilPage({
               </div>
             </div>
           )}
-        </div>
+          </div>{/* fecha space-y-4 das submissões */}
+        </div>{/* fecha lg:col-span-3 */}
 
         {/* ── Coluna direita: timeline de tentativas ───────────────── */}
         <div className="lg:col-span-2 space-y-5">
