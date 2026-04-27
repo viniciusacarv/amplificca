@@ -244,7 +244,7 @@ export default async function DashboardPage() {
         <div className="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-white">Próximas Aulas</h2>
-            <SyncCalendarButton aulas={proximasAulas ?? []} />
+            <SyncCalendarButton />
           </div>
           {proximasAulas && proximasAulas.length > 0 ? (
             <div className="space-y-4">
