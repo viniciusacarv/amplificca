@@ -90,7 +90,7 @@ export default async function AulasPage() {
           <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
             Próximas aulas
           </h2>
-          <SyncCalendarButton aulas={aulasProximas ?? []} />
+          <SyncCalendarButton />
         </div>
 
         {aulasProximas && aulasProximas.length > 0 ? (
