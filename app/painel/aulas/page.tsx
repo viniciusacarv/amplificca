@@ -78,9 +78,9 @@ export default async function AulasPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">Aulas de Oratória</h1>
+        <h1 className="text-2xl font-bold text-white">Aulas Amplifica!</h1>
         <p className="text-gray-400 text-sm mt-1">
-          Presença em aulas vale +5 pontos, registrados pelo administrador.
+          Acompanhe aqui o seu calendário de aulas!
         </p>
       </div>
 
