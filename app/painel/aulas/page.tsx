@@ -3,6 +3,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
+import SyncCalendarButton from '../components/SyncCalendarButton'
 
 const TZ_BR = 'America/Sao_Paulo'
 
@@ -85,9 +86,12 @@ export default async function AulasPage() {
 
       {/* Aulas futuras */}
       <section>
-        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
-          Próximas aulas
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+            Próximas aulas
+          </h2>
+          <SyncCalendarButton aulas={aulasProximas ?? []} />
+        </div>
 
         {aulasProximas && aulasProximas.length > 0 ? (
           <div className="space-y-4">
