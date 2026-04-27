@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import DashboardBanner from '../components/DashboardBanner'
 import ArticleSubmitCTA from '../components/ArticleSubmitCTA'
+import SyncCalendarButton from '../components/SyncCalendarButton'
 
 // Mapeia tipo → rótulo + cor do badge
 const TIPO_LABELS: Record<string, { label: string; cor: string }> = {
@@ -241,7 +242,10 @@ export default async function DashboardPage() {
 
         {/* Próximas aulas */}
         <div className="lg:col-span-2 bg-gray-900 border border-gray-800 rounded-2xl p-6">
-          <h2 className="text-sm font-semibold text-white mb-4">Próximas Aulas</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-white">Próximas Aulas</h2>
+            <SyncCalendarButton aulas={proximasAulas ?? []} />
+          </div>
           {proximasAulas && proximasAulas.length > 0 ? (
             <div className="space-y-4">
               {proximasAulas.map((aula) => (
