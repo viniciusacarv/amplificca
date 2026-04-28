@@ -52,6 +52,8 @@ export default async function FellowPerfilPage({
     .single()
 
   if (!fellow) redirect('/painel/admin/fellows')
+  const numericFellowId = Number(fellow.id)
+  const canUseNumericFellowId = Number.isFinite(numericFellowId)
 
   // Todas as submissões internas do fellow
   const { data: submissoes } = await supabase
@@ -61,11 +63,36 @@ export default async function FellowPerfilPage({
     .order('created_at', { ascending: false })
 
   // Artigos publicados reais (tabela artigos — inclui publicações independentes)
-  const { data: artigos } = await supabase
-    .from('artigos')
-    .select('id, titulo, url, veiculo, data_publicacao')
-    .eq('fellow_id', Number(params.id))
-    .order('data_publicacao', { ascending: false })
+  const artigosPorIdPromise = canUseNumericFellowId
+    ? supabase
+        .from('artigos')
+        .select('id, titulo, url, veiculo, data_publicacao, fellow_nome, fellow_id')
+        .eq('fellow_id', numericFellowId)
+        .order('data_publicacao', { ascending: false })
+    : Promise.resolve({ data: [], error: null })
+
+  const artigosPorNomePromise = fellow.nome
+    ? supabase
+        .from('artigos')
+        .select('id, titulo, url, veiculo, data_publicacao, fellow_nome, fellow_id')
+        .eq('fellow_nome', fellow.nome)
+        .order('data_publicacao', { ascending: false })
+    : Promise.resolve({ data: [], error: null })
+
+  const [{ data: artigosPorId }, { data: artigosPorNome }] = await Promise.all([
+    artigosPorIdPromise,
+    artigosPorNomePromise,
+  ])
+
+  const artigos = Array.from(
+    new Map(
+      [...(artigosPorId ?? []), ...(artigosPorNome ?? [])].map((artigo: any) => [artigo.id, artigo])
+    ).values()
+  ).sort((a: any, b: any) => {
+    const dateA = a.data_publicacao ? new Date(a.data_publicacao).getTime() : 0
+    const dateB = b.data_publicacao ? new Date(b.data_publicacao).getTime() : 0
+    return dateB - dateA
+  })
 
   // Todas as tentativas de placement do fellow (histórico do CRM interno)
   const { data: tentativasRaw } = await supabase
