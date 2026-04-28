@@ -102,16 +102,25 @@ export default async function FellowPerfilPage({
     .order('enviado_em', { ascending: false })
 
   const submissaoIds = [...new Set(tentativasRaw?.map(t => t.submissao_id).filter(Boolean))]
-  const { data: subsData } = await supabase
-    .from('submissoes')
-    .select('id, titulo')
-    .in('id', submissaoIds.length ? submissaoIds : [''])
+  const subsDataPromise = submissaoIds.length
+    ? supabase
+        .from('submissoes')
+        .select('id, titulo')
+        .in('id', submissaoIds)
+    : Promise.resolve({ data: [], error: null })
 
   const veiculoIds = [...new Set(tentativasRaw?.map(t => t.veiculo_id).filter(Boolean))]
-  const { data: veiculosData } = await supabase
-    .from('veiculos')
-    .select('id, nome, tipo_relacionamento')
-    .in('id', veiculoIds.length ? veiculoIds : [''])
+  const veiculosDataPromise = veiculoIds.length
+    ? supabase
+        .from('veiculos')
+        .select('id, nome, tipo_relacionamento')
+        .in('id', veiculoIds)
+    : Promise.resolve({ data: [], error: null })
+
+  const [{ data: subsData }, { data: veiculosData }] = await Promise.all([
+    subsDataPromise,
+    veiculosDataPromise,
+  ])
 
   const tentativas = tentativasRaw?.map(t => ({
     ...t,
