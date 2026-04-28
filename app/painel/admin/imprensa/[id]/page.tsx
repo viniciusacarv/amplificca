@@ -6,7 +6,8 @@ import { redirect } from 'next/navigation'
 import { unstable_noStore as noStore } from 'next/cache'
 import Link from 'next/link'
 import { atualizarSubmissao } from '../actions'
-import { registrarTentativa, atualizarTentativa } from '../../tentativas/actions'
+import { atualizarTentativa } from '../../tentativas/actions'
+import { NovaTentativaForm, type VeiculoOpcao } from './NovaTentativaForm'
 
 const STATUS_OPTIONS = [
   { value: 'recebido',            label: 'Recebido',           emoji: '📬', desc: 'Aguardando avaliação'              },
@@ -64,12 +65,19 @@ export default async function AdminImprensaReviewPage({
 
   if (!sub) redirect('/painel/admin/imprensa')
 
-  // Lista de veículos ativos para selects
+  // Lista de veículos ativos para selects (inclui contatos para o dropdown
+  // de responsável no formulário de nova tentativa)
   const { data: veiculos } = await supabase
     .from('veiculos')
-    .select('id, nome, tipo_relacionamento')
+    .select('id, nome, tipo_relacionamento, contatos')
     .eq('ativo', true)
     .order('nome')
+
+  const veiculosOpcoes: VeiculoOpcao[] = (veiculos ?? []).map((v: any) => ({
+    id:       v.id,
+    nome:     v.nome,
+    contatos: Array.isArray(v.contatos) ? v.contatos : [],
+  }))
 
   // Tentativas de placement desta submissão
   const { data: tentativasRaw } = await supabase
@@ -170,44 +178,7 @@ export default async function AdminImprensaReviewPage({
               ) : (
                 <p className="text-sm text-gray-600 italic">Nenhum documento anexado.</p>
               )}
-
-              {sub.doc_imprensa_url && (
-                <a
-                  href={sub.doc_imprensa_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 text-purple-400 text-sm px-4 py-2.5 rounded-xl font-medium transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                  </svg>
-                  Doc para imprensa
-                </a>
-              )}
             </div>
-
-            {sub.feedback && (
-              <div className="mt-4 p-3 bg-gray-800 rounded-xl border border-gray-700">
-                <p className="text-xs text-gray-500 mb-1">Último feedback:</p>
-                <p className="text-sm text-gray-300 leading-relaxed">{sub.feedback}</p>
-              </div>
-            )}
-
-            {sub.artigo_url && (
-              <div className="mt-4">
-                <a
-                  href={sub.artigo_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                  </svg>
-                  Ver artigo publicado
-                </a>
-              </div>
-            )}
           </div>
 
           {/* Card do fellow — com link para o perfil */}
@@ -309,55 +280,104 @@ export default async function AdminImprensaReviewPage({
                             <p className="text-xs text-orange-400 leading-relaxed">↳ {t.motivo}</p>
                           )}
 
-                      {/* Form de atualização de resultado — só para tentativas ainda abertas */}
-                      {t.status === 'aguardando' && (
-                        <form action={atualizarTentativa} className="pt-3 border-t border-gray-800 space-y-3">
-                          <input type="hidden" name="tentativa_id" value={t.id} />
-                          <p className="text-xs text-gray-500 uppercase tracking-wider">Atualizar resultado</p>
+                          {/* Links: doc do assessor + artigo publicado (por placement) */}
+                          {(t.doc_imprensa_url || t.artigo_url) && (
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              {t.doc_imprensa_url && (
+                                <a
+                                  href={t.doc_imprensa_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 text-purple-400 text-xs px-2.5 py-1 rounded-lg font-medium transition-colors"
+                                >
+                                  📄 Doc para o assessor
+                                </a>
+                              )}
+                              {t.artigo_url && (
+                                <a
+                                  href={t.artigo_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400 text-xs px-2.5 py-1 rounded-lg font-medium transition-colors"
+                                >
+                                  🔗 Artigo publicado
+                                </a>
+                              )}
+                            </div>
+                          )}
 
-                          <div className="grid grid-cols-2 gap-2">
-                            {(['sem_retorno', 'negativo', 'publicado'] as const).map((s) => {
-                              const opt = TENTATIVA_STATUS[s]
-                              return (
-                                <label key={s} className="cursor-pointer">
-                                  <input type="radio" name="status" value={s} className="sr-only peer" />
-                                  <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border cursor-pointer peer-checked:ring-1 peer-checked:ring-emerald-500 ${opt.color} transition-all`}>
-                                    {opt.emoji} {opt.label}
-                                  </span>
-                                </label>
-                              )
-                            })}
-                          </div>
+                          {/* Formulário por tentativa: edita doc do assessor, URL do artigo
+                              e (se aguardando) o resultado da tentativa */}
+                          <form action={atualizarTentativa} className="pt-3 border-t border-gray-800 space-y-3">
+                            <input type="hidden" name="tentativa_id" value={t.id} />
 
-                          <input
-                            name="respondido_em"
-                            type="date"
-                            defaultValue={today}
-                            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/60 transition-colors"
-                          />
+                            <div>
+                              <label className="block text-[11px] text-gray-500 uppercase tracking-wider mb-1">
+                                Doc para o assessor de imprensa
+                              </label>
+                              <input
+                                name="doc_imprensa_url"
+                                type="url"
+                                defaultValue={t.doc_imprensa_url || ''}
+                                placeholder="https://docs.google.com/..."
+                                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/60 transition-colors"
+                              />
+                            </div>
 
-                          <input
-                            name="artigo_url"
-                            type="url"
-                            placeholder="URL do artigo (só se publicado)"
-                            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
-                          />
+                            <div>
+                              <label className="block text-[11px] text-gray-500 uppercase tracking-wider mb-1">
+                                URL do artigo publicado
+                              </label>
+                              <input
+                                name="artigo_url"
+                                type="url"
+                                defaultValue={t.artigo_url || ''}
+                                placeholder="https://..."
+                                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
+                              />
+                            </div>
 
-                          <textarea
-                            name="motivo"
-                            rows={2}
-                            placeholder="Motivo da negativa ou observações…"
-                            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-emerald-500/60 transition-colors"
-                          />
+                            {t.status === 'aguardando' && (
+                              <>
+                                <p className="text-[11px] text-gray-500 uppercase tracking-wider pt-1">Atualizar resultado</p>
 
-                          <button
-                            type="submit"
-                            className="w-full bg-gray-700 hover:bg-gray-600 text-white text-xs font-semibold py-2 rounded-xl transition-colors"
-                          >
-                            Salvar resultado
-                          </button>
-                        </form>
-                      )}
+                                <div className="grid grid-cols-2 gap-2">
+                                  {(['sem_retorno', 'negativo', 'publicado'] as const).map((s) => {
+                                    const opt = TENTATIVA_STATUS[s]
+                                    return (
+                                      <label key={s} className="cursor-pointer">
+                                        <input type="radio" name="status" value={s} className="sr-only peer" />
+                                        <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border cursor-pointer peer-checked:ring-1 peer-checked:ring-emerald-500 ${opt.color} transition-all`}>
+                                          {opt.emoji} {opt.label}
+                                        </span>
+                                      </label>
+                                    )
+                                  })}
+                                </div>
+
+                                <input
+                                  name="respondido_em"
+                                  type="date"
+                                  defaultValue={today}
+                                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500/60 transition-colors"
+                                />
+
+                                <textarea
+                                  name="motivo"
+                                  rows={2}
+                                  placeholder="Motivo da negativa ou observações…"
+                                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-emerald-500/60 transition-colors"
+                                />
+                              </>
+                            )}
+
+                            <button
+                              type="submit"
+                              className="w-full bg-gray-700 hover:bg-gray-600 text-white text-xs font-semibold py-2 rounded-xl transition-colors"
+                            >
+                              Salvar
+                            </button>
+                          </form>
                         </div>
                       </div>
                     )
@@ -372,61 +392,11 @@ export default async function AdminImprensaReviewPage({
             {podeTentativa && (
               <div className="border-t border-gray-800 pt-5">
                 <p className="text-xs text-gray-500 uppercase tracking-wider mb-4">Registrar nova tentativa</p>
-                <form action={registrarTentativa} className="space-y-3">
-                  <input type="hidden" name="submissao_id" value={sub.id} />
-
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1.5">Veículo <span className="text-red-400">*</span></label>
-                    <select
-                      name="veiculo_id"
-                      required
-                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/60 transition-colors"
-                    >
-                      <option value="">— Selecionar veículo —</option>
-                      {(veiculos as any[])?.map((v) => (
-                        <option key={v.id} value={v.id}>{v.nome}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1.5">Responsável</label>
-                      <input
-                        name="responsavel_nome"
-                        type="text"
-                        placeholder="Nome de quem enviou"
-                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1.5">Data de envio</label>
-                      <input
-                        name="enviado_em"
-                        type="date"
-                        defaultValue={today}
-                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/60 transition-colors"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1.5">Observações</label>
-                    <textarea
-                      name="notas"
-                      rows={2}
-                      placeholder="Canal usado, detalhes do envio, contexto…"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-emerald-500/60 transition-colors"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 text-sm font-semibold py-2.5 rounded-xl transition-colors"
-                  >
-                    📋 Registrar tentativa
-                  </button>
-                </form>
+                <NovaTentativaForm
+                  submissaoId={sub.id}
+                  veiculos={veiculosOpcoes}
+                  today={today}
+                />
               </div>
             )}
 
@@ -477,7 +447,8 @@ export default async function AdminImprensaReviewPage({
                 ))}
               </div>
               <p className="text-xs text-gray-600 mt-2">
-                Clique em uma etapa para mudar o status imediatamente. O botao abaixo salva feedback, veiculo e URL sem alterar a fase atual.
+                Clique em uma etapa para mudar o status imediatamente. O feedback e o doc para a assessoria
+                ficam diretamente no Google Docs e em cada placement.
               </p>
             </div>
 
@@ -497,68 +468,14 @@ export default async function AdminImprensaReviewPage({
                   <option key={v.id} value={v.id}>{v.nome}</option>
                 ))}
               </select>
-            </div>
-
-            {/* Doc para imprensa */}
-            <div>
-              <div className="flex items-center gap-1.5 mb-2">
-                <label htmlFor="doc_imprensa_url" className="text-xs text-gray-500 uppercase tracking-wider">
-                  Doc para assessor de imprensa
-                </label>
-                <div className="relative group">
-                  <span className="flex items-center justify-center w-4 h-4 rounded-full bg-gray-700 text-gray-400 text-[10px] font-bold cursor-default select-none">?</span>
-                  <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 rounded-xl bg-gray-700 border border-gray-600 px-3 py-2 text-xs text-gray-200 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                    Link do Google Docs do texto em versão final a ser compartilhado com o assessor de imprensa.
-                    <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-700" />
-                  </div>
-                </div>
-              </div>
-              <input
-                id="doc_imprensa_url"
-                name="doc_imprensa_url"
-                type="url"
-                defaultValue={sub.doc_imprensa_url || ''}
-                placeholder="https://docs.google.com/..."
-                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/60 transition-colors"
-              />
-            </div>
-
-            {/* Feedback */}
-            <div>
-              <label htmlFor="feedback" className="block text-xs text-gray-500 uppercase tracking-wider mb-2">
-                Feedback para o fellow
-              </label>
-              <textarea
-                id="feedback"
-                name="feedback"
-                rows={4}
-                defaultValue={sub.feedback || ''}
-                placeholder="Explique sua decisão, oriente o fellow sobre os próximos passos…"
-                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-emerald-500/60 transition-colors"
-              />
-              <p className="text-xs text-gray-600 mt-1">Obrigatório para ajustes e recusa. Visível para o fellow.</p>
-            </div>
-
-            {/* URL de publicação */}
-            <div>
-              <label htmlFor="artigo_url" className="block text-xs text-gray-500 uppercase tracking-wider mb-2">
-                URL do artigo publicado
-              </label>
-              <input
-                id="artigo_url"
-                name="artigo_url"
-                type="url"
-                defaultValue={sub.artigo_url || ''}
-                placeholder="https://..."
-                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/60 transition-colors"
-              />
+              <p className="text-xs text-gray-600 mt-1">Veículo principal de referência. Cada tentativa de placement registra seu próprio veículo.</p>
             </div>
 
             <button
               type="submit"
               className="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-black font-semibold text-sm py-2.5 rounded-xl transition-all"
             >
-              Salvar feedback e campos
+              Salvar veículo principal
             </button>
           </form>
         </div>
