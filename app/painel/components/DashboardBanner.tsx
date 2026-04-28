@@ -21,14 +21,14 @@ const SLIDES = [
   },
   {
     id: 'debates',
-    tag: 'EM BREVE',
-    eyebrow: 'CAMPEONATO 2026',
-    headline: 'DEBATES',
-    sub: 'Os melhores fellows do programa vão se enfrentar. Prepare sua argumentação.',
-    ticker: 'CAMPEONATO DE DEBATES 2026 • FASES ELIMINATÓRIAS • ATÉ 50 PONTOS • PREPARE-SE • ',
+    tag: 'INSCREVA-SE!',
+    eyebrow: 'LIBERTYCON 2026',
+    headline: 'CAMPEONATO DE DEBATE AMPLIFICA',
+    sub: 'Os melhores fellows do programa vão se enfrentar, com uma grande final na Libertycon 2026. Prepare sua argumentação!',
+    ticker: 'CAMPEONATO DE DEBATES 2026 • FASES ELIMINATÓRIAS • INSCREVA-SE • ',
     img: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=1600&auto=format&fit=crop',
     accent: '#fbbf24',
-    href: '',  // Deixe vazio para sem link, ou ex: '/painel/ranking'
+    href: 'https://forms.gle/rW8ZeqeUMzhwDvtK6'
   },
   {
     id: 'oratoria',
