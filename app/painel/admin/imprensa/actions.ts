@@ -19,24 +19,19 @@ async function assertAdmin() {
   return { supabase, user }
 }
 
-// Atualiza status + feedback + veículo e notifica o fellow
+// Atualiza status + veículo e notifica o fellow
+// (feedback agora flui via Google Docs; doc_imprensa_url e artigo_url
+// vivem por tentativa de placement)
 export async function atualizarSubmissao(formData: FormData) {
   const { supabase } = await assertAdmin()
 
-  const submissaoId = formData.get('submissao_id') as string
-  const nextStatus  = formData.get('next_status') as string | null
+  const submissaoId   = formData.get('submissao_id') as string
+  const nextStatus    = formData.get('next_status') as string | null
   const currentStatus = formData.get('status') as string | null
-  const status      = (nextStatus || currentStatus || '').trim()
-  const feedback          = formData.get('feedback') as string
-  const veiculo_id        = formData.get('veiculo_id') as string || null
-  const artigo_url        = formData.get('artigo_url') as string || null
-  const doc_imprensa_url  = formData.get('doc_imprensa_url') as string || null
+  const status        = (nextStatus || currentStatus || '').trim()
+  const veiculo_id    = formData.get('veiculo_id') as string || null
 
   if (!status) return { error: 'Status inválido.' }
-
-  if (['ajustes_solicitados', 'rejeitado'].includes(status) && !feedback?.trim()) {
-    return { error: 'Feedback é obrigatório para ajustes solicitados e recusa.' }
-  }
 
   // Busca a submissão para obter fellow_id e titulo
   const { data: submissao } = await supabase
@@ -52,10 +47,7 @@ export async function atualizarSubmissao(formData: FormData) {
     .from('submissoes')
     .update({
       status,
-      feedback:          feedback?.trim() || null,
-      veiculo_id:        veiculo_id || null,
-      artigo_url:        artigo_url?.trim() || null,
-      doc_imprensa_url:  doc_imprensa_url?.trim() || null,
+      veiculo_id: veiculo_id || null,
     })
     .eq('id', submissaoId)
 
