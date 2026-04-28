@@ -76,14 +76,14 @@ export default function ArticleSubmitCTA() {
               letterSpacing: 1,
             }}
           >
-            SUBMETA SEU ARTIGO PUBLICADO
+            SUBMETA SEU ARTIGO
           </h2>
 
           <p
             className="mt-2 max-w-md text-sm leading-relaxed text-gray-400"
             style={{ fontFamily: 'var(--font-body)' }}
           >
-            Publique sua analise e ganhe pontos no ranking. Mostre seu argumento ao Brasil.
+            Submeta seu artigo para publicação. Vamos amplificar suas ideias pelo Brasil!
           </p>
 
           <div className="mt-3 flex flex-wrap gap-3">
