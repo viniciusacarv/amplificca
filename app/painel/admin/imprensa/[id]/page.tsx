@@ -452,31 +452,6 @@ export default async function AdminImprensaReviewPage({
               </p>
             </div>
 
-            {/* Veículo */}
-            <div>
-              <label htmlFor="veiculo_id" className="block text-xs text-gray-500 uppercase tracking-wider mb-2">
-                Veículo de imprensa
-              </label>
-              <select
-                id="veiculo_id"
-                name="veiculo_id"
-                defaultValue={sub.veiculo_id || ''}
-                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/60 transition-colors"
-              >
-                <option value="">— Selecionar veículo —</option>
-                {(veiculos as any[])?.map((v) => (
-                  <option key={v.id} value={v.id}>{v.nome}</option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-600 mt-1">Veículo principal de referência. Cada tentativa de placement registra seu próprio veículo.</p>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-black font-semibold text-sm py-2.5 rounded-xl transition-all"
-            >
-              Salvar veículo principal
-            </button>
           </form>
         </div>
       </div>
