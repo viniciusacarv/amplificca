@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { ResetPasswordButton } from './ResetPasswordButton'
 
 const STATUS_CONFIG: Record<string, { label: string; emoji: string; color: string }> = {
   recebido:            { label: 'Recebido',        emoji: '📬', color: 'bg-blue-500/15 text-blue-400 border-blue-500/20'         },
@@ -180,6 +181,9 @@ export default async function FellowPerfilPage({
               )}
             </div>
           </div>
+          {fellow.email && (
+            <ResetPasswordButton email={fellow.email} nome={fellow.nome} />
+          )}
         </div>
 
         {/* Métricas */}
