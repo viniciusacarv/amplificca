@@ -108,7 +108,7 @@ export default async function FellowPerfilPage({
     .eq('fellow_id', params.id)
     .order('enviado_em', { ascending: false })
 
-  const submissaoIds = [...new Set(tentativasRaw?.map(t => t.submissao_id).filter(Boolean))]
+  const submissaoIds = [...new Set((tentativasRaw ?? []).map((t: any) => t.submissao_id).filter(Boolean))]
   const subsDataPromise = submissaoIds.length
     ? supabase
         .from('submissoes')
@@ -116,7 +116,7 @@ export default async function FellowPerfilPage({
         .in('id', submissaoIds)
     : Promise.resolve({ data: [], error: null })
 
-  const veiculoIds = [...new Set(tentativasRaw?.map(t => t.veiculo_id).filter(Boolean))]
+  const veiculoIds = [...new Set((tentativasRaw ?? []).map((t: any) => t.veiculo_id).filter(Boolean))]
   const veiculosDataPromise = veiculoIds.length
     ? supabase
         .from('veiculos')
@@ -129,16 +129,15 @@ export default async function FellowPerfilPage({
     veiculosDataPromise,
   ])
 
-  const tentativas = tentativasRaw?.map(t => ({
+  const tentativas = (tentativasRaw ?? []).map((t: any) => ({
     ...t,
-    submissoes: subsData?.find(s => String(s.id) === String(t.submissao_id)),
-    veiculos: veiculosData?.find(v => String(v.id) === String(t.veiculo_id))
-  })) || []
+    submissoes: subsData?.find((s: any) => String(s.id) === String(t.submissao_id)),
+    veiculos: veiculosData?.find((v: any) => String(v.id) === String(t.veiculo_id))
+  }))
 
   // Métricas rápidas
-  const totalSub       = submissoes?.length ?? 0
-  // Publicações reais vêm da tabela artigos, não de submissoes
-  const totalPub       = artigos?.length ?? 0
+  const totalSub        = submissoes?.length ?? 0
+  const totalPub        = artigos?.length ?? 0
   const totalTentativas = tentativas?.length ?? 0
   const totalPublicadas = tentativas?.filter((t: any) => t.status === 'publicado').length ?? 0
   const taxaAceite = totalTentativas > 0
@@ -305,7 +304,6 @@ export default async function FellowPerfilPage({
                               href={sub.artigo_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
                               className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
                             >
                               Ver artigo ↗
