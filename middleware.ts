@@ -35,9 +35,13 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
   const isLoginPage = pathname === '/painel/login'
+  const isPublicPage =
+    isLoginPage ||
+    pathname === '/painel/esqueci-senha' ||
+    pathname === '/painel/update-password'
 
   // Não autenticado tentando acessar área protegida → redireciona para login
-  if (!user && !isLoginPage) {
+  if (!user && !isPublicPage) {
     const url = request.nextUrl.clone()
     url.pathname = '/painel/login'
     return NextResponse.redirect(url)
