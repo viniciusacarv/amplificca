@@ -24,14 +24,20 @@ const TENTATIVA_STATUS: Record<string, { label: string; emoji: string; color: st
   publicado:   { label: 'Publicado',  emoji: '🎉', color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20'},
 }
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('pt-BR', {
+function formatDate(iso: string | null | undefined) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString('pt-BR', {
     day: '2-digit', month: 'short', year: 'numeric',
   })
 }
 
-function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleDateString('pt-BR', {
+function formatDateTime(iso: string | null | undefined) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString('pt-BR', {
     day: '2-digit', month: 'short', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   })
@@ -239,9 +245,7 @@ export default async function FellowPerfilPage({
                           <span className="text-xs text-emerald-600 font-medium">{a.veiculo}</span>
                           <span className="text-xs text-gray-700">·</span>
                           <span className="text-xs text-gray-600">
-                            {new Date(a.data_publicacao + 'T12:00:00').toLocaleDateString('pt-BR', {
-                              day: '2-digit', month: 'short', year: 'numeric',
-                            })}
+                            {formatDate(a.data_publicacao)}
                           </span>
                         </div>
                       </div>
