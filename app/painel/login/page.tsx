@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase-client'
 import { useRouter } from 'next/navigation'
@@ -258,9 +259,19 @@ export default function LoginPage() {
         </div>
 
         {/* Rodapé */}
-        <p style={{ fontSize:12, color:'rgba(255,255,255,0.2)', textAlign:'center' }}>
-          Problemas para entrar? Fale com a equipe Amplifica.
-        </p>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
+          <Link
+            href="/painel/esqueci-senha"
+            style={{ fontSize:13, color:'rgba(255,255,255,0.35)', textDecoration:'none', transition:'color 0.2s' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(126,211,33,0.8)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.35)' }}
+          >
+            Esqueci minha senha
+          </Link>
+          <p style={{ fontSize:12, color:'rgba(255,255,255,0.15)', margin:0 }}>
+            Outros problemas? Fale com a equipe Amplifica.
+          </p>
+        </div>
       </div>
     </div>
   )
