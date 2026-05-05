@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation'
 import { unstable_noStore as noStore } from 'next/cache'
 import Link from 'next/link'
 import { atualizarSubmissao } from '../actions'
-import { atualizarTentativa } from '../../tentativas/actions'
+import { atualizarTentativa, excluirTentativa } from '../../tentativas/actions'
 import { NovaTentativaForm, type VeiculoOpcao } from './NovaTentativaForm'
 
 const STATUS_OPTIONS = [
@@ -50,7 +50,7 @@ export default async function AdminImprensaReviewPage({
   searchParams,
 }: {
   params: { id: string }
-  searchParams: { sucesso?: string; tentativa?: string; atualizado?: string; erro?: string }
+  searchParams: { sucesso?: string; tentativa?: string; atualizado?: string; excluido?: string; erro?: string }
 }) {
   noStore()
   const supabase = createClient()
@@ -134,6 +134,11 @@ export default async function AdminImprensaReviewPage({
       {searchParams.erro === 'tentativa' && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm">
           ❌ Não foi possível registrar a tentativa. Verifique se este veículo já está cadastrado para esta submissão.
+        </div>
+      )}
+      {searchParams.excluido && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm">
+          🗑️ Tentativa de placement excluída.
         </div>
       )}
       {searchParams.erro === 'submissao' && (
@@ -305,6 +310,23 @@ export default async function AdminImprensaReviewPage({
                               )}
                             </div>
                           )}
+
+                          {/* Excluir tentativa */}
+                          <form
+                            action={excluirTentativa}
+                            className="pt-2 flex justify-end"
+                            onSubmit={(e) => {
+                              if (!confirm('Excluir esta tentativa de placement?')) e.preventDefault()
+                            }}
+                          >
+                            <input type="hidden" name="tentativa_id" value={t.id} />
+                            <button
+                              type="submit"
+                              className="text-[11px] text-red-500/60 hover:text-red-400 transition-colors"
+                            >
+                              🗑️ Excluir tentativa
+                            </button>
+                          </form>
 
                           {/* Formulário por tentativa: edita doc do assessor, URL do artigo
                               e (se aguardando) o resultado da tentativa */}
