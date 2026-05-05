@@ -201,3 +201,35 @@ export async function atualizarTentativa(formData: FormData) {
   if (tentativa.fellow_id) revalidatePath(`/painel/admin/fellows/${tentativa.fellow_id}`)
   redirect(`/painel/admin/imprensa/${submissao_id}?atualizado=1`)
 }
+
+// ─── Exclui uma tentativa de placement ──────────────────────────────────────
+export async function excluirTentativa(formData: FormData) {
+  const { supabase } = await assertAdmin()
+
+  const tentativa_id = formData.get('tentativa_id') as string
+  if (!tentativa_id) redirect('/painel/admin/imprensa')
+
+  const { data: tentativa } = await supabase
+    .from('tentativas_placement')
+    .select('submissao_id, fellow_id, veiculo_id')
+    .eq('id', tentativa_id)
+    .single()
+
+  if (!tentativa) redirect('/painel/admin/imprensa')
+
+  const submissao_id = tentativa.submissao_id as string
+
+  await supabase
+    .from('tentativas_placement')
+    .delete()
+    .eq('id', tentativa_id)
+
+  revalidatePath(`/painel/admin/imprensa/${submissao_id}`)
+  revalidatePath('/painel/admin/imprensa')
+  if (tentativa.veiculo_id) {
+    revalidatePath(`/painel/admin/veiculos/${tentativa.veiculo_id}`)
+    revalidatePath(`/painel/admin/veiculos/${tentativa.veiculo_id}/view`)
+  }
+  if (tentativa.fellow_id) revalidatePath(`/painel/admin/fellows/${tentativa.fellow_id}`)
+  redirect(`/painel/admin/imprensa/${submissao_id}?excluido=1`)
+}
