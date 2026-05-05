@@ -6,7 +6,8 @@ import { redirect } from 'next/navigation'
 import { unstable_noStore as noStore } from 'next/cache'
 import Link from 'next/link'
 import { atualizarSubmissao } from '../actions'
-import { atualizarTentativa, excluirTentativa } from '../../tentativas/actions'
+import { atualizarTentativa } from '../../tentativas/actions'
+import { ExcluirTentativaButton } from './ExcluirTentativaButton'
 import { NovaTentativaForm, type VeiculoOpcao } from './NovaTentativaForm'
 
 const STATUS_OPTIONS = [
@@ -312,21 +313,7 @@ export default async function AdminImprensaReviewPage({
                           )}
 
                           {/* Excluir tentativa */}
-                          <form
-                            action={excluirTentativa}
-                            className="pt-2 flex justify-end"
-                            onSubmit={(e) => {
-                              if (!confirm('Excluir esta tentativa de placement?')) e.preventDefault()
-                            }}
-                          >
-                            <input type="hidden" name="tentativa_id" value={t.id} />
-                            <button
-                              type="submit"
-                              className="text-[11px] text-red-500/60 hover:text-red-400 transition-colors"
-                            >
-                              🗑️ Excluir tentativa
-                            </button>
-                          </form>
+                          <ExcluirTentativaButton tentativaId={t.id} />
 
                           {/* Formulário por tentativa: edita doc do assessor, URL do artigo
                               e (se aguardando) o resultado da tentativa */}
