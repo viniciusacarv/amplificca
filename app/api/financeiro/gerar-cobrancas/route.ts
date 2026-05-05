@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
     .from('fellows')
     .select('id')
     .eq('tipo_financiamento', 'autofinanciado')
+    .eq('contrato_ativo', true)
 
   if (errFellows) return NextResponse.json({ error: errFellows.message }, { status: 500 })
   if (!fellows?.length) return NextResponse.json({ ok: true, mes, criadas: 0, motivo: 'sem fellows autofinanciados' })

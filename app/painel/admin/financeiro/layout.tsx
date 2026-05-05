@@ -4,6 +4,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { canAccessFinanceiro } from '@/lib/auth-financeiro'
 import { redirect } from 'next/navigation'
+import FinanceiroSubNav from './components/FinanceiroSubNav'
 
 export default async function FinanceiroLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
@@ -13,5 +14,10 @@ export default async function FinanceiroLayout({ children }: { children: React.R
     redirect('/painel/admin')
   }
 
-  return <>{children}</>
+  return (
+    <div className="space-y-4">
+      <FinanceiroSubNav />
+      {children}
+    </div>
+  )
 }
