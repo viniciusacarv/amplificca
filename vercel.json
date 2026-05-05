@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/financeiro/gerar-cobrancas",
+      "schedule": "0 9 1 * *"
+    }
+  ]
+}

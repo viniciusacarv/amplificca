@@ -4,6 +4,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { isAdminUser } from '@/lib/auth-profile'
+import { canAccessFinanceiro } from '@/lib/auth-financeiro'
 import { redirect } from 'next/navigation'
 import AdminSubNav from './AdminSubNav'
 
@@ -19,9 +20,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/painel/dashboard')
   }
 
+  const extraTabs = canAccessFinanceiro(user.email)
+    ? [{ href: '/painel/admin/financeiro', label: 'Financeiro', match: '/painel/admin/financeiro' }]
+    : []
+
   return (
     <div className="space-y-6">
-      <AdminSubNav />
+      <AdminSubNav extraTabs={extraTabs} />
       {children}
     </div>
   )
