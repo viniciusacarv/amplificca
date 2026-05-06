@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { importarFellowsCsv } from '../../actions'
-import FormWithFeedback from '../../components/FormWithFeedback'
+import FormWithFeedback, { SubmitButton } from '../../components/FormWithFeedback'
 import { Upload, Download, FileText } from 'lucide-react'
 
 const CSV_TEMPLATE = `nome,email,whatsapp,tipo_financiamento,bolsa_origem,turma_nome,bio,area,estado,instagram
@@ -78,7 +78,6 @@ export default function CsvImporter() {
       </div>
 
       <FormWithFeedback action={importarFellowsCsv}>
-        {({ SubmitButton }) => (
           <div className="space-y-2">
             <textarea
               name="csv"
@@ -110,7 +109,6 @@ export default function CsvImporter() {
             )}
             <SubmitButton>Importar fellows</SubmitButton>
           </div>
-        )}
       </FormWithFeedback>
     </div>
   )

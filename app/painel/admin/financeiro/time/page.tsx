@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { criarMembroEquipe, editarMembroEquipe, excluirMembroEquipe } from '../actions'
-import FormWithFeedback from '../components/FormWithFeedback'
+import FormWithFeedback, { SubmitButton } from '../components/FormWithFeedback'
 import ConfirmAction from '../components/ConfirmAction'
 import EditableRow from '../components/EditableRow'
 import { UserCog, Mail, Phone } from 'lucide-react'
@@ -33,24 +33,22 @@ export default async function TimePage() {
       <section className="rounded-2xl border border-gray-800 bg-gray-900/60 p-5">
         <h3 className="text-sm font-semibold text-white mb-3">Adicionar membro</h3>
         <FormWithFeedback action={criarMembroEquipe} resetOnSuccess>
-          {({ SubmitButton }) => (
-            <div className="grid grid-cols-2 gap-2">
-              <input name="nome" placeholder="Nome completo" required className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-              <input name="funcao" placeholder="Função (ex: Presidente)" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-              <input name="email" type="email" placeholder="E-mail" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-              <input name="whatsapp" placeholder="WhatsApp" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-              <label className="col-span-2 sm:col-span-1">
-                <span className="text-xs text-gray-500">Salário mensal (R$)</span>
-                <input name="salario_mensal" type="number" step="0.01" min="0" placeholder="0,00" className={inputCls + ' w-full'} />
-              </label>
-              <label className="col-span-2 sm:col-span-1">
-                <span className="text-xs text-gray-500">Contratado em</span>
-                <input name="contratado_em" type="date" className={inputCls + ' w-full'} />
-              </label>
-              <input name="observacao" placeholder="Observação" className={`col-span-2 ${inputCls}`} />
-              <SubmitButton>Adicionar membro</SubmitButton>
-            </div>
-          )}
+          <div className="grid grid-cols-2 gap-2">
+            <input name="nome" placeholder="Nome completo" required className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+            <input name="funcao" placeholder="Função (ex: Presidente)" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+            <input name="email" type="email" placeholder="E-mail" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+            <input name="whatsapp" placeholder="WhatsApp" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+            <label className="col-span-2 sm:col-span-1">
+              <span className="text-xs text-gray-500">Salário mensal (R$)</span>
+              <input name="salario_mensal" type="number" step="0.01" min="0" placeholder="0,00" className={inputCls + ' w-full'} />
+            </label>
+            <label className="col-span-2 sm:col-span-1">
+              <span className="text-xs text-gray-500">Contratado em</span>
+              <input name="contratado_em" type="date" className={inputCls + ' w-full'} />
+            </label>
+            <input name="observacao" placeholder="Observação" className={`col-span-2 ${inputCls}`} />
+            <SubmitButton>Adicionar membro</SubmitButton>
+          </div>
         </FormWithFeedback>
       </section>
 
@@ -80,32 +78,30 @@ export default async function TimePage() {
                   </div>
                 </div>
               }
-              editForm={({ close }) => (
-                <FormWithFeedback action={editarMembroEquipe} onSuccess={() => setTimeout(close, 1200)}>
-                  {({ SubmitButton }) => (
-                    <div className="grid grid-cols-2 gap-2">
-                      <input type="hidden" name="id" value={m.id} />
-                      <input name="nome" defaultValue={m.nome} required className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-                      <input name="funcao" defaultValue={m.funcao ?? ''} placeholder="Função" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-                      <input name="email" defaultValue={m.email ?? ''} placeholder="E-mail" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-                      <input name="whatsapp" defaultValue={m.whatsapp ?? ''} placeholder="WhatsApp" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-                      <label className="col-span-2 sm:col-span-1">
-                        <span className="text-xs text-gray-500">Salário (R$)</span>
-                        <input name="salario_mensal" type="number" step="0.01" min="0" defaultValue={m.salario_mensal ?? 0} className={inputCls + ' w-full'} />
-                      </label>
-                      <label className="col-span-2 sm:col-span-1">
-                        <span className="text-xs text-gray-500">Contratado em</span>
-                        <input name="contratado_em" type="date" defaultValue={m.contratado_em ?? ''} className={inputCls + ' w-full'} />
-                      </label>
-                      <input name="observacao" defaultValue={m.observacao ?? ''} placeholder="Observação" className={`col-span-2 ${inputCls}`} />
-                      <label className="col-span-2 inline-flex items-center gap-2 text-xs text-gray-400">
-                        <input type="checkbox" name="ativo" defaultChecked={m.ativo} className="accent-amber-500" /> Ativo (gera despesa mensal)
-                      </label>
-                      <SubmitButton>Salvar alterações</SubmitButton>
-                    </div>
-                  )}
+              editForm={
+                <FormWithFeedback action={editarMembroEquipe}>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="hidden" name="id" value={m.id} />
+                    <input name="nome" defaultValue={m.nome} required className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+                    <input name="funcao" defaultValue={m.funcao ?? ''} placeholder="Função" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+                    <input name="email" defaultValue={m.email ?? ''} placeholder="E-mail" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+                    <input name="whatsapp" defaultValue={m.whatsapp ?? ''} placeholder="WhatsApp" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+                    <label className="col-span-2 sm:col-span-1">
+                      <span className="text-xs text-gray-500">Salário (R$)</span>
+                      <input name="salario_mensal" type="number" step="0.01" min="0" defaultValue={m.salario_mensal ?? 0} className={inputCls + ' w-full'} />
+                    </label>
+                    <label className="col-span-2 sm:col-span-1">
+                      <span className="text-xs text-gray-500">Contratado em</span>
+                      <input name="contratado_em" type="date" defaultValue={m.contratado_em ?? ''} className={inputCls + ' w-full'} />
+                    </label>
+                    <input name="observacao" defaultValue={m.observacao ?? ''} placeholder="Observação" className={`col-span-2 ${inputCls}`} />
+                    <label className="col-span-2 inline-flex items-center gap-2 text-xs text-gray-400">
+                      <input type="checkbox" name="ativo" defaultChecked={m.ativo} className="accent-amber-500" /> Ativo (gera despesa mensal)
+                    </label>
+                    <SubmitButton>Salvar alterações</SubmitButton>
+                  </div>
                 </FormWithFeedback>
-              )}
+              }
               onDelete={
                 <ConfirmAction action={excluirMembroEquipe} hidden={{ id: m.id }} label="🗑" message="Excluir?" className="p-1 text-gray-500 hover:text-rose-400" />
               }

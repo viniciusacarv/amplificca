@@ -1,11 +1,8 @@
 'use client'
-// Linha de listagem com expansão para editar inline.
-// editForm recebe um callback `close` para que o submit fechado por FormWithFeedback colapse a linha.
+// Linha de listagem com toggle entre visualização (summary) e edição (editForm).
 
 import { useState, ReactNode } from 'react'
 import { Pencil, X } from 'lucide-react'
-
-type EditFormRender = (helpers: { close: () => void }) => ReactNode
 
 export default function EditableRow({
   summary,
@@ -13,11 +10,10 @@ export default function EditableRow({
   onDelete,
 }: {
   summary: ReactNode
-  editForm: EditFormRender | ReactNode
+  editForm: ReactNode
   onDelete?: ReactNode
 }) {
   const [editing, setEditing] = useState(false)
-  const close = () => setEditing(false)
 
   return (
     <li className="py-2">
@@ -28,18 +24,14 @@ export default function EditableRow({
             type="button"
             onClick={() => setEditing(!editing)}
             className="p-1 text-gray-500 hover:text-amber-400"
-            title={editing ? 'Cancelar' : 'Editar'}
+            title={editing ? 'Fechar edição' : 'Editar'}
           >
             {editing ? <X className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
           </button>
           {onDelete}
         </div>
       </div>
-      {editing && (
-        <div className="mt-2 pt-2 border-t border-gray-800">
-          {typeof editForm === 'function' ? (editForm as EditFormRender)({ close }) : editForm}
-        </div>
-      )}
+      {editing && <div className="mt-2 pt-2 border-t border-gray-800">{editForm}</div>}
     </li>
   )
 }

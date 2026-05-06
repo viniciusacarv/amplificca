@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { criarFornecedor, editarFornecedor, excluirFornecedor } from '../actions'
-import FormWithFeedback from '../components/FormWithFeedback'
+import FormWithFeedback, { SubmitButton } from '../components/FormWithFeedback'
 import ConfirmAction from '../components/ConfirmAction'
 import EditableRow from '../components/EditableRow'
 import { Phone, Mail, Building2 } from 'lucide-react'
@@ -23,22 +23,20 @@ export default async function FornecedoresPage() {
       <section className="rounded-2xl border border-gray-800 bg-gray-900/60 p-5">
         <h3 className="text-sm font-semibold text-white mb-3">Novo fornecedor</h3>
         <FormWithFeedback action={criarFornecedor} resetOnSuccess>
-          {({ SubmitButton }) => (
-            <div className="grid grid-cols-2 gap-2">
-              <input name="nome" placeholder="Nome do fornecedor" required className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-              <select name="tipo" defaultValue="fornecedor" className={`col-span-2 sm:col-span-1 ${inputCls}`}>
-                <option value="fornecedor">Fornecedor</option>
-                <option value="parceiro">Parceiro</option>
-                <option value="cliente">Cliente</option>
-                <option value="outro">Outro</option>
-              </select>
-              <input name="contato_nome" placeholder="Pessoa de contato (opcional)" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-              <input name="contato_email" type="email" placeholder="E-mail (opcional)" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-              <input name="contato_whatsapp" placeholder="WhatsApp (opcional)" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-              <input name="observacao" placeholder="Observação" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-              <SubmitButton>Adicionar fornecedor</SubmitButton>
-            </div>
-          )}
+          <div className="grid grid-cols-2 gap-2">
+            <input name="nome" placeholder="Nome do fornecedor" required className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+            <select name="tipo" defaultValue="fornecedor" className={`col-span-2 sm:col-span-1 ${inputCls}`}>
+              <option value="fornecedor">Fornecedor</option>
+              <option value="parceiro">Parceiro</option>
+              <option value="cliente">Cliente</option>
+              <option value="outro">Outro</option>
+            </select>
+            <input name="contato_nome" placeholder="Pessoa de contato (opcional)" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+            <input name="contato_email" type="email" placeholder="E-mail (opcional)" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+            <input name="contato_whatsapp" placeholder="WhatsApp (opcional)" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+            <input name="observacao" placeholder="Observação" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+            <SubmitButton>Adicionar fornecedor</SubmitButton>
+          </div>
         </FormWithFeedback>
       </section>
 
@@ -69,30 +67,28 @@ export default async function FornecedoresPage() {
                   </div>
                 </div>
               }
-              editForm={({ close }) => (
-                <FormWithFeedback action={editarFornecedor} onSuccess={() => setTimeout(close, 1200)}>
-                  {({ SubmitButton }) => (
-                    <div className="grid grid-cols-2 gap-2">
-                      <input type="hidden" name="id" value={f.id} />
-                      <input name="nome" defaultValue={f.nome} required className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-                      <select name="tipo" defaultValue={f.tipo} className={`col-span-2 sm:col-span-1 ${inputCls}`}>
-                        <option value="fornecedor">Fornecedor</option>
-                        <option value="parceiro">Parceiro</option>
-                        <option value="cliente">Cliente</option>
-                        <option value="outro">Outro</option>
-                      </select>
-                      <input name="contato_nome" defaultValue={f.contato_nome ?? ''} placeholder="Contato" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-                      <input name="contato_email" defaultValue={f.contato_email ?? ''} placeholder="E-mail" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-                      <input name="contato_whatsapp" defaultValue={f.contato_whatsapp ?? ''} placeholder="WhatsApp" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-                      <input name="observacao" defaultValue={f.observacao ?? ''} placeholder="Observação" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-                      <label className="col-span-2 inline-flex items-center gap-2 text-xs text-gray-400">
-                        <input type="checkbox" name="ativo" defaultChecked={f.ativo} className="accent-amber-500" /> Ativo
-                      </label>
-                      <SubmitButton>Salvar alterações</SubmitButton>
-                    </div>
-                  )}
+              editForm={
+                <FormWithFeedback action={editarFornecedor}>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="hidden" name="id" value={f.id} />
+                    <input name="nome" defaultValue={f.nome} required className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+                    <select name="tipo" defaultValue={f.tipo} className={`col-span-2 sm:col-span-1 ${inputCls}`}>
+                      <option value="fornecedor">Fornecedor</option>
+                      <option value="parceiro">Parceiro</option>
+                      <option value="cliente">Cliente</option>
+                      <option value="outro">Outro</option>
+                    </select>
+                    <input name="contato_nome" defaultValue={f.contato_nome ?? ''} placeholder="Contato" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+                    <input name="contato_email" defaultValue={f.contato_email ?? ''} placeholder="E-mail" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+                    <input name="contato_whatsapp" defaultValue={f.contato_whatsapp ?? ''} placeholder="WhatsApp" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+                    <input name="observacao" defaultValue={f.observacao ?? ''} placeholder="Observação" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+                    <label className="col-span-2 inline-flex items-center gap-2 text-xs text-gray-400">
+                      <input type="checkbox" name="ativo" defaultChecked={f.ativo} className="accent-amber-500" /> Ativo
+                    </label>
+                    <SubmitButton>Salvar alterações</SubmitButton>
+                  </div>
                 </FormWithFeedback>
-              )}
+              }
               onDelete={
                 <ConfirmAction action={excluirFornecedor} hidden={{ id: f.id }} label="🗑" message="Excluir?" className="p-1 text-gray-500 hover:text-rose-400" />
               }

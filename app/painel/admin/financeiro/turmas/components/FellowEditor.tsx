@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { editarFellow } from '../../actions'
-import FormWithFeedback from '../../components/FormWithFeedback'
+import FormWithFeedback, { SubmitButton } from '../../components/FormWithFeedback'
 import { encerrarContrato, reativarContrato } from '../../actions'
 import { Pencil, X, Phone, MessageCircle, GraduationCap, Mail } from 'lucide-react'
 import Link from 'next/link'
@@ -124,7 +124,6 @@ export default function FellowEditor({ fellow, turmas }: { fellow: Fellow; turma
       </div>
 
       <FormWithFeedback action={editarFellow} onSuccess={() => setTimeout(() => setEditing(false), 1200)}>
-        {({ SubmitButton }) => (
           <div className="grid grid-cols-2 gap-2">
             <input type="hidden" name="id" value={fellow.id} />
             <label className="col-span-2 sm:col-span-1">
@@ -185,7 +184,6 @@ export default function FellowEditor({ fellow, turmas }: { fellow: Fellow; turma
               </div>
             </div>
           </div>
-        )}
       </FormWithFeedback>
     </div>
   )
