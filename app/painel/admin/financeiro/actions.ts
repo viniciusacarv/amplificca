@@ -19,6 +19,21 @@ function bumpAll() {
   revalidatePath('/painel/admin/financeiro/custos')
   revalidatePath('/painel/admin/financeiro/turmas')
   revalidatePath('/painel/admin/financeiro/configuracoes')
+  revalidatePath('/painel/admin/financeiro/fornecedores')
+  revalidatePath('/painel/admin/financeiro/time')
+  revalidatePath('/painel/admin/financeiro/produtos')
+}
+
+// Tipo de retorno padrão para forms com feedback (useFormState).
+export type ActionResult = { ok: boolean; message?: string }
+
+async function safeRun(fn: () => Promise<void>): Promise<ActionResult> {
+  try {
+    await fn()
+    return { ok: true, message: 'Salvo com sucesso.' }
+  } catch (e: any) {
+    return { ok: false, message: e?.message ?? 'Erro inesperado.' }
+  }
 }
 
 // ----- Cobranças -----
@@ -315,6 +330,332 @@ export async function excluirCategoria(formData: FormData) {
   const id = Number(formData.get('id'))
   if (!id) throw new Error('Id inválido.')
   const { error } = await supabase.from('financeiro_categorias').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+  bumpAll()
+}
+
+// ----- Wrappers com feedback (useFormState) para as actions que retornavam void -----
+
+export const lancarReceitaAvulsaFb = async (_p: ActionResult | undefined, fd: FormData) => safeRun(() => lancarReceitaAvulsa(fd))
+export const editarReceitaAvulsaFb = async (_p: ActionResult | undefined, fd: FormData) => safeRun(() => editarReceitaAvulsa(fd))
+export const lancarDespesaFb       = async (_p: ActionResult | undefined, fd: FormData) => safeRun(() => lancarDespesa(fd))
+export const editarDespesaFb       = async (_p: ActionResult | undefined, fd: FormData) => safeRun(() => editarDespesa(fd))
+export const editarCobrancaFb      = async (_p: ActionResult | undefined, fd: FormData) => safeRun(() => editarCobranca(fd))
+export const salvarConfigFb        = async (_p: ActionResult | undefined, fd: FormData) => safeRun(() => salvarConfig(fd))
+export const atualizarWhatsappFellowFb = async (_p: ActionResult | undefined, fd: FormData) => safeRun(() => atualizarWhatsappFellow(fd))
+
+// ----- Editar fellow (modo edição na página de turmas) -----
+
+export async function editarFellow(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const id = Number(formData.get('id'))
+    if (!id) throw new Error('Fellow inválido.')
+
+    const tipo = String(formData.get('tipo_financiamento') ?? '').trim() || null
+    const bolsa = String(formData.get('bolsa_origem') ?? '').trim() || null
+    const turma_id = formData.get('turma_id') ? Number(formData.get('turma_id')) : null
+    const whatsapp = String(formData.get('whatsapp') ?? '').replace(/\D/g, '') || null
+    const email = String(formData.get('email') ?? '').trim() || null
+    const nome = String(formData.get('nome') ?? '').trim()
+
+    if (!nome) throw new Error('Nome obrigatório.')
+    if (tipo && !['autofinanciado', 'bolsista'].includes(tipo)) throw new Error('Tipo de financiamento inválido.')
+
+    const { error } = await supabase.from('fellows').update({
+      nome,
+      email,
+      whatsapp,
+      tipo_financiamento: tipo,
+      bolsa_origem: tipo === 'bolsista' ? bolsa : null,
+      turma_id,
+    }).eq('id', id)
+
+    if (error) throw new Error(error.message)
+  })
+}
+
+// ----- Importar fellows via CSV -----
+
+export async function importarFellowsCsv(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const csv = String(formData.get('csv') ?? '').trim()
+    if (!csv) throw new Error('CSV vazio.')
+
+    const linhas = csv.split(/\r?\n/).filter(Boolean)
+    if (linhas.length < 2) throw new Error('CSV precisa ter cabeçalho e ao menos uma linha.')
+
+    const sep = linhas[0].includes(';') ? ';' : ','
+    const headers = linhas[0].split(sep).map((h) => h.trim().toLowerCase())
+    const required = ['nome', 'email', 'tipo_financiamento']
+    for (const r of required) if (!headers.includes(r)) throw new Error(`Coluna obrigatória ausente: ${r}`)
+
+    const idx = (h: string) => headers.indexOf(h)
+    const turmasNomes = new Map<string, number>()
+    const { data: turmasExistentes } = await supabase.from('turmas').select('id, nome')
+    turmasExistentes?.forEach((t: any) => turmasNomes.set(t.nome.toLowerCase(), t.id))
+
+    const rows: any[] = []
+    let inseridos = 0
+    let atualizados = 0
+
+    for (let i = 1; i < linhas.length; i++) {
+      const cols = linhas[i].split(sep).map((c) => c.trim().replace(/^"|"$/g, ''))
+      const nome = cols[idx('nome')]
+      const email = cols[idx('email')]?.toLowerCase() || null
+      if (!nome || !email) continue
+
+      const tipo = (cols[idx('tipo_financiamento')] ?? '').toLowerCase()
+      if (!['autofinanciado', 'bolsista'].includes(tipo)) {
+        throw new Error(`Linha ${i + 1}: tipo_financiamento "${cols[idx('tipo_financiamento')]}" inválido (use "autofinanciado" ou "bolsista").`)
+      }
+
+      let turma_id: number | null = null
+      if (idx('turma_nome') >= 0 && cols[idx('turma_nome')]) {
+        const nomeTurma = cols[idx('turma_nome')]
+        turma_id = turmasNomes.get(nomeTurma.toLowerCase()) ?? null
+        if (!turma_id) {
+          const { data: nova, error: errT } = await supabase.from('turmas').insert({
+            nome: nomeTurma,
+            data_inicio: new Date().toISOString().slice(0, 10),
+            data_fim: new Date(Date.now() + 180 * 86400_000).toISOString().slice(0, 10),
+          }).select('id').single()
+          if (errT) throw new Error(`Não foi possível criar a turma "${nomeTurma}": ${errT.message}`)
+          turma_id = nova.id
+          turmasNomes.set(nomeTurma.toLowerCase(), nova.id)
+        }
+      }
+
+      const whatsapp = idx('whatsapp') >= 0 ? (cols[idx('whatsapp')] ?? '').replace(/\D/g, '') || null : null
+      const bolsa = idx('bolsa_origem') >= 0 ? (cols[idx('bolsa_origem')] ?? '').trim() || null : null
+      const bio = idx('bio') >= 0 ? (cols[idx('bio')] ?? '').trim() || null : null
+      const area = idx('area') >= 0 ? (cols[idx('area')] ?? '').trim() || null : null
+      const estado = idx('estado') >= 0 ? (cols[idx('estado')] ?? '').trim().slice(0, 2).toUpperCase() || null : null
+      const instagram = idx('instagram') >= 0 ? (cols[idx('instagram')] ?? '').trim() || null : null
+
+      // Tenta encontrar por email
+      const { data: existente } = await supabase.from('fellows').select('id').ilike('email', email).maybeSingle()
+
+      const payload: any = {
+        nome,
+        email,
+        whatsapp,
+        tipo_financiamento: tipo,
+        bolsa_origem: tipo === 'bolsista' ? bolsa : null,
+        turma_id,
+        contrato_ativo: true,
+      }
+      if (bio) payload.bio = bio
+      if (area) payload.area = area
+      if (estado) payload.estado = estado
+      if (instagram) payload.instagram = instagram
+
+      if (existente?.id) {
+        const { error: errU } = await supabase.from('fellows').update(payload).eq('id', existente.id)
+        if (errU) throw new Error(`Linha ${i + 1}: ${errU.message}`)
+        atualizados++
+      } else {
+        const { error: errI } = await supabase.from('fellows').insert(payload)
+        if (errI) throw new Error(`Linha ${i + 1}: ${errI.message}`)
+        inseridos++
+      }
+      rows.push(payload)
+    }
+
+    bumpAll()
+    throw new Error(`__OK__:${inseridos} inseridos, ${atualizados} atualizados.`)
+  }).then((r) => {
+    // Hack: sucesso vem como erro com __OK__ para passar a contagem.
+    if (!r.ok && r.message?.startsWith('__OK__:')) return { ok: true, message: r.message.replace('__OK__:', '') }
+    return r
+  })
+}
+
+// ----- Fornecedores -----
+
+export async function criarFornecedor(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const nome = String(formData.get('nome')).trim()
+    if (!nome) throw new Error('Nome obrigatório.')
+    const { error } = await supabase.from('fornecedores').insert({
+      nome,
+      tipo: String(formData.get('tipo') ?? 'fornecedor'),
+      contato_nome: String(formData.get('contato_nome') ?? '').trim() || null,
+      contato_email: String(formData.get('contato_email') ?? '').trim() || null,
+      contato_whatsapp: String(formData.get('contato_whatsapp') ?? '').replace(/\D/g, '') || null,
+      observacao: String(formData.get('observacao') ?? '').trim() || null,
+    })
+    if (error) throw new Error(error.message)
+  })
+}
+
+export async function editarFornecedor(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const id = Number(formData.get('id'))
+    if (!id) throw new Error('Id inválido.')
+    const { error } = await supabase.from('fornecedores').update({
+      nome: String(formData.get('nome')).trim(),
+      tipo: String(formData.get('tipo') ?? 'fornecedor'),
+      contato_nome: String(formData.get('contato_nome') ?? '').trim() || null,
+      contato_email: String(formData.get('contato_email') ?? '').trim() || null,
+      contato_whatsapp: String(formData.get('contato_whatsapp') ?? '').replace(/\D/g, '') || null,
+      observacao: String(formData.get('observacao') ?? '').trim() || null,
+      ativo: formData.get('ativo') === 'on',
+    }).eq('id', id)
+    if (error) throw new Error(error.message)
+  })
+}
+
+export async function excluirFornecedor(formData: FormData) {
+  const supabase = await requireFinanceiroUser()
+  const id = Number(formData.get('id'))
+  if (!id) throw new Error('Id inválido.')
+  const { error } = await supabase.from('fornecedores').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+  bumpAll()
+}
+
+// ----- Equipe -----
+
+export async function criarMembroEquipe(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const nome = String(formData.get('nome')).trim()
+    if (!nome) throw new Error('Nome obrigatório.')
+    const salario = Number(String(formData.get('salario_mensal') ?? '0').replace(',', '.'))
+    const { error } = await supabase.from('equipe_financeiro').insert({
+      nome,
+      funcao: String(formData.get('funcao') ?? '').trim() || null,
+      email: String(formData.get('email') ?? '').trim() || null,
+      whatsapp: String(formData.get('whatsapp') ?? '').replace(/\D/g, '') || null,
+      salario_mensal: Number.isFinite(salario) ? salario : 0,
+      contratado_em: String(formData.get('contratado_em') ?? '') || null,
+      observacao: String(formData.get('observacao') ?? '').trim() || null,
+    })
+    if (error) throw new Error(error.message)
+  })
+}
+
+export async function editarMembroEquipe(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const id = Number(formData.get('id'))
+    if (!id) throw new Error('Id inválido.')
+    const salario = Number(String(formData.get('salario_mensal') ?? '0').replace(',', '.'))
+    const { error } = await supabase.from('equipe_financeiro').update({
+      nome: String(formData.get('nome')).trim(),
+      funcao: String(formData.get('funcao') ?? '').trim() || null,
+      email: String(formData.get('email') ?? '').trim() || null,
+      whatsapp: String(formData.get('whatsapp') ?? '').replace(/\D/g, '') || null,
+      salario_mensal: Number.isFinite(salario) ? salario : 0,
+      contratado_em: String(formData.get('contratado_em') ?? '') || null,
+      ativo: formData.get('ativo') === 'on',
+      observacao: String(formData.get('observacao') ?? '').trim() || null,
+    }).eq('id', id)
+    if (error) throw new Error(error.message)
+  })
+}
+
+export async function excluirMembroEquipe(formData: FormData) {
+  const supabase = await requireFinanceiroUser()
+  const id = Number(formData.get('id'))
+  if (!id) throw new Error('Id inválido.')
+  const { error } = await supabase.from('equipe_financeiro').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+  bumpAll()
+}
+
+// ----- Produtos -----
+
+export async function criarProduto(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const nome = String(formData.get('nome')).trim()
+    if (!nome) throw new Error('Nome obrigatório.')
+    const valor = Number(String(formData.get('valor') ?? '0').replace(',', '.'))
+    const duracao = formData.get('duracao_meses') ? Number(formData.get('duracao_meses')) : null
+    const { error } = await supabase.from('produtos').insert({
+      nome,
+      descricao: String(formData.get('descricao') ?? '').trim() || null,
+      modelo: String(formData.get('modelo') ?? 'pacote'),
+      valor: Number.isFinite(valor) ? valor : 0,
+      recorrencia: String(formData.get('recorrencia') ?? 'unica') || null,
+      duracao_meses: duracao,
+      cor: String(formData.get('cor') ?? '#64748b'),
+    })
+    if (error) throw new Error(error.message)
+  })
+}
+
+export async function editarProduto(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const id = Number(formData.get('id'))
+    if (!id) throw new Error('Id inválido.')
+    const valor = Number(String(formData.get('valor') ?? '0').replace(',', '.'))
+    const duracao = formData.get('duracao_meses') ? Number(formData.get('duracao_meses')) : null
+    const { error } = await supabase.from('produtos').update({
+      nome: String(formData.get('nome')).trim(),
+      descricao: String(formData.get('descricao') ?? '').trim() || null,
+      modelo: String(formData.get('modelo') ?? 'pacote'),
+      valor: Number.isFinite(valor) ? valor : 0,
+      recorrencia: String(formData.get('recorrencia') ?? 'unica') || null,
+      duracao_meses: duracao,
+      cor: String(formData.get('cor') ?? '#64748b'),
+      ativo: formData.get('ativo') === 'on',
+    }).eq('id', id)
+    if (error) throw new Error(error.message)
+  })
+}
+
+export async function excluirProduto(formData: FormData) {
+  const supabase = await requireFinanceiroUser()
+  const id = Number(formData.get('id'))
+  if (!id) throw new Error('Id inválido.')
+  const { error } = await supabase.from('produtos').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+  bumpAll()
+}
+
+// ----- Fellow × Produto -----
+
+export async function vincularFellowProduto(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const fellow_id = Number(formData.get('fellow_id'))
+    const produto_id = Number(formData.get('produto_id'))
+    if (!fellow_id || !produto_id) throw new Error('Fellow e produto obrigatórios.')
+    const data_inicio = String(formData.get('data_inicio') || new Date().toISOString().slice(0, 10))
+    const data_fim = String(formData.get('data_fim') || '') || null
+    const valor_negociado = formData.get('valor_negociado') ? Number(String(formData.get('valor_negociado')).replace(',', '.')) : null
+    const { error } = await supabase.from('fellow_produtos').insert({
+      fellow_id, produto_id, data_inicio, data_fim, valor_negociado,
+      observacao: String(formData.get('observacao') ?? '').trim() || null,
+    })
+    if (error) throw new Error(error.message)
+  })
+}
+
+export async function desvincularFellowProduto(formData: FormData) {
+  const supabase = await requireFinanceiroUser()
+  const id = Number(formData.get('id'))
+  if (!id) throw new Error('Id inválido.')
+  const { error } = await supabase.from('fellow_produtos').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+  bumpAll()
+}
+
+export async function atualizarStatusFellowProduto(formData: FormData) {
+  const supabase = await requireFinanceiroUser()
+  const id = Number(formData.get('id'))
+  const status = String(formData.get('status'))
+  if (!id || !['ativo', 'encerrado', 'pausado'].includes(status)) throw new Error('Parâmetros inválidos.')
+  const update: any = { status }
+  if (status === 'encerrado' && !formData.get('data_fim')) update.data_fim = new Date().toISOString().slice(0, 10)
+  const { error } = await supabase.from('fellow_produtos').update(update).eq('id', id)
   if (error) throw new Error(error.message)
   bumpAll()
 }

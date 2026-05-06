@@ -1,8 +1,11 @@
 'use client'
 // Linha de listagem com expansão para editar inline.
+// editForm recebe um callback `close` para que o submit fechado por FormWithFeedback colapse a linha.
 
 import { useState, ReactNode } from 'react'
-import { Pencil, Trash2, X } from 'lucide-react'
+import { Pencil, X } from 'lucide-react'
+
+type EditFormRender = (helpers: { close: () => void }) => ReactNode
 
 export default function EditableRow({
   summary,
@@ -10,10 +13,11 @@ export default function EditableRow({
   onDelete,
 }: {
   summary: ReactNode
-  editForm: ReactNode
+  editForm: EditFormRender | ReactNode
   onDelete?: ReactNode
 }) {
   const [editing, setEditing] = useState(false)
+  const close = () => setEditing(false)
 
   return (
     <li className="py-2">
@@ -31,7 +35,11 @@ export default function EditableRow({
           {onDelete}
         </div>
       </div>
-      {editing && <div className="mt-2 pt-2 border-t border-gray-800">{editForm}</div>}
+      {editing && (
+        <div className="mt-2 pt-2 border-t border-gray-800">
+          {typeof editForm === 'function' ? (editForm as EditFormRender)({ close }) : editForm}
+        </div>
+      )}
     </li>
   )
 }

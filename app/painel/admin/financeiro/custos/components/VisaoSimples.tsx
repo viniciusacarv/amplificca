@@ -1,9 +1,10 @@
-// Lista única de despesas do ano, ranqueada por valor, com edição inline.
+// Lista única de despesas do ano com edição inline (FormWithFeedback fecha ao salvar).
 
 import Link from 'next/link'
-import { editarDespesa, excluirDespesa } from '../../actions'
+import { editarDespesaFb, excluirDespesa } from '../../actions'
 import EditableRow from '../../components/EditableRow'
 import ConfirmAction from '../../components/ConfirmAction'
+import FormWithFeedback from '../../components/FormWithFeedback'
 
 type Despesa = {
   id: number
@@ -39,9 +40,8 @@ export default function VisaoSimples({
 }) {
   const ranqueadas = [...despesas].sort((a, b) => Number(b.valor) - Number(a.valor))
   const total = ranqueadas.reduce((s, d) => s + Number(d.valor), 0)
-
   const projetos = Array.from(new Set(despesas.map((d) => d.projeto).filter(Boolean) as string[])).sort()
-  const cats = Array.from(new Set(despesas.map((d) => d.categoria))).sort()
+  const cats = Array.from(new Set([...despesas.map((d) => d.categoria), ...categorias.map((c) => c.nome)])).sort()
 
   return (
     <section className="rounded-2xl border border-gray-800 bg-gray-900/60">
@@ -84,32 +84,31 @@ export default function VisaoSimples({
                 <span className="text-sm tabular-nums text-rose-400">{brl(Number(d.valor))}</span>
               </div>
             }
-            editForm={
-              <form action={editarDespesa} className="grid grid-cols-2 gap-2">
-                <input type="hidden" name="id" value={d.id} />
-                <input name="categoria" defaultValue={d.categoria} required className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-                <input name="data" type="date" defaultValue={d.data} required className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-                <input name="descricao" defaultValue={d.descricao} required className={`col-span-2 ${inputCls}`} />
-                <input name="fornecedor" defaultValue={d.fornecedor ?? ''} placeholder="Fornecedor" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-                <input name="valor" type="number" step="0.01" min="0" defaultValue={d.valor} required className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-                <select name="categoria_id" defaultValue={d.categoria_id ?? ''} className={`col-span-2 sm:col-span-1 ${inputCls}`}>
-                  <option value="">Categoria (opcional)</option>
-                  {categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-                </select>
-                <input name="projeto" defaultValue={d.projeto ?? ''} placeholder="Projeto" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
-                <button type="submit" className="col-span-2 mt-1 rounded-lg bg-rose-500 px-4 py-2 text-sm font-semibold text-gray-950 hover:bg-rose-400">
-                  Salvar alterações
-                </button>
-              </form>
-            }
+            editForm={({ close }) => (
+              <FormWithFeedback action={editarDespesaFb} onSuccess={() => setTimeout(close, 1200)}>
+                {({ SubmitButton }) => (
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="hidden" name="id" value={d.id} />
+                    <select name="categoria" defaultValue={d.categoria} required className={`col-span-2 sm:col-span-1 ${inputCls}`}>
+                      {categorias.map((c) => <option key={c.id} value={c.nome}>{c.nome}</option>)}
+                      {!categorias.find((c) => c.nome === d.categoria) && <option value={d.categoria}>{d.categoria} (legacy)</option>}
+                    </select>
+                    <input name="data" type="date" defaultValue={d.data} required className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+                    <input name="descricao" defaultValue={d.descricao} required className={`col-span-2 ${inputCls}`} />
+                    <input name="fornecedor" defaultValue={d.fornecedor ?? ''} placeholder="Fornecedor" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+                    <input name="valor" type="number" step="0.01" min="0" defaultValue={d.valor} required className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+                    <select name="categoria_id" defaultValue={d.categoria_id ?? ''} className={`col-span-2 sm:col-span-1 ${inputCls}`}>
+                      <option value="">Categoria (id, opcional)</option>
+                      {categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                    </select>
+                    <input name="projeto" defaultValue={d.projeto ?? ''} placeholder="Projeto" className={`col-span-2 sm:col-span-1 ${inputCls}`} />
+                    <SubmitButton className="bg-rose-500 text-gray-950 hover:bg-rose-400">Salvar alterações</SubmitButton>
+                  </div>
+                )}
+              </FormWithFeedback>
+            )}
             onDelete={
-              <ConfirmAction
-                action={excluirDespesa}
-                hidden={{ id: d.id }}
-                label="🗑"
-                message="Excluir?"
-                className="p-1 text-gray-500 hover:text-rose-400"
-              />
+              <ConfirmAction action={excluirDespesa} hidden={{ id: d.id }} label="🗑" message="Excluir?" className="p-1 text-gray-500 hover:text-rose-400" />
             }
           />
         ))}

@@ -35,20 +35,62 @@ export async function GET(request: NextRequest) {
     .eq('contrato_ativo', true)
 
   if (errFellows) return NextResponse.json({ error: errFellows.message }, { status: 500 })
-  if (!fellows?.length) return NextResponse.json({ ok: true, mes, criadas: 0, motivo: 'sem fellows autofinanciados' })
 
-  const rows = fellows.map((f) => ({
-    fellow_id: f.id,
-    mes_referencia: mesRef,
-    valor: VALOR_MENSALIDADE,
-    status: 'pendente',
-  }))
+  const cobrancasResult = { processadas: 0 }
+  if (fellows?.length) {
+    const rows = fellows.map((f) => ({
+      fellow_id: f.id,
+      mes_referencia: mesRef,
+      valor: VALOR_MENSALIDADE,
+      status: 'pendente',
+    }))
+    const { error, count } = await supabase
+      .from('financeiro_cobrancas')
+      .upsert(rows, { onConflict: 'fellow_id,mes_referencia', ignoreDuplicates: true, count: 'exact' })
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    cobrancasResult.processadas = count ?? rows.length
+  }
 
-  const { error, count } = await supabase
-    .from('financeiro_cobrancas')
-    .upsert(rows, { onConflict: 'fellow_id,mes_referencia', ignoreDuplicates: true, count: 'exact' })
+  // Despesas recorrentes do time ativo
+  const { data: equipe, error: errEq } = await supabase
+    .from('equipe_financeiro')
+    .select('id, nome, salario_mensal')
+    .eq('ativo', true)
+    .gt('salario_mensal', 0)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  const despesasResult = { criadas: 0 }
+  if (!errEq && equipe?.length) {
+    const dataMes = `${mes}-05` // 5o dia do mês
+    // Verifica quais já existem
+    const { data: existentes } = await supabase
+      .from('financeiro_despesas')
+      .select('equipe_id')
+      .gte('data', `${mes}-01`).lte('data', `${mes}-31`)
+      .not('equipe_id', 'is', null)
 
-  return NextResponse.json({ ok: true, mes, total_fellows: fellows.length, processadas: count ?? rows.length })
+    const idsExistentes = new Set((existentes ?? []).map((e: any) => e.equipe_id))
+    const novas = equipe
+      .filter((m) => !idsExistentes.has(m.id))
+      .map((m) => ({
+        categoria: 'Equipe',
+        descricao: `Salário mensal — ${m.nome}`,
+        valor: Number(m.salario_mensal),
+        data: dataMes,
+        equipe_id: m.id,
+      }))
+
+    if (novas.length) {
+      const { error: errIns, count } = await supabase
+        .from('financeiro_despesas')
+        .insert(novas, { count: 'exact' })
+      if (!errIns) despesasResult.criadas = count ?? novas.length
+    }
+  }
+
+  return NextResponse.json({
+    ok: true,
+    mes,
+    cobrancas: { total_fellows: fellows?.length ?? 0, processadas: cobrancasResult.processadas },
+    despesas_equipe: { total_membros: equipe?.length ?? 0, criadas: despesasResult.criadas },
+  })
 }

@@ -1,9 +1,9 @@
-// app/painel/admin/financeiro/custos/page.tsx
-// Aba dedicada de Custos: Visão Simples (lista) + Visão Mensal (matriz cat × mês).
+// Aba Custos — Visão Mensal padrão, com KPIs e gráficos no estilo ERPVAC.
 
 import { createClient } from '@/lib/supabase-server'
 import VisaoSimples from './components/VisaoSimples'
 import VisaoMensal from './components/VisaoMensal'
+import CustosOverview from './components/CustosOverview'
 import Link from 'next/link'
 
 export default async function CustosPage({
@@ -12,7 +12,7 @@ export default async function CustosPage({
   searchParams: { view?: string; ano?: string; categoria?: string; projeto?: string }
 }) {
   const supabase = createClient()
-  const view = searchParams.view === 'mensal' ? 'mensal' : 'simples'
+  const view = searchParams.view === 'simples' ? 'simples' : 'mensal'
   const ano = searchParams.ano && /^\d{4}$/.test(searchParams.ano) ? Number(searchParams.ano) : new Date().getFullYear()
 
   const inicioAno = `${ano}-01-01`
@@ -23,7 +23,7 @@ export default async function CustosPage({
       .select('id, categoria, descricao, fornecedor, valor, data, projeto, categoria_id')
       .gte('data', inicioAno).lte('data', fimAno)
       .order('data', { ascending: false }),
-    supabase.from('financeiro_categorias').select('id, nome, tipo').eq('tipo', 'despesa').order('nome'),
+    supabase.from('financeiro_categorias').select('id, nome, tipo, cor').eq('tipo', 'despesa').order('nome'),
   ])
 
   const despesas: any[] = despesasRes.data ?? []
@@ -38,24 +38,24 @@ export default async function CustosPage({
   })
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-white">Custos</h1>
           <p className="text-sm text-gray-400">Despesas do Instituto no ano de {ano}.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/painel/admin/financeiro/custos?view=simples&ano=${ano}`}
-            className={`px-3 py-1.5 rounded-lg text-sm border ${view === 'simples' ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' : 'bg-gray-900 border-gray-800 text-gray-400 hover:text-gray-200'}`}
-          >
-            Visão Simples
-          </Link>
+        <div className="flex items-center gap-2 flex-wrap">
           <Link
             href={`/painel/admin/financeiro/custos?view=mensal&ano=${ano}`}
             className={`px-3 py-1.5 rounded-lg text-sm border ${view === 'mensal' ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' : 'bg-gray-900 border-gray-800 text-gray-400 hover:text-gray-200'}`}
           >
             Visão Mensal
+          </Link>
+          <Link
+            href={`/painel/admin/financeiro/custos?view=simples&ano=${ano}`}
+            className={`px-3 py-1.5 rounded-lg text-sm border ${view === 'simples' ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' : 'bg-gray-900 border-gray-800 text-gray-400 hover:text-gray-200'}`}
+          >
+            Visão Simples
           </Link>
           <form>
             <input type="hidden" name="view" value={view} />
@@ -66,10 +66,13 @@ export default async function CustosPage({
         </div>
       </header>
 
-      {view === 'simples' ? (
-        <VisaoSimples despesas={despesasFiltradas} categorias={categorias} ano={ano} filtroCat={filtroCat} filtroProj={filtroProj} />
+      {view === 'mensal' ? (
+        <>
+          <CustosOverview despesas={despesas} categorias={categorias} ano={ano} />
+          <VisaoMensal despesas={despesas} ano={ano} />
+        </>
       ) : (
-        <VisaoMensal despesas={despesas} ano={ano} />
+        <VisaoSimples despesas={despesasFiltradas} categorias={categorias} ano={ano} filtroCat={filtroCat} filtroProj={filtroProj} />
       )}
     </div>
   )
