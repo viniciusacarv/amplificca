@@ -281,8 +281,9 @@ export async function atualizarWhatsappFellow(formData: FormData) {
   const fellow_id = Number(formData.get('fellow_id'))
   const whatsapp = String(formData.get('whatsapp') ?? '').replace(/\D/g, '') || null
   if (!fellow_id) throw new Error('Fellow inválido.')
-  const { error } = await supabase.from('fellows').update({ whatsapp }).eq('id', fellow_id)
+  const { data, error } = await supabase.from('fellows').update({ whatsapp }).eq('id', fellow_id).select('id')
   if (error) throw new Error(error.message)
+  if (!data || data.length === 0) throw new Error('Nenhuma linha foi atualizada — verifique permissões (RLS) na tabela fellows.')
   bumpAll()
 }
 
@@ -362,16 +363,17 @@ export async function editarFellow(_prev: ActionResult | undefined, formData: Fo
     if (!nome) throw new Error('Nome obrigatório.')
     if (tipo && !['autofinanciado', 'bolsista'].includes(tipo)) throw new Error('Tipo de financiamento inválido.')
 
-    const { error } = await supabase.from('fellows').update({
+    const { data, error } = await supabase.from('fellows').update({
       nome,
       email,
       whatsapp,
       tipo_financiamento: tipo,
       bolsa_origem: tipo === 'bolsista' ? bolsa : null,
       turma_id,
-    }).eq('id', id)
+    }).eq('id', id).select('id')
 
     if (error) throw new Error(error.message)
+    if (!data || data.length === 0) throw new Error('Nenhuma linha foi atualizada — verifique permissões (RLS) na tabela fellows.')
     bumpAll()
   })
 }
