@@ -22,6 +22,7 @@ function bumpAll() {
   revalidatePath('/painel/admin/financeiro/fornecedores')
   revalidatePath('/painel/admin/financeiro/time')
   revalidatePath('/painel/admin/financeiro/produtos')
+  revalidatePath('/painel/admin/financeiro/patrocinios')
 }
 
 // Tipo de retorno padrão para forms com feedback (useFormState).
@@ -901,6 +902,154 @@ export async function atualizarStatusFellowProduto(formData: FormData) {
   const update: any = { status }
   if (status === 'encerrado' && !formData.get('data_fim')) update.data_fim = new Date().toISOString().slice(0, 10)
   const { error } = await supabase.from('fellow_produtos').update(update).eq('id', id)
+  if (error) throw new Error(error.message)
+  bumpAll()
+}
+
+// ----- Parceiros Financeiros -----
+
+export async function criarParceiro(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const nome = String(formData.get('nome')).trim()
+    if (!nome) throw new Error('Nome obrigatório.')
+    const tipo = String(formData.get('tipo') ?? 'doador')
+    if (!['pessoa_fisica', 'empresa', 'instituto', 'patrocinador', 'doador', 'parceiro', 'outro'].includes(tipo))
+      throw new Error('Tipo inválido.')
+    const { error } = await supabase.from('parceiros_financeiros').insert({
+      nome,
+      tipo,
+      documento:     String(formData.get('documento') ?? '').trim() || null,
+      email:         String(formData.get('email') ?? '').trim() || null,
+      telefone:      String(formData.get('telefone') ?? '').replace(/\D/g, '') || null,
+      contato_nome:  String(formData.get('contato_nome') ?? '').trim() || null,
+      status:        String(formData.get('status') ?? 'ativo'),
+      tags:          String(formData.get('tags') ?? '').trim() || null,
+      projeto:       String(formData.get('projeto') ?? '').trim() || null,
+      observacao:    String(formData.get('observacao') ?? '').trim() || null,
+    })
+    if (error) throw new Error(error.message)
+    bumpAll()
+  })
+}
+
+export async function editarParceiro(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const id = Number(formData.get('id'))
+    if (!id) throw new Error('Id inválido.')
+    const tipo = String(formData.get('tipo') ?? 'doador')
+    if (!['pessoa_fisica', 'empresa', 'instituto', 'patrocinador', 'doador', 'parceiro', 'outro'].includes(tipo))
+      throw new Error('Tipo inválido.')
+    const { error } = await supabase.from('parceiros_financeiros').update({
+      nome:          String(formData.get('nome')).trim(),
+      tipo,
+      documento:     String(formData.get('documento') ?? '').trim() || null,
+      email:         String(formData.get('email') ?? '').trim() || null,
+      telefone:      String(formData.get('telefone') ?? '').replace(/\D/g, '') || null,
+      contato_nome:  String(formData.get('contato_nome') ?? '').trim() || null,
+      status:        String(formData.get('status') ?? 'ativo'),
+      tags:          String(formData.get('tags') ?? '').trim() || null,
+      projeto:       String(formData.get('projeto') ?? '').trim() || null,
+      observacao:    String(formData.get('observacao') ?? '').trim() || null,
+      updated_at:    new Date().toISOString(),
+    }).eq('id', id)
+    if (error) throw new Error(error.message)
+    bumpAll()
+  })
+}
+
+export async function excluirParceiro(formData: FormData) {
+  const supabase = await requireFinanceiroUser()
+  const id = Number(formData.get('id'))
+  if (!id) throw new Error('Id inválido.')
+  const { error } = await supabase.from('parceiros_financeiros').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+  bumpAll()
+}
+
+// ----- Receitas de Patrocínio / Doação -----
+
+export async function lancarReceitaPatrocinio(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const tipo = String(formData.get('tipo'))
+    if (!['doacao', 'patrocinio', 'parceria', 'produto', 'outro'].includes(tipo)) throw new Error('Tipo inválido.')
+    const descricao = String(formData.get('descricao')).trim()
+    if (!descricao) throw new Error('Descrição obrigatória.')
+    const valor = Number(String(formData.get('valor')).replace(',', '.'))
+    if (!Number.isFinite(valor) || valor <= 0) throw new Error('Valor inválido.')
+    const data = String(formData.get('data'))
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) throw new Error('Data inválida.')
+    const parceiro_id = formData.get('parceiro_id') ? Number(formData.get('parceiro_id')) : null
+    const categoria_id = formData.get('categoria_id') ? Number(formData.get('categoria_id')) : null
+    const recorrencia = String(formData.get('recorrencia') ?? 'unica')
+    const mesRaw = String(formData.get('mes_referencia') ?? '').trim()
+    const mes_referencia = mesRaw ? normalizarMesReferencia(mesRaw) : `${data.slice(0, 7)}-01`
+
+    const { error } = await supabase.from('financeiro_receitas_avulsas').insert({
+      tipo,
+      descricao,
+      origem:           parceiro_id ? null : String(formData.get('origem') ?? '').trim() || null,
+      valor,
+      data,
+      projeto:          String(formData.get('projeto') ?? '').trim() || null,
+      observacao:       String(formData.get('observacao') ?? '').trim() || null,
+      categoria_id,
+      parceiro_id,
+      recorrencia,
+      metodo_pagamento: String(formData.get('metodo_pagamento') ?? '').trim() || null,
+      status_receita:   String(formData.get('status_receita') ?? 'pago'),
+      mes_referencia,
+    })
+    if (error) throw new Error(error.message)
+    bumpAll()
+  })
+}
+
+export async function editarReceitaPatrocinio(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const id = Number(formData.get('id'))
+    if (!id) throw new Error('Id inválido.')
+    const tipo = String(formData.get('tipo'))
+    if (!['doacao', 'patrocinio', 'parceria', 'produto', 'outro'].includes(tipo)) throw new Error('Tipo inválido.')
+    const descricao = String(formData.get('descricao')).trim()
+    if (!descricao) throw new Error('Descrição obrigatória.')
+    const valor = Number(String(formData.get('valor')).replace(',', '.'))
+    if (!Number.isFinite(valor) || valor <= 0) throw new Error('Valor inválido.')
+    const data = String(formData.get('data'))
+    const parceiro_id = formData.get('parceiro_id') ? Number(formData.get('parceiro_id')) : null
+    const categoria_id = formData.get('categoria_id') ? Number(formData.get('categoria_id')) : null
+    const recorrencia = String(formData.get('recorrencia') ?? 'unica')
+    const mesRaw = String(formData.get('mes_referencia') ?? '').trim()
+    const mes_referencia = mesRaw ? normalizarMesReferencia(mesRaw) : `${data.slice(0, 7)}-01`
+
+    const { error } = await supabase.from('financeiro_receitas_avulsas').update({
+      tipo,
+      descricao,
+      origem:           parceiro_id ? null : String(formData.get('origem') ?? '').trim() || null,
+      valor,
+      data,
+      projeto:          String(formData.get('projeto') ?? '').trim() || null,
+      observacao:       String(formData.get('observacao') ?? '').trim() || null,
+      categoria_id,
+      parceiro_id,
+      recorrencia,
+      metodo_pagamento: String(formData.get('metodo_pagamento') ?? '').trim() || null,
+      status_receita:   String(formData.get('status_receita') ?? 'pago'),
+      mes_referencia,
+    }).eq('id', id)
+    if (error) throw new Error(error.message)
+    bumpAll()
+  })
+}
+
+export async function excluirReceitaPatrocinio(formData: FormData) {
+  const supabase = await requireFinanceiroUser()
+  const id = Number(formData.get('id'))
+  if (!id) throw new Error('Id inválido.')
+  const { error } = await supabase.from('financeiro_receitas_avulsas').delete().eq('id', id)
   if (error) throw new Error(error.message)
   bumpAll()
 }

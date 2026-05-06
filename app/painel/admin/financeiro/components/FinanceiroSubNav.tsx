@@ -3,16 +3,17 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Receipt, Users, Settings, Package, Truck, UserCog } from 'lucide-react'
+import { LayoutDashboard, Receipt, Users, Settings, Package, Truck, UserCog, HeartHandshake } from 'lucide-react'
 
 const TABS = [
-  { href: '/painel/admin/financeiro',                label: 'Dashboard',     icon: LayoutDashboard, exact: true },
-  { href: '/painel/admin/financeiro/custos',         label: 'Custos',        icon: Receipt },
-  { href: '/painel/admin/financeiro/turmas',         label: 'Turmas',        icon: Users },
-  { href: '/painel/admin/financeiro/produtos',       label: 'Produtos',      icon: Package },
-  { href: '/painel/admin/financeiro/fornecedores',   label: 'Fornecedores',  icon: Truck },
-  { href: '/painel/admin/financeiro/time',           label: 'Time',          icon: UserCog },
-  { href: '/painel/admin/financeiro/configuracoes',  label: 'Configurações', icon: Settings },
+  { href: '/painel/admin/financeiro',                   label: 'Dashboard',         icon: LayoutDashboard, exact: true },
+  { href: '/painel/admin/financeiro/custos',            label: 'Custos',            icon: Receipt },
+  { href: '/painel/admin/financeiro/patrocinios',       label: 'Patrocínios',       icon: HeartHandshake },
+  { href: '/painel/admin/financeiro/turmas',            label: 'Turmas',            icon: Users },
+  { href: '/painel/admin/financeiro/produtos',          label: 'Produtos',          icon: Package },
+  { href: '/painel/admin/financeiro/fornecedores',      label: 'Fornecedores',      icon: Truck },
+  { href: '/painel/admin/financeiro/time',              label: 'Time',              icon: UserCog },
+  { href: '/painel/admin/financeiro/configuracoes',     label: 'Configurações',     icon: Settings },
 ]
 
 export default function FinanceiroSubNav() {
