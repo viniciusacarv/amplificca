@@ -536,6 +536,7 @@ export async function criarMembroEquipe(_prev: ActionResult | undefined, formDat
       observacao: String(formData.get('observacao') ?? '').trim() || null,
     })
     if (error) throw new Error(error.message)
+    bumpAll()
   })
 }
 
@@ -556,6 +557,7 @@ export async function editarMembroEquipe(_prev: ActionResult | undefined, formDa
       observacao: String(formData.get('observacao') ?? '').trim() || null,
     }).eq('id', id)
     if (error) throw new Error(error.message)
+    bumpAll()
   })
 }
 
@@ -564,6 +566,66 @@ export async function excluirMembroEquipe(formData: FormData) {
   const id = Number(formData.get('id'))
   if (!id) throw new Error('Id inválido.')
   const { error } = await supabase.from('equipe_financeiro').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+  bumpAll()
+}
+
+// ----- Pagamentos da Equipe -----
+
+function normalizarMesReferencia(raw: string): string {
+  // Aceita "YYYY-MM" ou "YYYY-MM-DD" e retorna sempre "YYYY-MM-01"
+  const s = raw.trim()
+  if (!s) throw new Error('Mês de referência obrigatório.')
+  const m = s.match(/^(\d{4})-(\d{2})/)
+  if (!m) throw new Error('Mês de referência inválido.')
+  return `${m[1]}-${m[2]}-01`
+}
+
+export async function registrarPagamentoEquipe(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const equipe_id = Number(formData.get('equipe_id'))
+    if (!equipe_id) throw new Error('Membro inválido.')
+    const mes_referencia = normalizarMesReferencia(String(formData.get('mes_referencia') ?? ''))
+    const valor = Number(String(formData.get('valor_pago') ?? '0').replace(',', '.'))
+    if (!Number.isFinite(valor) || valor <= 0) throw new Error('Valor inválido.')
+    const data_pagamento = String(formData.get('data_pagamento') ?? '') || null
+    const observacao = String(formData.get('observacao') ?? '').trim() || null
+    const { error } = await supabase.from('pagamentos_equipe').upsert({
+      equipe_id,
+      mes_referencia,
+      valor_pago: valor,
+      data_pagamento,
+      observacao,
+    }, { onConflict: 'equipe_id,mes_referencia' })
+    if (error) throw new Error(error.message)
+    bumpAll()
+  })
+}
+
+export async function editarPagamentoEquipe(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const id = Number(formData.get('id'))
+    if (!id) throw new Error('Id inválido.')
+    const valor = Number(String(formData.get('valor_pago') ?? '0').replace(',', '.'))
+    if (!Number.isFinite(valor) || valor <= 0) throw new Error('Valor inválido.')
+    const data_pagamento = String(formData.get('data_pagamento') ?? '') || null
+    const observacao = String(formData.get('observacao') ?? '').trim() || null
+    const update: any = { valor_pago: valor, data_pagamento, observacao }
+    const mesRaw = String(formData.get('mes_referencia') ?? '')
+    if (mesRaw) update.mes_referencia = normalizarMesReferencia(mesRaw)
+    const { error } = await supabase.from('pagamentos_equipe').update(update).eq('id', id)
+    if (error) throw new Error(error.message)
+    bumpAll()
+  })
+}
+
+export async function excluirPagamentoEquipe(formData: FormData) {
+  const supabase = await requireFinanceiroUser()
+  const id = Number(formData.get('id'))
+  if (!id) throw new Error('Id inválido.')
+  const { error } = await supabase.from('pagamentos_equipe').delete().eq('id', id)
   if (error) throw new Error(error.message)
   bumpAll()
 }
