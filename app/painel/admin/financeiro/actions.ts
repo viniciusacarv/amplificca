@@ -372,6 +372,7 @@ export async function editarFellow(_prev: ActionResult | undefined, formData: Fo
     }).eq('id', id)
 
     if (error) throw new Error(error.message)
+    bumpAll()
   })
 }
 
@@ -488,6 +489,7 @@ export async function criarFornecedor(_prev: ActionResult | undefined, formData:
       observacao: String(formData.get('observacao') ?? '').trim() || null,
     })
     if (error) throw new Error(error.message)
+    bumpAll()
   })
 }
 
@@ -506,6 +508,7 @@ export async function editarFornecedor(_prev: ActionResult | undefined, formData
       ativo: formData.get('ativo') === 'on',
     }).eq('id', id)
     if (error) throw new Error(error.message)
+    bumpAll()
   })
 }
 
@@ -649,6 +652,7 @@ export async function criarProduto(_prev: ActionResult | undefined, formData: Fo
       cor: String(formData.get('cor') ?? '#64748b'),
     })
     if (error) throw new Error(error.message)
+    bumpAll()
   })
 }
 
@@ -670,6 +674,7 @@ export async function editarProduto(_prev: ActionResult | undefined, formData: F
       ativo: formData.get('ativo') === 'on',
     }).eq('id', id)
     if (error) throw new Error(error.message)
+    bumpAll()
   })
 }
 
@@ -698,6 +703,7 @@ export async function vincularFellowProduto(_prev: ActionResult | undefined, for
       observacao: String(formData.get('observacao') ?? '').trim() || null,
     })
     if (error) throw new Error(error.message)
+    bumpAll()
   })
 }
 
