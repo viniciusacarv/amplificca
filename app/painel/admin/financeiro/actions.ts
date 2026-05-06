@@ -584,22 +584,100 @@ function normalizarMesReferencia(raw: string): string {
   return `${m[1]}-${m[2]}-01`
 }
 
+function lerMesReferencia(formData: FormData): string {
+  // Aceita campo único "mes_referencia" OU dois campos "mes_referencia_ano" + "mes_referencia_mes"
+  const single = String(formData.get('mes_referencia') ?? '').trim()
+  if (single) return normalizarMesReferencia(single)
+  const ano = String(formData.get('mes_referencia_ano') ?? '').trim()
+  const mes = String(formData.get('mes_referencia_mes') ?? '').trim().padStart(2, '0')
+  if (!ano || !mes) throw new Error('Mês de referência obrigatório.')
+  return normalizarMesReferencia(`${ano}-${mes}`)
+}
+
+// Sincroniza um pagamento da equipe com a tabela financeiro_despesas.
+// Procura despesa do mesmo equipe_id no mês de referência. Se existir, atualiza
+// (cron já criou previsão); senão, cria nova. Retorna o despesa_id resultante.
+async function sincronizarDespesaPagamento(
+  supabase: any,
+  params: { equipe_id: number; mes_referencia: string; valor_pago: number; data_pagamento: string | null; observacao: string | null; despesa_id_atual: number | null }
+): Promise<number | null> {
+  const { equipe_id, mes_referencia, valor_pago, data_pagamento, observacao, despesa_id_atual } = params
+  const { data: membro } = await supabase.from('equipe_financeiro').select('nome').eq('id', equipe_id).maybeSingle()
+  const nomeMembro = membro?.nome ?? 'Membro'
+  const [yyyy, mm] = mes_referencia.split('-')
+  const ultimoDia = new Date(Number(yyyy), Number(mm), 0).getDate()
+  const fimMes = `${yyyy}-${mm}-${String(ultimoDia).padStart(2, '0')}`
+  const dataDespesa = data_pagamento ?? `${mes_referencia.slice(0, 8)}05` // dia 5 se sem data real
+  const descricao = `Salário ${nomeMembro} - ${mes_referencia.slice(0, 7)}`
+  const payload = {
+    categoria: 'Equipe',
+    descricao,
+    valor: valor_pago,
+    data: dataDespesa,
+    equipe_id,
+    observacao,
+  }
+
+  // Se já temos link, atualiza direto
+  if (despesa_id_atual) {
+    const { error } = await supabase.from('financeiro_despesas').update(payload).eq('id', despesa_id_atual)
+    if (error) throw new Error(`Erro sincronizando despesa: ${error.message}`)
+    return despesa_id_atual
+  }
+
+  // Procura despesa existente do mês (criada pelo cron)
+  const { data: existente } = await supabase
+    .from('financeiro_despesas')
+    .select('id')
+    .eq('equipe_id', equipe_id)
+    .gte('data', mes_referencia)
+    .lte('data', fimMes)
+    .limit(1)
+    .maybeSingle()
+
+  if (existente?.id) {
+    const { error } = await supabase.from('financeiro_despesas').update(payload).eq('id', existente.id)
+    if (error) throw new Error(`Erro sincronizando despesa: ${error.message}`)
+    return existente.id
+  }
+
+  // Cria nova
+  const { data: nova, error } = await supabase.from('financeiro_despesas').insert(payload).select('id').single()
+  if (error) throw new Error(`Erro criando despesa: ${error.message}`)
+  return nova?.id ?? null
+}
+
 export async function registrarPagamentoEquipe(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
   return safeRun(async () => {
     const supabase = await requireFinanceiroUser()
     const equipe_id = Number(formData.get('equipe_id'))
     if (!equipe_id) throw new Error('Membro inválido.')
-    const mes_referencia = normalizarMesReferencia(String(formData.get('mes_referencia') ?? ''))
+    const mes_referencia = lerMesReferencia(formData)
     const valor = Number(String(formData.get('valor_pago') ?? '0').replace(',', '.'))
     if (!Number.isFinite(valor) || valor <= 0) throw new Error('Valor inválido.')
     const data_pagamento = String(formData.get('data_pagamento') ?? '') || null
     const observacao = String(formData.get('observacao') ?? '').trim() || null
+
+    // Verifica se já existe pagamento (pra preservar despesa_id)
+    const { data: jaExiste } = await supabase
+      .from('pagamentos_equipe')
+      .select('id, despesa_id')
+      .eq('equipe_id', equipe_id)
+      .eq('mes_referencia', mes_referencia)
+      .maybeSingle()
+
+    const despesa_id = await sincronizarDespesaPagamento(supabase, {
+      equipe_id, mes_referencia, valor_pago: valor, data_pagamento, observacao,
+      despesa_id_atual: jaExiste?.despesa_id ?? null,
+    })
+
     const { error } = await supabase.from('pagamentos_equipe').upsert({
       equipe_id,
       mes_referencia,
       valor_pago: valor,
       data_pagamento,
       observacao,
+      despesa_id,
     }, { onConflict: 'equipe_id,mes_referencia' })
     if (error) throw new Error(error.message)
     bumpAll()
@@ -615,10 +693,27 @@ export async function editarPagamentoEquipe(_prev: ActionResult | undefined, for
     if (!Number.isFinite(valor) || valor <= 0) throw new Error('Valor inválido.')
     const data_pagamento = String(formData.get('data_pagamento') ?? '') || null
     const observacao = String(formData.get('observacao') ?? '').trim() || null
-    const update: any = { valor_pago: valor, data_pagamento, observacao }
-    const mesRaw = String(formData.get('mes_referencia') ?? '')
-    if (mesRaw) update.mes_referencia = normalizarMesReferencia(mesRaw)
-    const { error } = await supabase.from('pagamentos_equipe').update(update).eq('id', id)
+    const { data: atual } = await supabase
+      .from('pagamentos_equipe')
+      .select('id, equipe_id, mes_referencia, despesa_id')
+      .eq('id', id)
+      .single()
+    if (!atual) throw new Error('Pagamento não encontrado.')
+
+    let mes_referencia = atual.mes_referencia
+    try { mes_referencia = lerMesReferencia(formData) } catch {}
+    const despesa_id = await sincronizarDespesaPagamento(supabase, {
+      equipe_id: atual.equipe_id,
+      mes_referencia,
+      valor_pago: valor,
+      data_pagamento,
+      observacao,
+      despesa_id_atual: atual.despesa_id,
+    })
+
+    const { error } = await supabase.from('pagamentos_equipe')
+      .update({ valor_pago: valor, data_pagamento, observacao, mes_referencia, despesa_id })
+      .eq('id', id)
     if (error) throw new Error(error.message)
     bumpAll()
   })
@@ -628,8 +723,88 @@ export async function excluirPagamentoEquipe(formData: FormData) {
   const supabase = await requireFinanceiroUser()
   const id = Number(formData.get('id'))
   if (!id) throw new Error('Id inválido.')
+  // Pega despesa_id antes de deletar pra remover a despesa também
+  const { data: pag } = await supabase
+    .from('pagamentos_equipe')
+    .select('despesa_id')
+    .eq('id', id)
+    .maybeSingle()
   const { error } = await supabase.from('pagamentos_equipe').delete().eq('id', id)
   if (error) throw new Error(error.message)
+  if (pag?.despesa_id) {
+    await supabase.from('financeiro_despesas').delete().eq('id', pag.despesa_id)
+  }
+  bumpAll()
+}
+
+// ----- Upload de arquivos -----
+
+async function uploadParaBucket(supabase: any, file: File, prefixo: string): Promise<string> {
+  const ext = file.name.split('.').pop() ?? 'bin'
+  const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+  const path = `${prefixo}/${Date.now()}-${safe}`
+  const { error } = await supabase.storage.from('financeiro').upload(path, file, {
+    contentType: file.type || undefined,
+    upsert: false,
+  })
+  if (error) throw new Error(`Falha no upload: ${error.message}`)
+  return path
+}
+
+export async function uploadContratoEquipe(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const equipe_id = Number(formData.get('equipe_id'))
+    if (!equipe_id) throw new Error('Membro inválido.')
+    const file = formData.get('arquivo') as File | null
+    if (!file || file.size === 0) throw new Error('Arquivo obrigatório.')
+    if (file.size > 20 * 1024 * 1024) throw new Error('Arquivo maior que 20 MB.')
+    const path = await uploadParaBucket(supabase, file, `equipe/${equipe_id}/contrato`)
+    const { error } = await supabase.from('equipe_financeiro').update({ contrato_url: path }).eq('id', equipe_id)
+    if (error) throw new Error(error.message)
+    bumpAll()
+  })
+}
+
+export async function uploadComprovantePagamento(_prev: ActionResult | undefined, formData: FormData): Promise<ActionResult> {
+  return safeRun(async () => {
+    const supabase = await requireFinanceiroUser()
+    const pagamento_id = Number(formData.get('pagamento_id'))
+    const tipo = String(formData.get('tipo') ?? 'comprovante') // 'comprovante' | 'nota_fiscal'
+    if (!pagamento_id) throw new Error('Pagamento inválido.')
+    if (!['comprovante', 'nota_fiscal'].includes(tipo)) throw new Error('Tipo inválido.')
+    const file = formData.get('arquivo') as File | null
+    if (!file || file.size === 0) throw new Error('Arquivo obrigatório.')
+    if (file.size > 20 * 1024 * 1024) throw new Error('Arquivo maior que 20 MB.')
+    const path = await uploadParaBucket(supabase, file, `pagamentos/${pagamento_id}/${tipo}`)
+    const col = tipo === 'comprovante' ? 'comprovante_url' : 'nota_fiscal_url'
+    const { error } = await supabase.from('pagamentos_equipe').update({ [col]: path }).eq('id', pagamento_id)
+    if (error) throw new Error(error.message)
+    bumpAll()
+  })
+}
+
+export async function removerArquivoEquipe(formData: FormData) {
+  const supabase = await requireFinanceiroUser()
+  const equipe_id = Number(formData.get('equipe_id'))
+  if (!equipe_id) throw new Error('Membro inválido.')
+  const { data: m } = await supabase.from('equipe_financeiro').select('contrato_url').eq('id', equipe_id).maybeSingle()
+  if (m?.contrato_url) await supabase.storage.from('financeiro').remove([m.contrato_url])
+  await supabase.from('equipe_financeiro').update({ contrato_url: null }).eq('id', equipe_id)
+  bumpAll()
+}
+
+export async function removerArquivoPagamento(formData: FormData) {
+  const supabase = await requireFinanceiroUser()
+  const pagamento_id = Number(formData.get('pagamento_id'))
+  const tipo = String(formData.get('tipo') ?? 'comprovante')
+  if (!pagamento_id) throw new Error('Pagamento inválido.')
+  if (!['comprovante', 'nota_fiscal'].includes(tipo)) throw new Error('Tipo inválido.')
+  const col = tipo === 'comprovante' ? 'comprovante_url' : 'nota_fiscal_url'
+  const { data: p } = await supabase.from('pagamentos_equipe').select(col).eq('id', pagamento_id).maybeSingle()
+  const url = (p as any)?.[col]
+  if (url) await supabase.storage.from('financeiro').remove([url])
+  await supabase.from('pagamentos_equipe').update({ [col]: null }).eq('id', pagamento_id)
   bumpAll()
 }
 
