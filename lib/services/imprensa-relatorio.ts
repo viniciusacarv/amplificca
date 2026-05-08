@@ -192,11 +192,33 @@ export async function getRelatorioImprensa(
     const { data: tentData, error: tentErr } = await supabase
       .from('tentativas_placement')
       .select(
-        'id, submissao_id, fellow_id, veiculo_id, status, artigo_url, enviado_em, respondido_em, veiculos(id, nome)',
+        'id, submissao_id, fellow_id, veiculo_id, status, artigo_url, enviado_em, respondido_em',
       )
       .in('submissao_id', ids)
     if (tentErr) throw tentErr
-    tentativas = ((tentData ?? []) as unknown) as TentativaRow[]
+
+    // tentativas_placement não tem FK declarada para veiculos no PostgREST;
+    // resolvemos o nome do veículo numa segunda query e juntamos em JS.
+    const tentRaw = (tentData ?? []) as Array<Omit<TentativaRow, 'veiculos'>>
+    const veiculoIds = Array.from(
+      new Set(tentRaw.map((t) => t.veiculo_id).filter((v): v is string => !!v)),
+    )
+
+    let veiculosMap: Record<string, { id: string; nome: string }> = {}
+    if (veiculoIds.length > 0) {
+      const { data: vData } = await supabase
+        .from('veiculos')
+        .select('id, nome')
+        .in('id', veiculoIds)
+      veiculosMap = Object.fromEntries(
+        ((vData ?? []) as Array<{ id: string; nome: string }>).map((v) => [v.id, v]),
+      )
+    }
+
+    tentativas = tentRaw.map((t) => ({
+      ...t,
+      veiculos: t.veiculo_id ? veiculosMap[t.veiculo_id] ?? null : null,
+    })) as TentativaRow[]
   }
 
   return {
