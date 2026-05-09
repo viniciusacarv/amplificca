@@ -13,6 +13,7 @@ export type StatusSubmissao =
   | 'publicado'
   | 'rejeitado'
   | 'retirado_fellow'
+  | 'arquivado'
 
 const STATUS_PENDENTE: StatusSubmissao[] = [
   'recebido',
@@ -29,6 +30,7 @@ export type SubmissaoRow = {
   fellow_id: string | null
   veiculo_id: string | null
   artigo_url: string | null
+  motivo_arquivamento: string | null
   created_at: string
   updated_at: string | null
   fellows: { id: string; nome: string; area: string | null; estado: string | null } | null
@@ -62,6 +64,7 @@ export type Indicadores = {
   publicados: number
   recusados: number
   retirados: number
+  arquivados: number
   enviadosOuPublicados: number
   taxaEnvio: number
   taxaPublicacaoSobreEnviados: number
@@ -96,6 +99,7 @@ export function calcularIndicadores(
   let publicados = 0
   let recusados = 0
   let retirados = 0
+  let arquivados = 0
 
   for (const s of submissoes) {
     if (STATUS_PENDENTE.includes(s.status)) pendentes++
@@ -103,6 +107,7 @@ export function calcularIndicadores(
     else if (s.status === 'publicado') publicados++
     else if (s.status === 'rejeitado') recusados++
     else if (s.status === 'retirado_fellow') retirados++
+    else if (s.status === 'arquivado') arquivados++
   }
 
   const enviadosOuPublicados = naImprensa + publicados
@@ -126,6 +131,7 @@ export function calcularIndicadores(
     publicados,
     recusados,
     retirados,
+    arquivados,
     enviadosOuPublicados,
     taxaEnvio,
     taxaPublicacaoSobreEnviados,
@@ -175,7 +181,7 @@ export async function getRelatorioImprensa(
   let q = supabase
     .from('submissoes')
     .select(
-      'id, titulo, tipo, status, fellow_id, veiculo_id, artigo_url, created_at, updated_at, fellows(id, nome, area, estado), veiculos(id, nome)',
+      'id, titulo, tipo, status, fellow_id, veiculo_id, artigo_url, motivo_arquivamento, created_at, updated_at, fellows(id, nome, area, estado), veiculos(id, nome)',
     )
     .order('created_at', { ascending: false })
 
@@ -239,6 +245,7 @@ export const STATUS_LABEL: Record<StatusSubmissao, string> = {
   publicado: 'Publicado',
   rejeitado: 'Recusado',
   retirado_fellow: 'Retirado pelo fellow',
+  arquivado: 'Arquivado',
 }
 
 export function resolverPeriodo(searchParams: {

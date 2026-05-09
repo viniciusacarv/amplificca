@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { unstable_noStore as noStore } from 'next/cache'
 import Link from 'next/link'
-import { atualizarSubmissao } from '../actions'
+import { atualizarSubmissao, arquivarSubmissao } from '../actions'
 import { atualizarTentativa } from '../../tentativas/actions'
 import { ExcluirTentativaButton } from './ExcluirTentativaButton'
 import { NovaTentativaForm, type VeiculoOpcao } from './NovaTentativaForm'
@@ -51,7 +51,7 @@ export default async function AdminImprensaReviewPage({
   searchParams,
 }: {
   params: { id: string }
-  searchParams: { sucesso?: string; tentativa?: string; atualizado?: string; excluido?: string; erro?: string }
+  searchParams: { sucesso?: string; tentativa?: string; atualizado?: string; excluido?: string; arquivado?: string; erro?: string }
 }) {
   noStore()
   const supabase = createClient()
@@ -147,6 +147,16 @@ export default async function AdminImprensaReviewPage({
           ❌ Submissão não encontrada.
         </div>
       )}
+      {searchParams.arquivado && (
+        <div className="bg-zinc-500/10 border border-zinc-500/20 rounded-xl p-4 text-zinc-300 text-sm">
+          🗄️ Submissão arquivada. O fellow foi notificado com o motivo informado.
+        </div>
+      )}
+      {searchParams.erro === 'motivo_obrigatorio' && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm">
+          ❌ É obrigatório informar um motivo para arquivar a submissão.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
@@ -167,6 +177,15 @@ export default async function AdminImprensaReviewPage({
             </div>
 
             <h2 className="text-lg font-bold text-white leading-snug mb-4">{sub.titulo}</h2>
+
+            {sub.status === 'arquivado' && sub.motivo_arquivamento && (
+              <div className="mb-4 bg-zinc-500/10 border border-zinc-500/20 rounded-xl p-4">
+                <p className="text-xs uppercase tracking-wider text-zinc-400 mb-1.5 flex items-center gap-1.5">
+                  🗄️ Submissão arquivada
+                </p>
+                <p className="text-sm text-zinc-200 whitespace-pre-wrap">{sub.motivo_arquivamento}</p>
+              </div>
+            )}
 
             <div className="flex flex-wrap gap-2">
               {sub.google_doc_url ? (
@@ -418,8 +437,8 @@ export default async function AdminImprensaReviewPage({
         </div>
 
         {/* ── Coluna direita: painel de ação editorial ─────────────── */}
-        <div className="lg:col-span-2">
-          <form action={atualizarSubmissao} className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-5 sticky top-20">
+        <div className="lg:col-span-2 space-y-5 sticky top-20 self-start">
+          <form action={atualizarSubmissao} className="bg-gray-900 border border-gray-800 rounded-2xl p-6 space-y-5">
             <h3 className="text-sm font-semibold text-white">Atualizar submissão</h3>
             <input type="hidden" name="submissao_id" value={sub.id} />
             <input type="hidden" name="status" value={sub.status} />
@@ -462,6 +481,51 @@ export default async function AdminImprensaReviewPage({
             </div>
 
           </form>
+
+          {/* ── Arquivamento administrativo ─────────────────────────── */}
+          <details className="bg-gray-900 border border-gray-800 rounded-2xl group">
+            <summary className="cursor-pointer list-none p-5 flex items-center justify-between gap-3 hover:bg-gray-800/30 transition-colors rounded-2xl">
+              <div className="flex items-center gap-3">
+                <span className="text-base">🗄️</span>
+                <div>
+                  <p className="text-sm font-semibold text-white">
+                    {sub.status === 'arquivado' ? 'Atualizar arquivamento' : 'Arquivar submissão'}
+                  </p>
+                  <p className="text-xs text-gray-500 leading-tight">
+                    Encerra a submissão fora do fluxo do fellow (ex.: inadimplência).
+                  </p>
+                </div>
+              </div>
+              <span className="text-xs text-gray-500 group-open:rotate-180 transition-transform">▾</span>
+            </summary>
+
+            <form action={arquivarSubmissao} className="px-5 pb-5 space-y-3 border-t border-gray-800 pt-4">
+              <input type="hidden" name="submissao_id" value={sub.id} />
+
+              <label className="block">
+                <span className="text-xs text-gray-500 uppercase tracking-wider">Motivo (obrigatório)</span>
+                <textarea
+                  name="motivo_arquivamento"
+                  rows={3}
+                  required
+                  defaultValue={sub.motivo_arquivamento ?? ''}
+                  placeholder="Ex.: Fellow inadimplente desde MM/AAAA. Submissão suspensa até regularização."
+                  className="mt-1.5 w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 resize-none focus:outline-none focus:border-zinc-500/60 transition-colors"
+                />
+              </label>
+
+              <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-3 text-xs text-yellow-300/90">
+                ⚠️ O fellow será notificado e o motivo aparecerá na submissão. Esta ação substitui o status atual por <span className="font-semibold">Arquivado</span>.
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-zinc-700 hover:bg-zinc-600 text-white text-sm font-semibold py-2.5 rounded-xl transition-colors"
+              >
+                {sub.status === 'arquivado' ? 'Atualizar motivo' : 'Arquivar submissão'}
+              </button>
+            </form>
+          </details>
         </div>
       </div>
     </div>

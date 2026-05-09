@@ -16,6 +16,7 @@ import {
   XCircle,
   Undo2,
   Clock,
+  Archive,
   FileSpreadsheet,
   FileDown,
 } from 'lucide-react'
@@ -258,6 +259,13 @@ export default async function RelatoriosImprensaPage({
                     color="bg-gray-500"
                     icon="↩️"
                   />
+                  <FunilBar
+                    label="Arquivados"
+                    value={k.arquivados}
+                    total={k.totalSubmetidos}
+                    color="bg-zinc-500"
+                    icon="🗄️"
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -320,6 +328,12 @@ export default async function RelatoriosImprensaPage({
                   label="Retirados"
                   value={k.retirados}
                   tone="gray"
+                />
+                <MiniStat
+                  icon={<Archive className="w-4 h-4" />}
+                  label="Arquivados"
+                  value={k.arquivados}
+                  tone="zinc"
                 />
               </CardContent>
             </Card>
@@ -395,6 +409,7 @@ const TONES = {
   yellow: 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400',
   red: 'bg-red-500/10 border-red-500/20 text-red-400',
   gray: 'bg-gray-500/10 border-gray-500/20 text-gray-300',
+  zinc: 'bg-zinc-500/10 border-zinc-500/20 text-zinc-300',
 } as const
 
 function KPI({
