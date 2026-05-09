@@ -83,6 +83,53 @@ export async function atualizarSubmissao(formData: FormData) {
   redirect(`/painel/admin/imprensa/${submissaoId}?sucesso=1`)
 }
 
+// Arquiva uma submissão administrativamente (ex.: inadimplência do fellow).
+// Diferente de 'retirado_fellow', esta ação é exclusiva do admin e exige
+// justificativa, gravada em submissoes.motivo_arquivamento.
+export async function arquivarSubmissao(formData: FormData) {
+  const { supabase } = await assertAdmin()
+
+  const submissaoId = formData.get('submissao_id') as string
+  const motivo      = (formData.get('motivo_arquivamento') as string | null)?.trim() ?? ''
+
+  if (!submissaoId) return { error: 'Submissão inválida.' }
+  if (!motivo) {
+    redirect(`/painel/admin/imprensa/${submissaoId}?erro=motivo_obrigatorio`)
+  }
+
+  const { data: submissao } = await supabase
+    .from('submissoes')
+    .select('fellow_id, titulo')
+    .eq('id', submissaoId)
+    .single()
+
+  if (!submissao) return { error: 'Submissão não encontrada.' }
+
+  const { error } = await supabase
+    .from('submissoes')
+    .update({ status: 'arquivado', motivo_arquivamento: motivo })
+    .eq('id', submissaoId)
+
+  if (error) return { error: 'Erro ao arquivar submissão.' }
+
+  if (submissao.fellow_id) {
+    await supabase.from('notificacoes').insert({
+      fellow_id:    submissao.fellow_id,
+      is_admin:     false,
+      tipo:         'arquivado',
+      titulo:       'Submissão arquivada',
+      mensagem:     `Sua submissão "${submissao.titulo}" foi arquivada pela administração. Motivo: ${motivo}`,
+      submissao_id: submissaoId,
+    })
+  }
+
+  revalidatePath('/painel/admin/imprensa')
+  revalidatePath(`/painel/admin/imprensa/${submissaoId}`)
+  revalidatePath('/painel/imprensa')
+  revalidatePath('/painel/notificacoes')
+  redirect(`/painel/admin/imprensa/${submissaoId}?arquivado=1`)
+}
+
 // Marca todas as notificações de admin como lidas
 export async function marcarNotificacoesAdminLidas() {
   const { supabase } = await assertAdmin()

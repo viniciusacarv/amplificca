@@ -92,6 +92,7 @@ export async function GET(req: NextRequest) {
         ['Publicados', String(k.publicados)],
         ['Recusados', String(k.recusados)],
         ['Retirados', String(k.retirados)],
+        ['Arquivados', String(k.arquivados)],
         ['Taxa de envio à imprensa', formatPctStr(k.taxaEnvio)],
         ['Taxa de publicação (sobre enviados)', formatPctStr(k.taxaPublicacaoSobreEnviados)],
         ['Taxa de publicação (sobre total)', formatPctStr(k.taxaPublicacaoSobreTotal)],
@@ -157,6 +158,7 @@ export async function GET(req: NextRequest) {
     ['Publicados', k.publicados],
     ['Recusados', k.recusados],
     ['Retirados', k.retirados],
+    ['Arquivados', k.arquivados],
     [],
     ['Taxa', 'Valor (%)'],
     ['Envio à imprensa', formatPctNum(k.taxaEnvio)],
@@ -178,6 +180,7 @@ export async function GET(req: NextRequest) {
     'Veículo principal',
     'Data submissão',
     'Última atualização',
+    'Motivo do arquivamento',
     'Link do artigo',
   ]
   const artigosRows = relatorio.submissoes.map((s) => [
@@ -190,6 +193,7 @@ export async function GET(req: NextRequest) {
     s.veiculos?.nome ?? '',
     formatDateBR(s.created_at),
     formatDateBR(s.updated_at),
+    s.motivo_arquivamento ?? '',
     s.artigo_url ?? '',
   ])
   const wsArtigos = XLSX.utils.aoa_to_sheet([artigosHeader, ...artigosRows])
@@ -203,6 +207,7 @@ export async function GET(req: NextRequest) {
     { wch: 28 },
     { wch: 14 },
     { wch: 14 },
+    { wch: 40 },
     { wch: 50 },
   ]
   XLSX.utils.book_append_sheet(wb, wsArtigos, 'Artigos')
