@@ -114,7 +114,8 @@ export async function arquivarSubmissao(formData: FormData) {
 
   if (error) {
     console.error('Erro ao arquivar submissão:', error)
-    redirect(`/painel/admin/imprensa/${submissaoId}?erro=arquivar`)
+    const detalhe = encodeURIComponent(error.message || 'desconhecido')
+    redirect(`/painel/admin/imprensa/${submissaoId}?erro=arquivar&detalhe=${detalhe}`)
   }
 
   if (submissao.fellow_id) {
