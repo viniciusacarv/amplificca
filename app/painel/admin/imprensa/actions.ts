@@ -103,14 +103,19 @@ export async function arquivarSubmissao(formData: FormData) {
     .eq('id', submissaoId)
     .single()
 
-  if (!submissao) return { error: 'Submissão não encontrada.' }
+  if (!submissao) {
+    redirect(`/painel/admin/imprensa/${submissaoId}?erro=submissao`)
+  }
 
   const { error } = await supabase
     .from('submissoes')
     .update({ status: 'arquivado', motivo_arquivamento: motivo })
     .eq('id', submissaoId)
 
-  if (error) return { error: 'Erro ao arquivar submissão.' }
+  if (error) {
+    console.error('Erro ao arquivar submissão:', error)
+    redirect(`/painel/admin/imprensa/${submissaoId}?erro=arquivar`)
+  }
 
   if (submissao.fellow_id) {
     await supabase.from('notificacoes').insert({

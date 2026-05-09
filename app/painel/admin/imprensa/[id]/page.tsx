@@ -157,6 +157,11 @@ export default async function AdminImprensaReviewPage({
           ❌ É obrigatório informar um motivo para arquivar a submissão.
         </div>
       )}
+      {searchParams.erro === 'arquivar' && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm">
+          ❌ Falha ao arquivar a submissão. Verifique se a coluna <code className="bg-red-500/20 px-1 rounded">motivo_arquivamento</code> existe na tabela <code className="bg-red-500/20 px-1 rounded">submissoes</code> (rode a migration <code className="bg-red-500/20 px-1 rounded">supabase-imprensa-arquivamento.sql</code>).
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
@@ -473,6 +478,28 @@ export default async function AdminImprensaReviewPage({
                     )}
                   </button>
                 ))}
+
+                {/* Arquivado — informativo, exige passar pelo formulário com motivo */}
+                <div
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left ${
+                    sub.status === 'arquivado'
+                      ? 'bg-zinc-500/10 border-zinc-500/30'
+                      : 'bg-gray-800/20 border-gray-700/30 opacity-70'
+                  }`}
+                >
+                  <span className="text-base">🗄️</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-white">Arquivado</p>
+                    <p className="text-xs text-gray-600 leading-tight">
+                      {sub.status === 'arquivado'
+                        ? 'Submissão arquivada pela administração'
+                        : 'Use o bloco "Arquivar submissão" abaixo (exige motivo)'}
+                    </p>
+                  </div>
+                  {sub.status === 'arquivado' && (
+                    <span className="text-[11px] font-semibold text-zinc-300 flex-shrink-0">Atual</span>
+                  )}
+                </div>
               </div>
               <p className="text-xs text-gray-600 mt-2">
                 Clique em uma etapa para mudar o status imediatamente. O feedback e o doc para a assessoria
