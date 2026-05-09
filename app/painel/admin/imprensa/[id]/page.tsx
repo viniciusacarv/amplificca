@@ -51,7 +51,7 @@ export default async function AdminImprensaReviewPage({
   searchParams,
 }: {
   params: { id: string }
-  searchParams: { sucesso?: string; tentativa?: string; atualizado?: string; excluido?: string; arquivado?: string; erro?: string }
+  searchParams: { sucesso?: string; tentativa?: string; atualizado?: string; excluido?: string; arquivado?: string; erro?: string; detalhe?: string }
 }) {
   noStore()
   const supabase = createClient()
@@ -158,8 +158,16 @@ export default async function AdminImprensaReviewPage({
         </div>
       )}
       {searchParams.erro === 'arquivar' && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm">
-          ❌ Falha ao arquivar a submissão. Verifique se a coluna <code className="bg-red-500/20 px-1 rounded">motivo_arquivamento</code> existe na tabela <code className="bg-red-500/20 px-1 rounded">submissoes</code> (rode a migration <code className="bg-red-500/20 px-1 rounded">supabase-imprensa-arquivamento.sql</code>).
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm space-y-2">
+          <p>❌ Falha ao arquivar a submissão.</p>
+          {searchParams.detalhe && (
+            <p className="text-xs text-red-300 font-mono break-all">
+              Detalhe: {decodeURIComponent(searchParams.detalhe)}
+            </p>
+          )}
+          <p className="text-xs text-red-300">
+            Possíveis causas: coluna <code className="bg-red-500/20 px-1 rounded">motivo_arquivamento</code> ainda não criada, CHECK constraint em <code className="bg-red-500/20 px-1 rounded">status</code> que não inclui <code className="bg-red-500/20 px-1 rounded">'arquivado'</code>, ou política RLS bloqueando o UPDATE.
+          </p>
         </div>
       )}
 
