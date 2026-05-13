@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { salvarAula, excluirAula, criarAula } from './actions'
+import DeleteButtonClient from './delete-button-client'
 
 const TZ_BR = 'America/Sao_Paulo'
 
@@ -364,18 +365,9 @@ function AulaForm({ aula, passada = false }: { aula: any; passada?: boolean }) {
   )
 }
 
-// Botão de excluir com form separado (server action)
+// Botão de excluir — usa formAction para sobrescrever a action do form pai (salvarAula),
+// já que forms aninhados não são válidos em HTML. formNoValidate evita que os `required`
+// do form de edição bloqueiem o submit. Confirmação no cliente em DeleteButtonClient.
 function DeleteButton({ id, titulo }: { id: string | number; titulo: string }) {
-  return (
-    <form action={excluirAula}>
-      <input type="hidden" name="id" value={id} />
-      <button
-        type="submit"
-        className="text-xs text-red-400/70 hover:text-red-400 transition-colors px-3 py-2 rounded-lg hover:bg-red-500/10"
-        title={`Excluir "${titulo}"`}
-      >
-        Excluir aula
-      </button>
-    </form>
-  )
+  return <DeleteButtonClient action={excluirAula} titulo={titulo} />
 }
