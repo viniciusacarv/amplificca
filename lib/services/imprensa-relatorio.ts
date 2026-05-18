@@ -263,7 +263,9 @@ export function agregarFellows(
 
   for (const s of submissoes) {
     if (!s.fellow_id) continue
-    const acc = getAcc(s.fellow_id)
+    // Importante: stringifica fellow_id (vem como bigint do Supabase) para
+    // bater com o índice de todosFellows e com agregações por chave string.
+    const acc = getAcc(String(s.fellow_id))
     acc.submetidos += 1
     if (!acc.ultimaSub || s.created_at > acc.ultimaSub) acc.ultimaSub = s.created_at
     if (s.status === 'publicado') {
@@ -280,7 +282,7 @@ export function agregarFellows(
     if (t.status !== 'publicado') continue
     if (!t.fellow_id) continue
     if (!submissoesIds.has(t.submissao_id)) continue
-    const acc = getAcc(t.fellow_id)
+    const acc = getAcc(String(t.fellow_id))
     const nomeVeic = t.veiculos?.nome ?? null
     if (nomeVeic) {
       acc.veiculoCount.set(nomeVeic, (acc.veiculoCount.get(nomeVeic) ?? 0) + 1)
