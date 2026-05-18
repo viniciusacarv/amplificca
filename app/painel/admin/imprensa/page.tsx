@@ -40,19 +40,59 @@ export default async function AdminImprensaPage({
 
   const filtroStatus = searchParams.status || 'pendentes'
 
-  // Busca com join em fellows, veiculos e admins (autor admin)
-  let query = supabase
-    .from('submissoes')
-    .select('id, titulo, tipo, status, feedback, created_at, updated_at, fellow_id, autor_admin_id, fellows(nome, foto_url), veiculos(nome), admins:autor_admin_id(nome, email)')
-    .order('created_at', { ascending: true }) // mais antigas primeiro (fila de prioridade)
+  // Colunas base que sempre existem. autor_admin_id e o embed `admins:autor_admin_id`
+  // só funcionam quando a migration supabase-imprensa-tags.sql foi aplicada
+  // — fazemos a resolução desses dois em queries separadas e toleramos a ausência.
+  const COLS_BASE = 'id, titulo, tipo, status, feedback, created_at, updated_at, fellow_id, fellows(nome, foto_url), veiculos(nome)'
 
-  if (filtroStatus === 'pendentes') {
-    query = query.in('status', ['recebido', 'em_avaliacao', 'ajustes_solicitados', 'aprovado'])
-  } else if (filtroStatus !== 'todos') {
-    query = query.eq('status', filtroStatus)
+  function aplicaFiltro(q: any) {
+    if (filtroStatus === 'pendentes') {
+      return q.in('status', ['recebido', 'em_avaliacao', 'ajustes_solicitados', 'aprovado'])
+    }
+    if (filtroStatus !== 'todos') {
+      return q.eq('status', filtroStatus)
+    }
+    return q
   }
 
-  const { data: submissoes } = await query
+  // Tenta primeiro com autor_admin_id; em caso de erro, usa colunas base
+  let { data: submissoesRaw, error: subErr } = await aplicaFiltro(
+    supabase
+      .from('submissoes')
+      .select(`${COLS_BASE}, autor_admin_id`)
+      .order('created_at', { ascending: true }),
+  )
+  if (subErr) {
+    const fallback = await aplicaFiltro(
+      supabase
+        .from('submissoes')
+        .select(COLS_BASE)
+        .order('created_at', { ascending: true }),
+    )
+    submissoesRaw = fallback.data
+  }
+  let submissoes: any[] = submissoesRaw ?? []
+
+  // Best-effort: resolve nomes dos admins autores
+  const adminIds = Array.from(
+    new Set(submissoes.map((s: any) => s.autor_admin_id).filter(Boolean)),
+  )
+  if (adminIds.length > 0) {
+    try {
+      const { data: adminsData } = await supabase
+        .from('admins')
+        .select('id, nome, email')
+        .in('id', adminIds)
+      const adminMap = new Map((adminsData ?? []).map((a: any) => [String(a.id), a]))
+      submissoes = submissoes.map((s: any) =>
+        s.autor_admin_id
+          ? { ...s, admins: adminMap.get(String(s.autor_admin_id)) ?? null }
+          : s,
+      )
+    } catch {
+      // Tabela admins indisponível; segue sem autor admin nas linhas
+    }
+  }
 
   // Contagens para os filtros
   const { data: contagens } = await supabase

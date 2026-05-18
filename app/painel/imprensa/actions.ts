@@ -64,22 +64,34 @@ export async function criarSubmissao(formData: FormData) {
     return { error: 'Selecione ao menos um tema.' }
   }
 
+  // Payload base — só inclui autor_admin_id quando há admin autor,
+  // para não quebrar em ambientes onde a migration ainda não foi aplicada.
+  const insertPayload: Record<string, unknown> = {
+    fellow_id: fellowId,
+    titulo: titulo.trim(),
+    tipo,
+    google_doc_url: google_doc_url?.trim() || null,
+    status: 'recebido',
+  }
+  if (autorAdminId !== null) {
+    insertPayload.autor_admin_id = autorAdminId
+  }
+
   // Cria a submissão
   const { data: submissao, error } = await supabase
     .from('submissoes')
-    .insert({
-      fellow_id: fellowId,
-      autor_admin_id: autorAdminId,
-      titulo: titulo.trim(),
-      tipo,
-      google_doc_url: google_doc_url?.trim() || null,
-      status: 'recebido',
-    })
+    .insert(insertPayload)
     .select('id')
     .single()
 
   if (error) {
     console.error('Erro ao criar submissão:', error)
+    if (isAdmin && /autor_admin_id/i.test(error.message)) {
+      return {
+        error:
+          'A migration supabase-imprensa-tags.sql ainda não foi aplicada no Supabase. Sem ela, admins não conseguem submeter textos.',
+      }
+    }
     return { error: 'Erro ao enviar submissão. Tente novamente.' }
   }
 

@@ -58,15 +58,32 @@ export default async function AdminImprensaReviewPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/painel/login')
 
+  // `*` carrega todas as colunas existentes — inclui autor_admin_id se a
+  // migration já foi aplicada, mas não falha se ainda não. Resolvemos o
+  // admin autor em uma query separada (best-effort).
   const { data: sub } = await supabase
     .from('submissoes')
-    .select('*, fellows(id, nome, foto_url, area, estado, email), veiculos(id, nome), admins:autor_admin_id(id, nome, email)')
+    .select('*, fellows(id, nome, foto_url, area, estado, email), veiculos(id, nome)')
     .eq('id', params.id)
     .single()
 
   if (!sub) redirect('/painel/admin/imprensa')
 
-  // Tags da submissão
+  // Resolve admin autor (best-effort)
+  let adminAutor: { id: any; nome: string | null; email: string | null } | null = null
+  if ((sub as any).autor_admin_id) {
+    try {
+      const { data: a } = await supabase
+        .from('admins')
+        .select('id, nome, email')
+        .eq('id', (sub as any).autor_admin_id)
+        .maybeSingle()
+      if (a) adminAutor = a as any
+    } catch { /* tabela admins indisponível */ }
+  }
+  ;(sub as any).admins = adminAutor
+
+  // Tags da submissão (tolera ausência da tabela submissao_tags)
   const { data: subTagsRaw } = await supabase
     .from('submissao_tags')
     .select('tag_id, tags(id, nome, slug, grupo)')
