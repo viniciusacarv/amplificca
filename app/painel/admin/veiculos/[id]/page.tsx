@@ -8,6 +8,7 @@ import { salvarVeiculo } from '../actions'
 import { DeleteVeiculoButton } from './DeleteVeiculoButton'
 import { ContatosEditor } from './ContatosEditor'
 import type { ContatoItem, AdminOpcao } from './ContatosEditor'
+import { TagsSelector, type TagOption } from '@/components/imprensa/TagsSelector'
 
 const CATEGORIAS = [
   { group: 'Mídias de Orientação Liberal', options: [
@@ -47,34 +48,6 @@ const TIPO_CONFIG: Record<string, { label: string; emoji: string; color: string;
   inexistente:  { label: 'Inexistente',  emoji: '🧭', color: 'bg-gray-500/15 text-gray-400',       border: 'border-gray-500/30'    },
 }
 
-const TODAS_TAGS = [
-  { grupo: 'Tema', tags: [
-    { value: 'economia',   label: 'Economia'   },
-    { value: 'politica',   label: 'Política'   },
-    { value: 'cultura',    label: 'Cultura'    },
-    { value: 'direito',    label: 'Direito'    },
-    { value: 'tecnologia', label: 'Tecnologia' },
-    { value: 'educacao',   label: 'Educação'   },
-    { value: 'saude',      label: 'Saúde'      },
-    { value: 'seguranca',  label: 'Segurança'  },
-  ]},
-  { grupo: 'Porte', tags: [
-    { value: 'grande',  label: 'Grande'  },
-    { value: 'medio',   label: 'Médio'   },
-    { value: 'pequeno', label: 'Pequeno' },
-    { value: 'nicho',   label: 'Nicho'   },
-  ]},
-  { grupo: 'Perfil editorial', tags: [
-    { value: 'liberal',      label: 'Liberal'      },
-    { value: 'conservador',  label: 'Conservador'  },
-    { value: 'mainstream',   label: 'Mainstream'   },
-    { value: 'independente', label: 'Independente' },
-  ]},
-]
-
-const TAG_LABEL: Record<string, string> = Object.fromEntries(
-  TODAS_TAGS.flatMap((g) => g.tags.map((t) => [t.value, t.label]))
-)
 
 export default async function FichaVeiculoPage({
   params,
@@ -108,8 +81,26 @@ export default async function FichaVeiculoPage({
     email: a.email ?? '',
   }))
 
+  // Carrega tags ativas (lista mestre) e tags atualmente associadas ao veículo
+  const { data: tagsAtivasRaw } = await supabase
+    .from('tags')
+    .select('id, nome, slug, grupo')
+    .eq('ativo', true)
+    .order('grupo', { nullsFirst: true })
+    .order('nome')
+  const tagsAtivas: TagOption[] = tagsAtivasRaw ?? []
+
+  const { data: tagsAssociadasRaw } = await supabase
+    .from('veiculo_tags')
+    .select('tag_id, tags(id, nome, slug, grupo)')
+    .eq('veiculo_id', veiculo.id)
+
+  const tagsAssociadasIds = (tagsAssociadasRaw ?? []).map((r: any) => r.tag_id)
+  const tagsAssociadas: TagOption[] = (tagsAssociadasRaw ?? [])
+    .map((r: any) => r.tags)
+    .filter(Boolean)
+
   const tipo = TIPO_CONFIG[veiculo.tipo_relacionamento] ?? TIPO_CONFIG.inexistente
-  const tags: string[] = veiculo.tags ?? []
   const contatosIniciais: ContatoItem[] = Array.isArray(veiculo.contatos) ? veiculo.contatos : []
 
   return (
@@ -156,11 +147,11 @@ export default async function FichaVeiculoPage({
             </div>
           </div>
         </div>
-        {tags.length > 0 && (
+        {tagsAssociadas.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-4 pt-4 border-t border-gray-800">
-            {tags.map((tag) => (
-              <span key={tag} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                {TAG_LABEL[tag] ?? tag}
+            {tagsAssociadas.map((tag) => (
+              <span key={String(tag.id)} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                {tag.nome}
               </span>
             ))}
           </div>
@@ -324,29 +315,12 @@ export default async function FichaVeiculoPage({
               Tags
               <span className="ml-2 text-xs font-normal text-gray-500">tema, porte e perfil editorial</span>
             </label>
-            <div className="space-y-4">
-              {TODAS_TAGS.map(({ grupo, tags: opcoes }) => (
-                <div key={grupo}>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">{grupo}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {opcoes.map((tag) => (
-                      <label key={tag.value} className="cursor-pointer">
-                        <input
-                          type="checkbox"
-                          name="tags"
-                          value={tag.value}
-                          defaultChecked={tags.includes(tag.value)}
-                          className="sr-only peer"
-                        />
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-gray-700 bg-gray-800 text-gray-400 peer-checked:bg-emerald-500/15 peer-checked:border-emerald-500/40 peer-checked:text-emerald-400 transition-all cursor-pointer hover:border-gray-600">
-                          {tag.label}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <TagsSelector
+              name="tag_ids"
+              tags={tagsAtivas}
+              defaultSelected={tagsAssociadasIds}
+              ajuda="Tags de tema impulsionam a sugestão deste veículo no placement de artigos com tags equivalentes."
+            />
           </div>
         </div>
 

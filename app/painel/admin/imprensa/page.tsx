@@ -40,10 +40,10 @@ export default async function AdminImprensaPage({
 
   const filtroStatus = searchParams.status || 'pendentes'
 
-  // Busca com join em fellows e veiculos
+  // Busca com join em fellows, veiculos e admins (autor admin)
   let query = supabase
     .from('submissoes')
-    .select('id, titulo, tipo, status, feedback, created_at, updated_at, fellows(nome, foto_url), veiculos(nome)')
+    .select('id, titulo, tipo, status, feedback, created_at, updated_at, fellow_id, autor_admin_id, fellows(nome, foto_url), veiculos(nome), admins:autor_admin_id(nome, email)')
     .order('created_at', { ascending: true }) // mais antigas primeiro (fila de prioridade)
 
   if (filtroStatus === 'pendentes') {
@@ -88,6 +88,15 @@ export default async function AdminImprensaPage({
           </p>
         </div>
         <div className="flex-shrink-0 flex items-center gap-2 flex-wrap justify-end">
+          <Link
+            href="/painel/admin/imprensa/nova"
+            className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-sm px-4 py-2.5 rounded-xl transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Novo texto
+          </Link>
           <Link
             href="/painel/admin/imprensa/relatorios"
             className="inline-flex items-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 text-sm px-4 py-2.5 rounded-xl transition-colors"
@@ -153,24 +162,29 @@ export default async function AdminImprensaPage({
               const isUrgente = sub.status === 'recebido' &&
                 (Date.now() - new Date(sub.created_at).getTime()) > 86400000 // +1 dia
 
+              const autorAdmin = sub.autor_admin_id ? sub.admins : null
+              const autorNome  = sub.fellows?.nome ?? autorAdmin?.nome ?? autorAdmin?.email ?? 'Autor'
+              const autorFoto  = sub.fellows?.foto_url ?? null
+              const isAdminAutor = !!autorAdmin
+
               return (
                 <Link
                   key={sub.id}
                   href={`/painel/admin/imprensa/${sub.id}`}
                   className="flex items-center gap-4 px-6 py-4 hover:bg-gray-800/50 transition-colors group"
                 >
-                  {/* Avatar do fellow */}
+                  {/* Avatar do autor */}
                   <div className="flex-shrink-0">
-                    {sub.fellows?.foto_url ? (
+                    {autorFoto ? (
                       <img
-                        src={sub.fellows.foto_url}
-                        alt={sub.fellows.nome}
+                        src={autorFoto}
+                        alt={autorNome}
                         className="w-9 h-9 rounded-full object-cover border border-gray-700"
                       />
                     ) : (
-                      <div className="w-9 h-9 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-                        <span className="text-emerald-400 text-xs font-bold">
-                          {sub.fellows?.nome?.charAt(0) ?? '?'}
+                      <div className={`w-9 h-9 rounded-full ${isAdminAutor ? 'bg-amber-500/20 border-amber-500/30' : 'bg-emerald-500/20 border-emerald-500/30'} border flex items-center justify-center`}>
+                        <span className={`${isAdminAutor ? 'text-amber-400' : 'text-emerald-400'} text-xs font-bold`}>
+                          {autorNome?.charAt(0) ?? '?'}
                         </span>
                       </div>
                     )}
@@ -187,7 +201,14 @@ export default async function AdminImprensaPage({
                       )}
                     </div>
                     <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                      <span className="text-xs text-gray-500">{sub.fellows?.nome ?? 'Fellow'}</span>
+                      <span className="text-xs text-gray-500">
+                        {autorNome}
+                        {isAdminAutor && (
+                          <span className="ml-1.5 text-[10px] uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded">
+                            Admin
+                          </span>
+                        )}
+                      </span>
                       <span className="text-xs text-gray-600">·</span>
                       <span className={`text-xs px-1.5 py-0.5 rounded border ${
                         sub.tipo === 'artigo'

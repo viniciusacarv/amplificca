@@ -60,11 +60,22 @@ export default async function AdminImprensaReviewPage({
 
   const { data: sub } = await supabase
     .from('submissoes')
-    .select('*, fellows(id, nome, foto_url, area, estado, email), veiculos(id, nome)')
+    .select('*, fellows(id, nome, foto_url, area, estado, email), veiculos(id, nome), admins:autor_admin_id(id, nome, email)')
     .eq('id', params.id)
     .single()
 
   if (!sub) redirect('/painel/admin/imprensa')
+
+  // Tags da submissão
+  const { data: subTagsRaw } = await supabase
+    .from('submissao_tags')
+    .select('tag_id, tags(id, nome, slug, grupo)')
+    .eq('submissao_id', params.id)
+
+  const submissaoTags = (subTagsRaw ?? [])
+    .map((r: any) => r.tags)
+    .filter(Boolean) as { id: any; nome: string; slug: string; grupo: string | null }[]
+  const submissaoTagIds = new Set(submissaoTags.map((t) => String(t.id)))
 
   // Lista de veículos ativos para selects (inclui contatos para o dropdown
   // de responsável no formulário de nova tentativa)
@@ -74,11 +85,31 @@ export default async function AdminImprensaReviewPage({
     .eq('ativo', true)
     .order('nome')
 
-  const veiculosOpcoes: VeiculoOpcao[] = (veiculos ?? []).map((v: any) => ({
-    id:       v.id,
-    nome:     v.nome,
-    contatos: Array.isArray(v.contatos) ? v.contatos : [],
-  }))
+  // Tags de cada veículo para ranquear por afinidade
+  const { data: vTags } = await supabase.from('veiculo_tags').select('veiculo_id, tag_id')
+  const tagsPorVeiculo: Record<string, Set<string>> = {}
+  vTags?.forEach((r: any) => {
+    const k = String(r.veiculo_id)
+    if (!tagsPorVeiculo[k]) tagsPorVeiculo[k] = new Set()
+    tagsPorVeiculo[k].add(String(r.tag_id))
+  })
+
+  const veiculosOpcoes: VeiculoOpcao[] = (veiculos ?? [])
+    .map((v: any) => {
+      const tagsDoVeiculo = tagsPorVeiculo[String(v.id)] ?? new Set<string>()
+      let matchCount = 0
+      submissaoTagIds.forEach((t) => { if (tagsDoVeiculo.has(t)) matchCount += 1 })
+      return {
+        id:         v.id,
+        nome:       v.nome,
+        contatos:   Array.isArray(v.contatos) ? v.contatos : [],
+        matchCount,
+      }
+    })
+    .sort((a, b) => {
+      if (b.matchCount !== a.matchCount) return b.matchCount - a.matchCount
+      return a.nome.localeCompare(b.nome)
+    })
 
   // Tentativas de placement desta submissão
   const { data: tentativasRaw } = await supabase
@@ -99,6 +130,7 @@ export default async function AdminImprensaReviewPage({
   })) || []
 
   const fellow = sub.fellows as any
+  const autorAdmin = sub.autor_admin_id ? (sub.admins as any) : null
   const veiculoAtual = sub.veiculos as any
   const podeTentativa = ['aprovado', 'enviado_imprensa', 'publicado'].includes(sub.status)
 
@@ -219,10 +251,12 @@ export default async function AdminImprensaReviewPage({
             </div>
           </div>
 
-          {/* Card do fellow — com link para o perfil */}
+          {/* Card do autor — fellow ou admin */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs text-gray-500 uppercase tracking-wider">Fellow</h3>
+              <h3 className="text-xs text-gray-500 uppercase tracking-wider">
+                {autorAdmin ? 'Autor (Admin)' : 'Fellow'}
+              </h3>
               {fellow?.id && (
                 <Link
                   href={`/painel/admin/fellows/${fellow.id}`}
@@ -232,20 +266,47 @@ export default async function AdminImprensaReviewPage({
                 </Link>
               )}
             </div>
-            <div className="flex items-center gap-3">
-              {fellow?.foto_url ? (
-                <img src={fellow.foto_url} alt={fellow.nome} className="w-10 h-10 rounded-full object-cover border border-gray-700" />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
-                  <span className="text-emerald-400 text-sm font-bold">{fellow?.nome?.charAt(0)}</span>
+            {autorAdmin ? (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center">
+                  <span className="text-amber-400 text-sm font-bold">{(autorAdmin.nome ?? autorAdmin.email ?? 'A').charAt(0)}</span>
                 </div>
-              )}
-              <div>
-                <p className="text-sm font-medium text-white">{fellow?.nome}</p>
-                <p className="text-xs text-gray-500">{fellow?.email}</p>
-                <p className="text-xs text-gray-600 mt-0.5">{fellow?.area} · {fellow?.estado}</p>
+                <div>
+                  <p className="text-sm font-medium text-white">{autorAdmin.nome ?? autorAdmin.email}</p>
+                  <p className="text-xs text-gray-500">{autorAdmin.email}</p>
+                  <p className="text-xs text-amber-400 mt-0.5">Submetido em nome próprio</p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                {fellow?.foto_url ? (
+                  <img src={fellow.foto_url} alt={fellow.nome} className="w-10 h-10 rounded-full object-cover border border-gray-700" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                    <span className="text-emerald-400 text-sm font-bold">{fellow?.nome?.charAt(0)}</span>
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-medium text-white">{fellow?.nome}</p>
+                  <p className="text-xs text-gray-500">{fellow?.email}</p>
+                  <p className="text-xs text-gray-600 mt-0.5">{fellow?.area} · {fellow?.estado}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Tags da submissão */}
+            {submissaoTags.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-800">
+                <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Temas</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {submissaoTags.map((t) => (
+                    <span key={String(t.id)} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                      {t.nome}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── Tentativas de placement ──────────────────────────── */}

@@ -14,6 +14,7 @@ export type VeiculoOpcao = {
   id: string | number
   nome: string
   contatos: ContatoVeiculo[]
+  matchCount?: number   // tags em comum com a submissão (para ranking de sugestão)
 }
 
 export function NovaTentativaForm({
@@ -49,7 +50,12 @@ export function NovaTentativaForm({
 
       {/* Veículo */}
       <div>
-        <label className="block text-xs text-gray-500 mb-1.5">Veículo <span className="text-red-400">*</span></label>
+        <label className="block text-xs text-gray-500 mb-1.5">
+          Veículo <span className="text-red-400">*</span>
+          {veiculos.some((v) => (v.matchCount ?? 0) > 0) && (
+            <span className="ml-2 font-normal text-emerald-400">— ordenados por afinidade de tags</span>
+          )}
+        </label>
         <select
           name="veiculo_id"
           required
@@ -58,10 +64,25 @@ export function NovaTentativaForm({
           className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/60 transition-colors"
         >
           <option value="">— Selecionar veículo —</option>
-          {veiculos.map((v) => (
-            <option key={String(v.id)} value={String(v.id)}>{v.nome}</option>
-          ))}
+          {veiculos.map((v) => {
+            const match = v.matchCount ?? 0
+            const prefix = match > 0 ? `★ ${match} tag${match > 1 ? 's' : ''} em comum · ` : ''
+            return (
+              <option key={String(v.id)} value={String(v.id)}>
+                {prefix}{v.nome}
+              </option>
+            )
+          })}
         </select>
+        {veiculoId && (() => {
+          const sel = veiculos.find((v) => String(v.id) === veiculoId)
+          const m = sel?.matchCount ?? 0
+          return m > 0 ? (
+            <p className="mt-1.5 text-[11px] text-emerald-400">
+              ✓ {m} tag{m > 1 ? 's' : ''} em comum com esta submissão.
+            </p>
+          ) : null
+        })()}
       </div>
 
       {/* Responsável: dropdown ou cadastro novo */}

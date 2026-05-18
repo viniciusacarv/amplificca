@@ -173,7 +173,9 @@ export async function salvarVeiculo(formData: FormData) {
   const area_cobertura         = formData.get('area_cobertura') as string
   const estrategia_aproximacao = formData.get('estrategia_aproximacao') as string
   const proximos_passos        = formData.get('proximos_passos') as string
-  const tags                   = formData.getAll('tags') as string[]
+  const tagIds                 = formData.getAll('tag_ids')
+    .map((v) => String(v).trim())
+    .filter(Boolean)
   const contatosRaw            = formData.get('contatos') as string | null
 
   let contatos: object[] = []
@@ -189,14 +191,35 @@ export async function salvarVeiculo(formData: FormData) {
     area_cobertura:          area_cobertura?.trim() || null,
     estrategia_aproximacao:  estrategia_aproximacao?.trim() || null,
     proximos_passos:         proximos_passos?.trim() || null,
-    tags:                    tags.length > 0 ? tags : [],
     contatos,
+    // Mantém o array legado em sincronia com a tabela relacional veiculo_tags
+    // até que todos os consumidores migrem para a junção.
+    tags:                    [],
   }
+
+  let veiculoId: string | number | null = id
 
   if (id) {
     await supabase.from('veiculos').update(payload).eq('id', id)
   } else {
-    await supabase.from('veiculos').insert(payload)
+    const { data: novo } = await supabase
+      .from('veiculos')
+      .insert(payload)
+      .select('id')
+      .single()
+    veiculoId = novo?.id ?? null
+  }
+
+  // Sincroniza tags relacionais (veiculo_tags)
+  if (veiculoId) {
+    await supabase.from('veiculo_tags').delete().eq('veiculo_id', veiculoId)
+    if (tagIds.length > 0) {
+      const rows = tagIds.map((tagId) => ({
+        veiculo_id: veiculoId,
+        tag_id: Number.isFinite(Number(tagId)) ? Number(tagId) : tagId,
+      }))
+      await supabase.from('veiculo_tags').insert(rows)
+    }
   }
 
   revalidatePath('/painel/admin/veiculos')

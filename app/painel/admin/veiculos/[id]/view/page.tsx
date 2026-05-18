@@ -142,7 +142,23 @@ export default async function VisualizarVeiculoPage({
     .order('data_publicacao', { ascending: false })
 
   const tipo = TIPO_CONFIG[veiculo.tipo_relacionamento] ?? TIPO_CONFIG.inexistente
-  const tags: string[] = veiculo.tags ?? []
+
+  // Tags relacionais (com fallback no array legado veiculos.tags[])
+  const { data: tagsRels } = await supabase
+    .from('veiculo_tags')
+    .select('tags(id, nome, slug)')
+    .eq('veiculo_id', veiculo.id)
+
+  const tagsRelacionais = (tagsRels ?? [])
+    .map((r: any) => r.tags)
+    .filter(Boolean) as { id: any; nome: string; slug: string }[]
+
+  const legacyTags: string[] = Array.isArray(veiculo.tags) ? veiculo.tags : []
+  const tagsParaExibir =
+    tagsRelacionais.length > 0
+      ? tagsRelacionais.map((t) => ({ key: String(t.id), label: t.nome }))
+      : legacyTags.map((slug) => ({ key: slug, label: TAG_LABEL[slug] ?? slug }))
+
   const contatos: any[] = Array.isArray(veiculo.contatos) ? veiculo.contatos : []
 
   return (
@@ -201,14 +217,14 @@ export default async function VisualizarVeiculoPage({
         {/* Tags */}
         <div className="mt-4 pt-4 border-t border-gray-800">
           <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Tags</p>
-          {tags.length > 0 ? (
+          {tagsParaExibir.length > 0 ? (
             <div className="flex flex-wrap gap-1.5">
-              {tags.map((tag) => (
+              {tagsParaExibir.map((tag) => (
                 <span
-                  key={tag}
+                  key={tag.key}
                   className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
                 >
-                  {TAG_LABEL[tag] ?? tag}
+                  {tag.label}
                 </span>
               ))}
             </div>

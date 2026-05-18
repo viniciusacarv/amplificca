@@ -11,6 +11,7 @@ const BASE_TABS: Tab[] = [
   { href: '/painel/admin/imprensa',     label: 'Assessoria de Imprensa', match: '/painel/admin/imprensa'     },
   { href: '/painel/admin/fellows',      label: 'Fellows',                match: '/painel/admin/fellows'      },
   { href: '/painel/admin/veiculos',     label: 'Veículos',               match: '/painel/admin/veiculos'     },
+  { href: '/painel/admin/tags',         label: 'Tags',                   match: '/painel/admin/tags'         },
   { href: '/painel/admin/aulas',        label: 'Aulas',                  match: '/painel/admin/aulas'        },
   { href: '/painel/admin/notificacoes', label: 'Notificações',           match: '/painel/admin/notificacoes' },
 ]

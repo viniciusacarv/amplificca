@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { salvarVeiculo } from '../actions'
+import { TagsSelector, type TagOption } from '@/components/imprensa/TagsSelector'
 
 export default async function NovoVeiculoPage({
   searchParams,
@@ -22,6 +23,24 @@ export default async function NovoVeiculoPage({
     : { data: null }
 
   const isEdicao = !!veiculo
+
+  // Tags ativas + tags já associadas (em edição)
+  const { data: tagsAtivasRaw } = await supabase
+    .from('tags')
+    .select('id, nome, slug, grupo')
+    .eq('ativo', true)
+    .order('grupo', { nullsFirst: true })
+    .order('nome')
+  const tagsAtivas: TagOption[] = tagsAtivasRaw ?? []
+
+  let tagsAssociadasIds: (string | number)[] = []
+  if (isEdicao) {
+    const { data: rels } = await supabase
+      .from('veiculo_tags')
+      .select('tag_id')
+      .eq('veiculo_id', veiculo.id)
+    tagsAssociadasIds = (rels ?? []).map((r: any) => r.tag_id)
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
@@ -237,64 +256,12 @@ export default async function NovoVeiculoPage({
             Tags
             <span className="ml-2 text-xs font-normal text-gray-500">classifique por tema, porte e perfil editorial</span>
           </label>
-          <div className="space-y-4">
-            {[
-              {
-                grupo: 'Tema',
-                tags: [
-                  { value: 'economia',   label: 'Economia'   },
-                  { value: 'politica',   label: 'Política'   },
-                  { value: 'cultura',    label: 'Cultura'    },
-                  { value: 'direito',    label: 'Direito'    },
-                  { value: 'tecnologia', label: 'Tecnologia' },
-                  { value: 'educacao',   label: 'Educação'   },
-                  { value: 'saude',      label: 'Saúde'      },
-                  { value: 'seguranca',  label: 'Segurança'  },
-                ],
-              },
-              {
-                grupo: 'Porte',
-                tags: [
-                  { value: 'grande',  label: 'Grande'  },
-                  { value: 'medio',   label: 'Médio'   },
-                  { value: 'pequeno', label: 'Pequeno' },
-                  { value: 'nicho',   label: 'Nicho'   },
-                ],
-              },
-              {
-                grupo: 'Perfil editorial',
-                tags: [
-                  { value: 'liberal',       label: 'Liberal'       },
-                  { value: 'conservador',   label: 'Conservador'   },
-                  { value: 'mainstream',    label: 'Mainstream'    },
-                  { value: 'independente',  label: 'Independente'  },
-                ],
-              },
-            ].map(({ grupo, tags }) => {
-              const currentTags: string[] = veiculo?.tags ?? []
-              return (
-                <div key={grupo}>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">{grupo}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map((tag) => (
-                      <label key={tag.value} className="cursor-pointer">
-                        <input
-                          type="checkbox"
-                          name="tags"
-                          value={tag.value}
-                          defaultChecked={currentTags.includes(tag.value)}
-                          className="sr-only peer"
-                        />
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-gray-700 bg-gray-800 text-gray-400 peer-checked:bg-emerald-500/15 peer-checked:border-emerald-500/40 peer-checked:text-emerald-400 transition-all cursor-pointer hover:border-gray-600">
-                          {tag.label}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+          <TagsSelector
+            name="tag_ids"
+            tags={tagsAtivas}
+            defaultSelected={tagsAssociadasIds}
+            ajuda="Tags de tema impulsionam a sugestão deste veículo no placement de artigos com tags equivalentes."
+          />
         </div>
 
         {/* Botões */}
