@@ -21,10 +21,7 @@ export function NovaSubmissaoForm({ tagsTema }: { tagsTema: TagOption[] }) {
     formData.set('tipo', tipo)
 
     startTransition(async () => {
-      const result = await criarSubmissao(formData)
-      if (result?.error) {
-        setError(result.error)
-      }
+      await criarSubmissao(formData)
     })
   }
 

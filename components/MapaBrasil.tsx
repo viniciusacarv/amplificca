@@ -111,7 +111,7 @@ export default function MapaBrasil() {
     async function init() {
       const createGlobe = (await import('cobe')).default
 
-      globe = createGlobe(canvas, {
+      const cobeOptions: any = {
         devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
         width: size,
         height: size,
@@ -130,7 +130,7 @@ export default function MapaBrasil() {
         arcWidth: 1.5,
         arcHeight: 0.2,
         opacity: 0.85,
-        onRender: (state: { phi: number; theta: number }) => {
+        onRender: (state: Record<string, any>) => {
           if (!isPausedRef.current) {
             phiRef.current += 0.002
           }
@@ -138,7 +138,8 @@ export default function MapaBrasil() {
           state.phi = phiRef.current + phiOffsetRef.current + dragOffset.current.phi
           state.theta = thetaBase + thetaOffsetRef.current + dragOffset.current.theta
         },
-      })
+      }
+      globe = createGlobe(canvas, cobeOptions)
 
       window.setTimeout(() => {
         canvas.style.opacity = '1'
