@@ -100,7 +100,7 @@ export async function alternarAtivoTag(formData: FormData) {
   const id = formData.get('id') as string
   const ativoAtual = formData.get('ativo') === 'true'
 
-  if (!id) return { error: 'ID inválido.' }
+  if (!id) redirect('/painel/admin/tags?erro=id_invalido')
 
   await supabase
     .from('tags')
@@ -114,7 +114,7 @@ export async function excluirTag(formData: FormData) {
   const { supabase } = await assertAdmin()
 
   const id = formData.get('id') as string
-  if (!id) return { error: 'ID inválido.' }
+  if (!id) redirect('/painel/admin/tags?erro=id_invalido')
 
   // Soft delete (mantém histórico de associações)
   await supabase

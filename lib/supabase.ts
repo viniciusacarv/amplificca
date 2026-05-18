@@ -14,6 +14,7 @@ export type Fellow = {
   instagram: string
   foto_url: string
   created_at: string
+  slug?: string
 }
 
 export type Artigo = {

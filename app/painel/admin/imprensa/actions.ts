@@ -31,7 +31,7 @@ export async function atualizarSubmissao(formData: FormData) {
   const status        = (nextStatus || currentStatus || '').trim()
   const veiculo_id    = formData.get('veiculo_id') as string || null
 
-  if (!status) return { error: 'Status inválido.' }
+  if (!status) redirect(`/painel/admin/imprensa/${submissaoId}?erro=status_invalido`)
 
   // Busca a submissão para obter fellow_id e titulo
   const { data: submissao } = await supabase
@@ -40,7 +40,7 @@ export async function atualizarSubmissao(formData: FormData) {
     .eq('id', submissaoId)
     .single()
 
-  if (!submissao) return { error: 'Submissão não encontrada.' }
+  if (!submissao) redirect(`/painel/admin/imprensa?erro=submissao_nao_encontrada`)
 
   // Atualiza a submissão
   const { error } = await supabase
@@ -51,7 +51,7 @@ export async function atualizarSubmissao(formData: FormData) {
     })
     .eq('id', submissaoId)
 
-  if (error) return { error: 'Erro ao atualizar submissão.' }
+  if (error) redirect(`/painel/admin/imprensa/${submissaoId}?erro=atualizar`)
 
   // Notificações por status
   const NOTIF_MAP: Record<string, { titulo: string; mensagem: string }> = {
@@ -92,7 +92,7 @@ export async function arquivarSubmissao(formData: FormData) {
   const submissaoId = formData.get('submissao_id') as string
   const motivo      = (formData.get('motivo_arquivamento') as string | null)?.trim() ?? ''
 
-  if (!submissaoId) return { error: 'Submissão inválida.' }
+  if (!submissaoId) redirect('/painel/admin/imprensa?erro=submissao_invalida')
   if (!motivo) {
     redirect(`/painel/admin/imprensa/${submissaoId}?erro=motivo_obrigatorio`)
   }
@@ -153,7 +153,7 @@ export async function excluirVeiculo(formData: FormData) {
   const { supabase } = await assertAdmin()
 
   const id = formData.get('id') as string
-  if (!id) return { error: 'ID inválido.' }
+  if (!id) redirect('/painel/admin/veiculos?erro=id_invalido')
 
   await supabase.from('veiculos').update({ ativo: false }).eq('id', id)
 

@@ -29,7 +29,7 @@ export async function criarSubmissao(formData: FormData) {
       .maybeSingle()
 
     if (!adminRecord) {
-      return { error: 'Admin não encontrado na tabela admins.' }
+      redirect('/painel/imprensa?erro=admin_nao_encontrado')
     }
 
     autorAdminId = adminRecord.id
@@ -42,7 +42,7 @@ export async function criarSubmissao(formData: FormData) {
       .maybeSingle()
 
     if (!fellow) {
-      return { error: 'Perfil de fellow não encontrado. Contacte o administrador.' }
+      redirect('/painel/imprensa?erro=fellow_nao_encontrado')
     }
 
     fellowId = fellow.id
@@ -57,11 +57,11 @@ export async function criarSubmissao(formData: FormData) {
     .filter(Boolean)
 
   if (!titulo?.trim() || !tipo) {
-    return { error: 'Preencha todos os campos obrigatórios.' }
+    redirect('/painel/imprensa?erro=campos_obrigatorios')
   }
 
   if (tagIds.length === 0) {
-    return { error: 'Selecione ao menos um tema.' }
+    redirect('/painel/imprensa?erro=tema_obrigatorio')
   }
 
   // Payload base — só inclui autor_admin_id quando há admin autor,
@@ -87,12 +87,9 @@ export async function criarSubmissao(formData: FormData) {
   if (error) {
     console.error('Erro ao criar submissão:', error)
     if (isAdmin && /autor_admin_id/i.test(error.message)) {
-      return {
-        error:
-          'A migration supabase-imprensa-tags.sql ainda não foi aplicada no Supabase. Sem ela, admins não conseguem submeter textos.',
-      }
+      redirect('/painel/imprensa?erro=migration_pendente')
     }
-    return { error: 'Erro ao enviar submissão. Tente novamente.' }
+    redirect('/painel/imprensa?erro=enviar_submissao')
   }
 
   // Salva as tags associadas
@@ -151,12 +148,12 @@ export async function retirarSubmissao(formData: FormData) {
     .maybeSingle()
 
   if (!fellow) {
-    return { error: 'Perfil de fellow não encontrado. Contacte o administrador.' }
+    redirect('/painel/imprensa?erro=fellow_nao_encontrado')
   }
 
   const submissaoId = formData.get('submissao_id') as string
   if (!submissaoId) {
-    return { error: 'Submissão inválida.' }
+    redirect('/painel/imprensa?erro=submissao_invalida')
   }
 
   const { data: submissao } = await supabase
@@ -167,11 +164,11 @@ export async function retirarSubmissao(formData: FormData) {
     .single()
 
   if (!submissao) {
-    return { error: 'Submissão não encontrada.' }
+    redirect('/painel/imprensa?erro=submissao_nao_encontrada')
   }
 
   if (['aprovado', 'enviado_imprensa', 'publicado', 'rejeitado', 'retirado_fellow'].includes(submissao.status)) {
-    return { error: 'Esta submissão não pode mais ser retirada.' }
+    redirect(`/painel/imprensa?erro=nao_pode_retirar`)
   }
 
   const { error } = await supabase
@@ -183,7 +180,7 @@ export async function retirarSubmissao(formData: FormData) {
     .eq('fellow_id', fellow.id)
 
   if (error) {
-    return { error: 'Erro ao retirar submissão. Tente novamente.' }
+    redirect('/painel/imprensa?erro=retirar')
   }
 
   await supabase.from('notificacoes').insert({

@@ -22,6 +22,7 @@ type Props = {
   fotoUrl: string | null
   iniciais: string
   isAdmin: boolean
+  notifCount?: number
 }
 
 export default function PainelNavbar({ nome, fotoUrl, iniciais, isAdmin }: Props) {
