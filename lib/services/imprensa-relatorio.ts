@@ -72,12 +72,63 @@ export type Indicadores = {
   fellowsPublicados: number
 }
 
+export type TagInfo = {
+  id: string | number
+  nome: string
+  slug: string
+}
+
+export type FellowAgg = {
+  fellow_id: string
+  nome: string
+  area: string | null
+  estado: string | null
+  email: string | null
+  submetidos: number
+  publicados: number
+  taxa: number
+  topTags: string[]            // até 3 nomes
+  topVeiculos: string[]        // até 3 nomes
+  diasDesdeUltimaPublicacao: number | null
+  ultimaPublicacaoEm: string | null
+  ultimaSubmissaoEm: string | null
+  statusAtividade: 'ativo' | 'atencao' | 'risco' | 'sem_atividade'
+}
+
+export type TagAgg = {
+  tag_id: string | number
+  nome: string
+  slug: string
+  submissoes: number
+  publicacoes: number
+  veiculos_distintos: number
+}
+
+export type HeatmapCell = {
+  fellow_id: string
+  fellow_nome: string
+  mes: string             // 'YYYY-MM'
+  publicacoes: number
+}
+
+export type HeatmapData = {
+  fellows: { id: string; nome: string }[]
+  meses: string[]         // ordenado crescente
+  matriz: Record<string, Record<string, number>>  // matriz[fellow_id][mes] = count
+  max: number
+}
+
 export type RelatorioImprensa = {
   periodo: { from: string | null; to: string | null }
   indicadores: Indicadores
   veiculos: VeiculoAgg[]
+  fellows: FellowAgg[]
+  tags: TagAgg[]
+  heatmap: HeatmapData
   submissoes: SubmissaoRow[]
   tentativas: TentativaRow[]
+  /** Mapa submissao_id → array de tags (id + nome + slug) */
+  tagsPorSubmissao: Record<string, TagInfo[]>
 }
 
 export type FiltroPeriodo = {
@@ -173,6 +224,267 @@ export function agregarVeiculos(
     .sort((a, b) => b.publicacoes - a.publicacoes)
 }
 
+/** Agrega métricas por fellow. Usa a data atual como referência para
+ *  calcular dias desde a última publicação. */
+export function agregarFellows(
+  submissoes: SubmissaoRow[],
+  tentativas: TentativaRow[],
+  tagsPorSubmissao: Record<string, TagInfo[]>,
+  todosFellows: { id: string; nome: string; area: string | null; estado: string | null; email: string | null }[],
+): FellowAgg[] {
+  const submissoesIds = new Set(submissoes.map((s) => s.id))
+
+  // Map: fellow_id → agregação interna
+  type Acc = {
+    submetidos: number
+    publicados: number
+    tagCount: Map<string, number>
+    veiculoCount: Map<string, number>
+    ultimaPub: string | null
+    ultimaSub: string | null
+  }
+  const map = new Map<string, Acc>()
+
+  function getAcc(id: string): Acc {
+    let a = map.get(id)
+    if (!a) {
+      a = {
+        submetidos: 0,
+        publicados: 0,
+        tagCount: new Map(),
+        veiculoCount: new Map(),
+        ultimaPub: null,
+        ultimaSub: null,
+      }
+      map.set(id, a)
+    }
+    return a
+  }
+
+  for (const s of submissoes) {
+    if (!s.fellow_id) continue
+    const acc = getAcc(s.fellow_id)
+    acc.submetidos += 1
+    if (!acc.ultimaSub || s.created_at > acc.ultimaSub) acc.ultimaSub = s.created_at
+    if (s.status === 'publicado') {
+      acc.publicados += 1
+    }
+    // Tags da submissão
+    for (const t of tagsPorSubmissao[String(s.id)] ?? []) {
+      acc.tagCount.set(t.nome, (acc.tagCount.get(t.nome) ?? 0) + 1)
+    }
+  }
+
+  // Veículos: contar pelas tentativas publicadas
+  for (const t of tentativas) {
+    if (t.status !== 'publicado') continue
+    if (!t.fellow_id) continue
+    if (!submissoesIds.has(t.submissao_id)) continue
+    const acc = getAcc(t.fellow_id)
+    const nomeVeic = t.veiculos?.nome ?? null
+    if (nomeVeic) {
+      acc.veiculoCount.set(nomeVeic, (acc.veiculoCount.get(nomeVeic) ?? 0) + 1)
+    }
+    const data = t.respondido_em ?? t.enviado_em
+    if (data && (!acc.ultimaPub || data > acc.ultimaPub)) {
+      acc.ultimaPub = data
+    }
+  }
+
+  const agora = Date.now()
+  const fellowsIndex = new Map(todosFellows.map((f) => [String(f.id), f]))
+
+  const fellows: FellowAgg[] = []
+
+  // Inclui também fellows sem submissão no período (para "fellows em atenção")
+  const todosIds = new Set<string>([
+    ...todosFellows.map((f) => String(f.id)),
+    ...Array.from(map.keys()),
+  ])
+
+  for (const fellowId of todosIds) {
+    const acc = map.get(fellowId) ?? {
+      submetidos: 0,
+      publicados: 0,
+      tagCount: new Map<string, number>(),
+      veiculoCount: new Map<string, number>(),
+      ultimaPub: null,
+      ultimaSub: null,
+    }
+    const info = fellowsIndex.get(fellowId)
+    if (!info) continue
+
+    const dias = acc.ultimaPub
+      ? Math.floor((agora - new Date(acc.ultimaPub).getTime()) / 86400000)
+      : null
+
+    let statusAtividade: FellowAgg['statusAtividade'] = 'sem_atividade'
+    if (acc.publicados > 0) {
+      if (dias !== null && dias <= 60) statusAtividade = 'ativo'
+      else if (dias !== null && dias <= 120) statusAtividade = 'atencao'
+      else statusAtividade = 'risco'
+    } else if (acc.submetidos > 0) {
+      statusAtividade = 'atencao'
+    } else {
+      statusAtividade = 'risco'
+    }
+
+    fellows.push({
+      fellow_id: fellowId,
+      nome: info.nome,
+      area: info.area,
+      estado: info.estado,
+      email: info.email,
+      submetidos: acc.submetidos,
+      publicados: acc.publicados,
+      taxa: acc.submetidos > 0 ? acc.publicados / acc.submetidos : 0,
+      topTags: Array.from(acc.tagCount.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([nome]) => nome),
+      topVeiculos: Array.from(acc.veiculoCount.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([nome]) => nome),
+      diasDesdeUltimaPublicacao: dias,
+      ultimaPublicacaoEm: acc.ultimaPub,
+      ultimaSubmissaoEm: acc.ultimaSub,
+      statusAtividade,
+    })
+  }
+
+  return fellows.sort((a, b) => {
+    if (b.publicados !== a.publicados) return b.publicados - a.publicados
+    if (b.submetidos !== a.submetidos) return b.submetidos - a.submetidos
+    return a.nome.localeCompare(b.nome)
+  })
+}
+
+/** Agrega métricas por tag (submissões e publicações que possuem cada tag). */
+export function agregarTags(
+  submissoes: SubmissaoRow[],
+  tentativas: TentativaRow[],
+  tagsPorSubmissao: Record<string, TagInfo[]>,
+): TagAgg[] {
+  type Acc = {
+    nome: string
+    slug: string
+    submissoes: number
+    publicacoes: number
+    veiculos: Set<string>
+  }
+  const map = new Map<string, Acc>()
+
+  const subById = new Map(submissoes.map((s) => [String(s.id), s]))
+
+  for (const s of submissoes) {
+    for (const t of tagsPorSubmissao[String(s.id)] ?? []) {
+      const key = String(t.id)
+      const acc = map.get(key) ?? {
+        nome: t.nome,
+        slug: t.slug,
+        submissoes: 0,
+        publicacoes: 0,
+        veiculos: new Set<string>(),
+      }
+      acc.submissoes += 1
+      if (s.status === 'publicado') acc.publicacoes += 1
+      map.set(key, acc)
+    }
+  }
+
+  for (const t of tentativas) {
+    if (t.status !== 'publicado') continue
+    if (!t.veiculo_id) continue
+    const sub = subById.get(String(t.submissao_id))
+    if (!sub) continue
+    for (const tag of tagsPorSubmissao[String(sub.id)] ?? []) {
+      const acc = map.get(String(tag.id))
+      if (acc) acc.veiculos.add(String(t.veiculo_id))
+    }
+  }
+
+  return Array.from(map.entries())
+    .map(([tag_id, a]) => ({
+      tag_id,
+      nome: a.nome,
+      slug: a.slug,
+      submissoes: a.submissoes,
+      publicacoes: a.publicacoes,
+      veiculos_distintos: a.veiculos.size,
+    }))
+    .sort((a, b) => b.publicacoes - a.publicacoes || b.submissoes - a.submissoes)
+}
+
+/** Heatmap fellow × mês com base nas tentativas publicadas. */
+export function agregarHeatmap(
+  submissoes: SubmissaoRow[],
+  tentativas: TentativaRow[],
+  todosFellows: { id: string; nome: string }[],
+  mesesQty: number = 12,
+): HeatmapData {
+  const submissoesIds = new Set(submissoes.map((s) => s.id))
+  const fellowsIndex = new Map(todosFellows.map((f) => [String(f.id), f]))
+
+  // Lista de meses (últimos N, terminando no mês atual)
+  const meses: string[] = []
+  const hoje = new Date()
+  for (let i = mesesQty - 1; i >= 0; i--) {
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1)
+    meses.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+  }
+  const mesesSet = new Set(meses)
+
+  // Matriz vazia
+  const matriz: Record<string, Record<string, number>> = {}
+  const fellowsComAtividade = new Set<string>()
+
+  for (const t of tentativas) {
+    if (t.status !== 'publicado') continue
+    if (!t.fellow_id) continue
+    if (!submissoesIds.has(t.submissao_id)) continue
+    const data = t.respondido_em ?? t.enviado_em
+    if (!data) continue
+    const d = new Date(data)
+    const mes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    if (!mesesSet.has(mes)) continue
+
+    const fid = String(t.fellow_id)
+    if (!matriz[fid]) matriz[fid] = {}
+    matriz[fid][mes] = (matriz[fid][mes] ?? 0) + 1
+    fellowsComAtividade.add(fid)
+  }
+
+  // Inclui também fellows que submeteram mas não publicaram no período do heatmap
+  for (const s of submissoes) {
+    if (s.fellow_id) fellowsComAtividade.add(String(s.fellow_id))
+  }
+
+  // Lista final de fellows: prioriza quem teve atividade; ordena por total publicado desc
+  const fellowsRanked = Array.from(fellowsComAtividade)
+    .map((id) => {
+      const info = fellowsIndex.get(id)
+      const total = Object.values(matriz[id] ?? {}).reduce((a, b) => a + b, 0)
+      return { id, nome: info?.nome ?? '—', total }
+    })
+    .sort((a, b) => b.total - a.total || a.nome.localeCompare(b.nome))
+
+  let max = 0
+  for (const f of fellowsRanked) {
+    for (const m of meses) {
+      const v = matriz[f.id]?.[m] ?? 0
+      if (v > max) max = v
+    }
+  }
+
+  return {
+    fellows: fellowsRanked.map(({ id, nome }) => ({ id, nome })),
+    meses,
+    matriz,
+    max,
+  }
+}
+
 export async function getRelatorioImprensa(
   filtro: FiltroPeriodo = {},
 ): Promise<RelatorioImprensa> {
@@ -227,12 +539,71 @@ export async function getRelatorioImprensa(
     })) as TentativaRow[]
   }
 
+  // Tags por submissão (silencioso se a tabela ainda não existir)
+  const tagsPorSubmissao: Record<string, TagInfo[]> = {}
+  if (submissoes.length > 0) {
+    try {
+      const { data: tagRows } = await supabase
+        .from('submissao_tags')
+        .select('submissao_id, tags(id, nome, slug)')
+        .in('submissao_id', submissoes.map((s) => s.id))
+
+      for (const r of (tagRows ?? []) as any[]) {
+        if (!r?.tags) continue
+        const k = String(r.submissao_id)
+        if (!tagsPorSubmissao[k]) tagsPorSubmissao[k] = []
+        tagsPorSubmissao[k].push({
+          id: r.tags.id,
+          nome: r.tags.nome,
+          slug: r.tags.slug,
+        })
+      }
+    } catch {
+      // Tabela submissao_tags ainda não criada — ignora.
+    }
+  }
+
+  // Lista mestre de fellows (para detectar quem nunca submeteu/publicou)
+  let todosFellows: { id: string; nome: string; area: string | null; estado: string | null; email: string | null }[] = []
+  try {
+    const { data: fData } = await supabase
+      .from('fellows')
+      .select('id, nome, area, estado, email')
+      .order('nome')
+    todosFellows = ((fData ?? []) as any[]).map((f) => ({
+      id: String(f.id),
+      nome: f.nome,
+      area: f.area ?? null,
+      estado: f.estado ?? null,
+      email: f.email ?? null,
+    }))
+  } catch {
+    // Em caso de erro, usa apenas fellows com submissão no período.
+    const map = new Map<string, { id: string; nome: string; area: string | null; estado: string | null; email: string | null }>()
+    for (const s of submissoes) {
+      if (s.fellow_id && s.fellows) {
+        map.set(String(s.fellow_id), {
+          id: String(s.fellow_id),
+          nome: s.fellows.nome,
+          area: s.fellows.area,
+          estado: s.fellows.estado,
+          email: null,
+        })
+      }
+    }
+    todosFellows = Array.from(map.values())
+  }
+
   return {
     periodo: { from: filtro.from ?? null, to: filtro.to ?? null },
     indicadores: calcularIndicadores(submissoes, tentativas),
     veiculos: agregarVeiculos(tentativas, submissoes),
+    fellows: agregarFellows(submissoes, tentativas, tagsPorSubmissao, todosFellows),
+    tags: agregarTags(submissoes, tentativas, tagsPorSubmissao),
+    heatmap: agregarHeatmap(submissoes, tentativas, todosFellows, 12),
     submissoes,
     tentativas,
+    tagsPorSubmissao,
   }
 }
 

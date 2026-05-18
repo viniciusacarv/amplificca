@@ -7,16 +7,8 @@ import { createClient } from '@/lib/supabase-server'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import {
   ArrowLeft,
-  Users,
-  FileText,
-  Send,
-  Trophy,
   TrendingUp,
   Newspaper,
-  XCircle,
-  Undo2,
-  Clock,
-  Archive,
   FileSpreadsheet,
   FileDown,
 } from 'lucide-react'
@@ -24,6 +16,10 @@ import {
   getRelatorioImprensa,
   resolverPeriodo,
 } from '@/lib/services/imprensa-relatorio'
+import { KpiInterativo, type KpiItem } from './components/KpiInterativo'
+import { VisaoPorFellow } from './components/VisaoPorFellow'
+import { FellowsEmAtencao } from './components/FellowsEmAtencao'
+import { HeatmapFellowMes } from './components/HeatmapFellowMes'
 
 export const dynamic = 'force-dynamic'
 
@@ -73,6 +69,52 @@ export default async function RelatoriosImprensaPage({
 
   const empty = k.totalSubmetidos === 0
 
+  // ── Listas para os drill-downs dos KPIs ────────────────────────
+  // 1) Fellows únicos: fellows com pelo menos 1 submissão no período
+  const fellowsItens: KpiItem[] = relatorio.fellows
+    .filter((f) => f.submetidos > 0)
+    .map((f) => ({
+      key: f.fellow_id,
+      primary: f.nome,
+      secondary: `${f.submetidos} subm. · ${f.publicados} publ.`,
+      tertiary: [f.area, f.estado].filter(Boolean).join(' · '),
+    }))
+
+  // 2) Artigos submetidos: lista de submissões
+  const submissoesItens: KpiItem[] = relatorio.submissoes.map((s) => ({
+    key: s.id,
+    primary: s.titulo,
+    secondary: formatDateBR(s.created_at),
+    tertiary: `${s.fellows?.nome ?? 'Admin'} · ${s.status}`,
+  }))
+
+  // 3) Na imprensa: tentativas aguardando ou já publicadas (e por veículo)
+  const veiculosImprensaMap = new Map<string, { nome: string; pubs: number; pendentes: number }>()
+  for (const t of relatorio.tentativas) {
+    if (!t.veiculo_id) continue
+    const nome = t.veiculos?.nome ?? '—'
+    const e = veiculosImprensaMap.get(t.veiculo_id) ?? { nome, pubs: 0, pendentes: 0 }
+    if (t.status === 'publicado') e.pubs += 1
+    else if (t.status === 'aguardando') e.pendentes += 1
+    veiculosImprensaMap.set(t.veiculo_id, e)
+  }
+  const naImprensaItens: KpiItem[] = Array.from(veiculosImprensaMap.entries())
+    .filter(([, v]) => v.pendentes > 0 || v.pubs > 0)
+    .map(([id, v]) => ({
+      key: id,
+      primary: v.nome,
+      secondary: `${v.pendentes} aguardando · ${v.pubs} publ.`,
+    }))
+    .sort((a, b) => Number(b.secondary?.split(' ')[0] ?? 0) - Number(a.secondary?.split(' ')[0] ?? 0))
+
+  // 4) Publicados: veículos com publicações
+  const publicadosItens: KpiItem[] = relatorio.veiculos.map((v) => ({
+    key: v.veiculo_id,
+    primary: v.nome,
+    secondary: `${v.publicacoes} publ.`,
+    tertiary: `${v.fellows_distintos} fellow${v.fellows_distintos === 1 ? '' : 's'}`,
+  }))
+
   return (
     <div className="space-y-8">
       {/* ── Header ───────────────────────────────────────────────── */}
@@ -87,7 +129,7 @@ export default async function RelatoriosImprensaPage({
           </Link>
           <h1 className="text-2xl font-bold text-white">Relatórios — Assessoria de Imprensa</h1>
           <p className="text-gray-400 mt-1 text-sm">
-            Indicadores consolidados para apresentação institucional e captação de recursos.
+            Indicadores consolidados, visão por fellow e sinais para mentoria proativa.
           </p>
         </div>
         <div className="flex-shrink-0 flex items-center gap-2 flex-wrap justify-end">
@@ -170,42 +212,52 @@ export default async function RelatoriosImprensaPage({
         </div>
       ) : (
         <>
-          {/* ── KPI cards (linha de topo) ──────────────────────────── */}
-          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-            <KPI
-              icon={<Users className="w-4 h-4" />}
+          {/* ── KPI cards interativos (linha de topo) ──────────────── */}
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            <KpiInterativo
               label="Fellows únicos"
               value={k.fellowsUnicos}
-              tone="emerald"
               hint={`${k.fellowsPublicados} já publicados`}
+              tone="emerald"
+              iconEmoji="👥"
+              items={fellowsItens}
+              modalTitle="Fellows que submeteram no período"
+              emptyMessage="Nenhum fellow submeteu no período."
             />
-            <KPI
-              icon={<FileText className="w-4 h-4" />}
+            <KpiInterativo
               label="Artigos submetidos"
               value={k.totalSubmetidos}
-              tone="blue"
               hint="No período"
+              tone="blue"
+              iconEmoji="📄"
+              items={submissoesItens}
+              modalTitle="Submissões do período"
             />
-            <KPI
-              icon={<Send className="w-4 h-4" />}
+            <KpiInterativo
               label="Na imprensa"
               value={k.naImprensa}
-              tone="blue"
               hint={`+ ${k.publicados} já publicados`}
+              tone="blue"
+              iconEmoji="📤"
+              items={naImprensaItens}
+              modalTitle="Veículos contactados / com publicação"
+              emptyMessage="Nenhum veículo contactado no período."
             />
-            <KPI
-              icon={<Trophy className="w-4 h-4" />}
+            <KpiInterativo
               label="Publicados"
               value={k.publicados}
-              tone="emerald"
               hint={`${formatPct(k.taxaPublicacaoSobreTotal)} do total`}
+              tone="emerald"
+              iconEmoji="🏆"
+              items={publicadosItens}
+              modalTitle="Veículos com publicações no período"
+              emptyMessage="Nenhuma publicação confirmada no período."
             />
           </div>
 
-          {/* ── Bento grid principal (mosaico 3+2 / 2+3) ───────────── */}
-          <div className="mx-auto grid gap-px sm:grid-cols-5 bg-gray-800 rounded-2xl overflow-hidden border border-gray-800">
-            {/* TL — Funil (3 cols) */}
-            <Card className="group sm:col-span-3 sm:rounded-none sm:rounded-tl-2xl border-0 rounded-none">
+          {/* ── Funil + Taxas ──────────────────────────────────────── */}
+          <div className="grid gap-px sm:grid-cols-5 bg-gray-800 rounded-2xl overflow-hidden border border-gray-800">
+            <Card className="group sm:col-span-3 sm:rounded-none sm:rounded-l-2xl border-0 rounded-none">
               <CardHeader>
                 <div className="md:p-2">
                   <p className="text-xs uppercase tracking-wider text-gray-500">Funil</p>
@@ -217,61 +269,18 @@ export default async function RelatoriosImprensaPage({
               </CardHeader>
               <CardContent className="md:px-8 md:pb-8">
                 <div className="space-y-3">
-                  <FunilBar
-                    label="Submetidos"
-                    value={k.totalSubmetidos}
-                    total={k.totalSubmetidos}
-                    color="bg-gray-500"
-                    icon="📥"
-                  />
-                  <FunilBar
-                    label="Pendentes"
-                    value={k.pendentes}
-                    total={k.totalSubmetidos}
-                    color="bg-yellow-500"
-                    icon="🔍"
-                  />
-                  <FunilBar
-                    label="Na imprensa"
-                    value={k.naImprensa}
-                    total={k.totalSubmetidos}
-                    color="bg-blue-500"
-                    icon="📤"
-                  />
-                  <FunilBar
-                    label="Publicados"
-                    value={k.publicados}
-                    total={k.totalSubmetidos}
-                    color="bg-emerald-500"
-                    icon="🎉"
-                  />
-                  <FunilBar
-                    label="Recusados"
-                    value={k.recusados}
-                    total={k.totalSubmetidos}
-                    color="bg-red-500"
-                    icon="❌"
-                  />
-                  <FunilBar
-                    label="Retirados"
-                    value={k.retirados}
-                    total={k.totalSubmetidos}
-                    color="bg-gray-500"
-                    icon="↩️"
-                  />
-                  <FunilBar
-                    label="Arquivados"
-                    value={k.arquivados}
-                    total={k.totalSubmetidos}
-                    color="bg-zinc-500"
-                    icon="🗄️"
-                  />
+                  <FunilBar label="Submetidos" value={k.totalSubmetidos} total={k.totalSubmetidos} color="bg-gray-500" icon="📥" />
+                  <FunilBar label="Pendentes" value={k.pendentes} total={k.totalSubmetidos} color="bg-yellow-500" icon="🔍" />
+                  <FunilBar label="Na imprensa" value={k.naImprensa} total={k.totalSubmetidos} color="bg-blue-500" icon="📤" />
+                  <FunilBar label="Publicados" value={k.publicados} total={k.totalSubmetidos} color="bg-emerald-500" icon="🎉" />
+                  <FunilBar label="Recusados" value={k.recusados} total={k.totalSubmetidos} color="bg-red-500" icon="❌" />
+                  <FunilBar label="Retirados" value={k.retirados} total={k.totalSubmetidos} color="bg-gray-500" icon="↩️" />
+                  <FunilBar label="Arquivados" value={k.arquivados} total={k.totalSubmetidos} color="bg-zinc-500" icon="🗄️" />
                 </div>
               </CardContent>
             </Card>
 
-            {/* TR — Taxas (2 cols) */}
-            <Card className="group sm:col-span-2 sm:rounded-none sm:rounded-tr-2xl border-0 rounded-none flex flex-col">
+            <Card className="group sm:col-span-2 sm:rounded-none sm:rounded-r-2xl border-0 rounded-none flex flex-col">
               <CardHeader>
                 <p className="text-xs uppercase tracking-wider text-gray-500">Conversão</p>
                 <p className="font-semibold text-white mt-1">Taxas do processo</p>
@@ -297,58 +306,60 @@ export default async function RelatoriosImprensaPage({
                 </div>
               </CardContent>
             </Card>
+          </div>
 
-            {/* BL — Mini stats (2 cols) */}
-            <Card className="group sm:col-span-2 sm:rounded-none sm:rounded-bl-2xl border-0 rounded-none">
-              <CardHeader>
-                <p className="text-xs uppercase tracking-wider text-gray-500">Status</p>
-                <p className="font-semibold text-white mt-1">Detalhamento</p>
-              </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-3">
-                <MiniStat
-                  icon={<Clock className="w-4 h-4" />}
-                  label="Pendentes"
-                  value={k.pendentes}
-                  tone="yellow"
-                />
-                <MiniStat
-                  icon={<TrendingUp className="w-4 h-4" />}
-                  label="Na imprensa"
-                  value={k.naImprensa}
-                  tone="blue"
-                />
-                <MiniStat
-                  icon={<XCircle className="w-4 h-4" />}
-                  label="Recusados"
-                  value={k.recusados}
-                  tone="red"
-                />
-                <MiniStat
-                  icon={<Undo2 className="w-4 h-4" />}
-                  label="Retirados"
-                  value={k.retirados}
-                  tone="gray"
-                />
-                <MiniStat
-                  icon={<Archive className="w-4 h-4" />}
-                  label="Arquivados"
-                  value={k.arquivados}
-                  tone="zinc"
-                />
-              </CardContent>
-            </Card>
+          {/* ── Visão por Fellow ────────────────────────────────────── */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-emerald-400" />
+                    <p className="text-xs uppercase tracking-wider text-gray-500">Performance</p>
+                  </div>
+                  <p className="font-semibold text-white mt-1">Visão por Fellow</p>
+                  <p className="text-gray-400 mt-1.5 text-sm">
+                    Detalhe de produção, taxa de aproveitamento e perfil editorial de cada fellow no período.
+                  </p>
+                </div>
+                <span className="text-xs text-gray-500">
+                  Status: <span className="text-emerald-400">Ativo</span> ≤60d ·{' '}
+                  <span className="text-amber-400">Atenção</span> ≤120d ·{' '}
+                  <span className="text-orange-400">Risco</span> {'>'}120d
+                </span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <VisaoPorFellow fellows={relatorio.fellows} />
+            </CardContent>
+          </Card>
 
-            {/* BR — Veículos (3 cols) */}
-            <Card className="group sm:col-span-3 sm:rounded-none sm:rounded-br-2xl border-0 rounded-none">
+          {/* ── Fellows em atenção/mentoria ─────────────────────────── */}
+          <FellowsEmAtencao fellows={relatorio.fellows} />
+
+          {/* ── Heatmap fellow × mês ────────────────────────────────── */}
+          <Card>
+            <CardHeader>
+              <p className="text-xs uppercase tracking-wider text-gray-500">Atividade</p>
+              <p className="font-semibold text-white mt-1">Publicações por fellow × mês (últimos 12 meses)</p>
+              <p className="text-gray-400 mt-1.5 text-sm">
+                Cada célula é o número de publicações daquele fellow no respectivo mês. Ajuda a visualizar consistência e quedas.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <HeatmapFellowMes data={relatorio.heatmap} />
+            </CardContent>
+          </Card>
+
+          {/* ── Veículos + Tags ────────────────────────────────────── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <Newspaper className="w-4 h-4 text-blue-400" />
                   <p className="text-xs uppercase tracking-wider text-gray-500">Imprensa</p>
                 </div>
                 <p className="font-semibold text-white mt-1">Veículos onde os fellows publicaram</p>
-                <p className="text-gray-400 mt-1.5 text-sm">
-                  Agregado a partir das tentativas de placement com publicação confirmada.
-                </p>
               </CardHeader>
               <CardContent>
                 {relatorio.veiculos.length === 0 ? (
@@ -361,12 +372,12 @@ export default async function RelatoriosImprensaPage({
                       <thead className="bg-gray-800/50 text-gray-400 text-xs uppercase tracking-wider">
                         <tr>
                           <th className="text-left px-4 py-2 font-medium">Veículo</th>
-                          <th className="text-right px-4 py-2 font-medium">Publicações</th>
+                          <th className="text-right px-4 py-2 font-medium">Publ.</th>
                           <th className="text-right px-4 py-2 font-medium">Fellows</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-800">
-                        {relatorio.veiculos.slice(0, 10).map((v) => (
+                        {relatorio.veiculos.slice(0, 15).map((v) => (
                           <tr key={v.veiculo_id} className="hover:bg-gray-800/30 transition-colors">
                             <td className="px-4 py-2.5 text-white">{v.nome}</td>
                             <td className="px-4 py-2.5 text-right">
@@ -377,6 +388,50 @@ export default async function RelatoriosImprensaPage({
                             <td className="px-4 py-2.5 text-right text-gray-400">
                               {v.fellows_distintos}
                             </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <p className="text-xs uppercase tracking-wider text-gray-500">Categorização</p>
+                <p className="font-semibold text-white mt-1">Temas com mais tração</p>
+                <p className="text-gray-400 mt-1.5 text-sm">
+                  Tags ordenadas por nº de publicações. Bom indicador de quais pautas o universo da imprensa mais aceita.
+                </p>
+              </CardHeader>
+              <CardContent>
+                {relatorio.tags.length === 0 ? (
+                  <p className="text-sm text-gray-500 italic">
+                    Submissões deste período ainda não foram categorizadas.
+                  </p>
+                ) : (
+                  <div className="rounded-xl border border-gray-800 overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-800/50 text-gray-400 text-xs uppercase tracking-wider">
+                        <tr>
+                          <th className="text-left px-4 py-2 font-medium">Tema</th>
+                          <th className="text-right px-4 py-2 font-medium">Subm.</th>
+                          <th className="text-right px-4 py-2 font-medium">Publ.</th>
+                          <th className="text-right px-4 py-2 font-medium">Veíc.</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-800">
+                        {relatorio.tags.slice(0, 15).map((t) => (
+                          <tr key={String(t.tag_id)} className="hover:bg-gray-800/30 transition-colors">
+                            <td className="px-4 py-2.5">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                                {t.nome}
+                              </span>
+                            </td>
+                            <td className="px-4 py-2.5 text-right text-gray-300">{t.submissoes}</td>
+                            <td className="px-4 py-2.5 text-right text-emerald-400 font-medium">{t.publicacoes}</td>
+                            <td className="px-4 py-2.5 text-right text-gray-400">{t.veiculos_distintos}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -401,63 +456,7 @@ export default async function RelatoriosImprensaPage({
   )
 }
 
-/* ─── Subcomponentes visuais ──────────────────────────────────── */
-
-const TONES = {
-  emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
-  blue: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
-  yellow: 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400',
-  red: 'bg-red-500/10 border-red-500/20 text-red-400',
-  gray: 'bg-gray-500/10 border-gray-500/20 text-gray-300',
-  zinc: 'bg-zinc-500/10 border-zinc-500/20 text-zinc-300',
-} as const
-
-function KPI({
-  icon,
-  label,
-  value,
-  hint,
-  tone,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: number | string
-  hint?: string
-  tone: keyof typeof TONES
-}) {
-  return (
-    <Card className="p-5">
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-gray-500 uppercase tracking-wider">{label}</span>
-        <span className={`p-1.5 rounded-lg border ${TONES[tone]}`}>{icon}</span>
-      </div>
-      <p className="text-3xl font-bold text-white mt-3">{value}</p>
-      {hint && <p className="text-xs text-gray-500 mt-1">{hint}</p>}
-    </Card>
-  )
-}
-
-function MiniStat({
-  icon,
-  label,
-  value,
-  tone,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: number
-  tone: keyof typeof TONES
-}) {
-  return (
-    <div className={`rounded-xl border p-3 ${TONES[tone]}`}>
-      <div className="flex items-center justify-between">
-        {icon}
-        <span className="text-xl font-bold">{value}</span>
-      </div>
-      <p className="text-xs mt-1 opacity-80">{label}</p>
-    </div>
-  )
-}
+/* ─── Subcomponentes visuais reaproveitados ────────────────────── */
 
 function FunilBar({
   label,

@@ -116,6 +116,81 @@ export async function GET(req: NextRequest) {
       })
     }
 
+    // Visão por Fellow
+    const fellowsAtivos = relatorio.fellows.filter((f) => f.submetidos > 0 || f.publicados > 0)
+    if (fellowsAtivos.length > 0) {
+      autoTable(doc, {
+        startY: (doc as any).lastAutoTable.finalY + 24,
+        head: [['Fellow', 'Subm.', 'Publ.', 'Taxa', 'Top temas', 'Última publ.']],
+        body: fellowsAtivos.map((f) => [
+          f.nome,
+          f.submetidos,
+          f.publicados,
+          f.submetidos > 0 ? formatPctStr(f.taxa) : '—',
+          f.topTags.slice(0, 3).join(', ') || '—',
+          f.ultimaPublicacaoEm ? formatDateBR(f.ultimaPublicacaoEm) : '—',
+        ]),
+        theme: 'grid',
+        headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 9, cellPadding: 5 },
+        columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' }, 3: { halign: 'right' } },
+      })
+    }
+
+    // Fellows em atenção
+    const emAtencao = relatorio.fellows.filter((f) => {
+      if (f.submetidos === 0) return true
+      if (f.publicados === 0) return true
+      if (f.diasDesdeUltimaPublicacao !== null && f.diasDesdeUltimaPublicacao > 60) return true
+      return false
+    })
+    if (emAtencao.length > 0) {
+      doc.addPage()
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(14)
+      doc.setTextColor(180, 83, 9)
+      doc.text('Fellows em atenção (mentoria)', 40, 50)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(10)
+      doc.setTextColor(80, 80, 80)
+      doc.text('Critério: nunca submeteu, nunca publicou OU mais de 60 dias sem publicação.', 40, 68)
+
+      autoTable(doc, {
+        startY: 90,
+        head: [['Fellow', 'Subm.', 'Publ.', 'Última publ.', 'Sinal']],
+        body: emAtencao.map((f) => {
+          let sinal = '—'
+          if (f.submetidos === 0) sinal = 'Nunca submeteu'
+          else if (f.publicados === 0) sinal = 'Submeteu, não publicou'
+          else if (f.diasDesdeUltimaPublicacao !== null) sinal = `Inativo há ${f.diasDesdeUltimaPublicacao}d`
+          return [
+            f.nome,
+            f.submetidos,
+            f.publicados,
+            f.ultimaPublicacaoEm ? formatDateBR(f.ultimaPublicacaoEm) : '—',
+            sinal,
+          ]
+        }),
+        theme: 'grid',
+        headStyles: { fillColor: [217, 119, 6], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 9, cellPadding: 5 },
+        columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' } },
+      })
+    }
+
+    // Tags com mais tração
+    if (relatorio.tags.length > 0) {
+      autoTable(doc, {
+        startY: (doc as any).lastAutoTable.finalY + 24,
+        head: [['Tema', 'Submissões', 'Publicações', 'Veículos distintos']],
+        body: relatorio.tags.map((t) => [t.nome, t.submissoes, t.publicacoes, t.veiculos_distintos]),
+        theme: 'grid',
+        headStyles: { fillColor: [124, 58, 237], textColor: 255, fontStyle: 'bold' },
+        styles: { fontSize: 9, cellPadding: 5 },
+        columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' }, 3: { halign: 'right' } },
+      })
+    }
+
     // Rodapé
     const pageCount = doc.getNumberOfPages()
     for (let i = 1; i <= pageCount; i++) {
@@ -178,6 +253,7 @@ export async function GET(req: NextRequest) {
     'Área',
     'Estado',
     'Veículo principal',
+    'Temas',
     'Data submissão',
     'Última atualização',
     'Motivo do arquivamento',
@@ -191,6 +267,7 @@ export async function GET(req: NextRequest) {
     s.fellows?.area ?? '',
     s.fellows?.estado ?? '',
     s.veiculos?.nome ?? '',
+    (relatorio.tagsPorSubmissao[String(s.id)] ?? []).map((t) => t.nome).join(', '),
     formatDateBR(s.created_at),
     formatDateBR(s.updated_at),
     s.motivo_arquivamento ?? '',
@@ -205,6 +282,7 @@ export async function GET(req: NextRequest) {
     { wch: 18 },
     { wch: 8 },
     { wch: 28 },
+    { wch: 30 },
     { wch: 14 },
     { wch: 14 },
     { wch: 40 },
@@ -218,6 +296,89 @@ export async function GET(req: NextRequest) {
   const wsVeic = XLSX.utils.aoa_to_sheet([veiculosHeader, ...veiculosRows])
   wsVeic['!cols'] = [{ wch: 32 }, { wch: 14 }, { wch: 18 }]
   XLSX.utils.book_append_sheet(wb, wsVeic, 'Veículos')
+
+  // Aba Por Fellow
+  const fellowsAtivos = relatorio.fellows.filter((f) => f.submetidos > 0 || f.publicados > 0)
+  const fellowsHeader = [
+    'Fellow', 'Área', 'Estado', 'E-mail',
+    'Submetidos', 'Publicados', 'Taxa (%)',
+    'Top temas', 'Top veículos',
+    'Última publicação', 'Dias desde última', 'Status',
+  ]
+  const fellowsRows = fellowsAtivos.map((f) => [
+    f.nome,
+    f.area ?? '',
+    f.estado ?? '',
+    f.email ?? '',
+    f.submetidos,
+    f.publicados,
+    f.submetidos > 0 ? formatPctNum(f.taxa) : '',
+    f.topTags.join(', '),
+    f.topVeiculos.join(', '),
+    formatDateBR(f.ultimaPublicacaoEm),
+    f.diasDesdeUltimaPublicacao ?? '',
+    f.statusAtividade,
+  ])
+  const wsFellows = XLSX.utils.aoa_to_sheet([fellowsHeader, ...fellowsRows])
+  wsFellows['!cols'] = [
+    { wch: 28 }, { wch: 16 }, { wch: 8 }, { wch: 30 },
+    { wch: 12 }, { wch: 12 }, { wch: 10 },
+    { wch: 30 }, { wch: 30 },
+    { wch: 16 }, { wch: 16 }, { wch: 14 },
+  ]
+  XLSX.utils.book_append_sheet(wb, wsFellows, 'Por Fellow')
+
+  // Aba Em Atenção
+  const emAtencao = relatorio.fellows.filter((f) => {
+    if (f.submetidos === 0) return true
+    if (f.publicados === 0) return true
+    if (f.diasDesdeUltimaPublicacao !== null && f.diasDesdeUltimaPublicacao > 60) return true
+    return false
+  })
+  const atencaoHeader = ['Fellow', 'Área', 'Estado', 'E-mail', 'Submetidos', 'Publicados', 'Última publicação', 'Sinal']
+  const atencaoRows = emAtencao.map((f) => {
+    let sinal = '—'
+    if (f.submetidos === 0) sinal = 'Nunca submeteu'
+    else if (f.publicados === 0) sinal = 'Submeteu, não publicou'
+    else if (f.diasDesdeUltimaPublicacao !== null) sinal = `Inativo há ${f.diasDesdeUltimaPublicacao} dias`
+    return [
+      f.nome,
+      f.area ?? '',
+      f.estado ?? '',
+      f.email ?? '',
+      f.submetidos,
+      f.publicados,
+      formatDateBR(f.ultimaPublicacaoEm),
+      sinal,
+    ]
+  })
+  const wsAtencao = XLSX.utils.aoa_to_sheet([atencaoHeader, ...atencaoRows])
+  wsAtencao['!cols'] = [
+    { wch: 28 }, { wch: 16 }, { wch: 8 }, { wch: 30 },
+    { wch: 12 }, { wch: 12 }, { wch: 16 }, { wch: 28 },
+  ]
+  XLSX.utils.book_append_sheet(wb, wsAtencao, 'Em Atenção')
+
+  // Aba Por Tag
+  if (relatorio.tags.length > 0) {
+    const tagsHeader = ['Tema', 'Slug', 'Submissões', 'Publicações', 'Veículos distintos']
+    const tagsRows = relatorio.tags.map((t) => [t.nome, t.slug, t.submissoes, t.publicacoes, t.veiculos_distintos])
+    const wsTags = XLSX.utils.aoa_to_sheet([tagsHeader, ...tagsRows])
+    wsTags['!cols'] = [{ wch: 22 }, { wch: 22 }, { wch: 14 }, { wch: 14 }, { wch: 20 }]
+    XLSX.utils.book_append_sheet(wb, wsTags, 'Por Tema')
+  }
+
+  // Aba Heatmap (matriz fellow × mês)
+  if (relatorio.heatmap.fellows.length > 0) {
+    const heatHeader = ['Fellow', ...relatorio.heatmap.meses]
+    const heatRows = relatorio.heatmap.fellows.map((f) => [
+      f.nome,
+      ...relatorio.heatmap.meses.map((m) => relatorio.heatmap.matriz[f.id]?.[m] ?? 0),
+    ])
+    const wsHeat = XLSX.utils.aoa_to_sheet([heatHeader, ...heatRows])
+    wsHeat['!cols'] = [{ wch: 28 }, ...relatorio.heatmap.meses.map(() => ({ wch: 10 }))]
+    XLSX.utils.book_append_sheet(wb, wsHeat, 'Heatmap')
+  }
 
   const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }) as Buffer
   return new NextResponse(buf, {
