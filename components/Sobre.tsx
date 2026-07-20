@@ -59,7 +59,7 @@ const CONSELHO = [
     foto: '/equipe/carlo-cauti.png',
   },
   {
-    nome: 'Madeleine Lasko',
+    nome: 'Madeleine Lacsko',
     cargo: 'Jornalista e Escritora - O Antagonista',
     bio: 'Jornalista, escritora e comentarista política; atua em mídia digital, com foco em política, comunicação e comportamento.',
     instagram: 'madeleinelacsko',
