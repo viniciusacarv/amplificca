@@ -15,6 +15,7 @@ export type Fellow = {
   foto_url: string
   created_at: string
   slug?: string
+  arquivado?: boolean
 }
 
 export type Artigo = {

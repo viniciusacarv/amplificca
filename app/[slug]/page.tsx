@@ -51,7 +51,7 @@ export default async function FellowPage({ params }: { params: { slug: string } 
     .eq('slug', params.slug)
     .single()
 
-  if (!fellow) return notFound()
+  if (!fellow || fellow.arquivado) return notFound()
 
   const { data: artigos } = await supabase
     .from('artigos')
