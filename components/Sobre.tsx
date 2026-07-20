@@ -124,6 +124,14 @@ const PARCEIROS = [
     categoria: 'Mídia e educação',
     desc: 'Plataforma de conteúdo e formação cultural com grande alcance, dedicada a narrativas, cursos e análises aprofundadas.',
   },
+  {
+    nome: 'Gazeta do Povo',
+    logo: '/GAZETA-DO-POVO-LOGO.png',
+    url: 'https://www.gazetadopovo.com.br/',
+    site: 'gazetadopovo.com.br',
+    categoria: 'Mídia e jornalismo',
+    desc: 'Um dos principais veículos de jornalismo do país, com cobertura nacional de política, economia e cultura e forte defesa das liberdades individuais.',
+  },
 ]
 
 const rotatingBorderStyle: CSSProperties & Record<'--ab-speed', string> = {
