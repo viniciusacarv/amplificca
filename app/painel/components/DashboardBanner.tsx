@@ -13,8 +13,8 @@ const SLIDES = [
     tag: 'NOVO',
     eyebrow: 'PAINEL DO MEMBRO',
     headline: 'PAINEL AMPLIFICA',
-    sub: 'Acompanhe seus pontos, posição no ranking (em breve) e próximas aulas em tempo real.',
-    ticker: 'PAINEL AMPLIFICA • BEM-VINDO AO SEU ESPAÇO • CONTEÚDOS ADICIONAIS • PRÓXIMAS AULAS • ',
+    sub: 'Acompanhe seus artigos submetidos e próximas aulas em tempo real.',
+    ticker: 'PAINEL AMPLIFICA • BEM-VINDO AO SEU ESPAÇO • SUBMISSÃO DE ARTIGOS • PRÓXIMAS AULAS • ',
     img: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=1600&auto=format&fit=crop',
     accent: '#7ED321',
     href: '',  // Deixe vazio para sem link, ou ex: '/painel/ranking'
@@ -22,13 +22,13 @@ const SLIDES = [
   {
     id: 'debates',
     tag: 'INSCREVA-SE!',
-    eyebrow: 'LIBERTYCON 2026',
-    headline: 'CAMPEONATO DE DEBATE AMPLIFICA',
-    sub: 'Os melhores fellows do programa vão se enfrentar, com uma grande final na Libertycon 2026. Prepare sua argumentação!',
+    eyebrow: 'Caminhos Fórum pela Liberdade IFL SP 2026',
+    headline: 'II CAMPEONATO DE DEBATES AMPLIFICA',
+    sub: 'O II Campeonato de Debates Amplifica vem aí! O evento ocorrerá nos dias 12 e 13 de agosto de 2026. Inscreva-se já!',
     ticker: 'CAMPEONATO DE DEBATES 2026 • FASES ELIMINATÓRIAS • INSCREVA-SE • ',
     img: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=1600&auto=format&fit=crop',
     accent: '#fbbf24',
-    href: 'https://forms.gle/rW8ZeqeUMzhwDvtK6'
+    href: 'https://forms.gle/V2Bjf7nB3vnSGMgC8'
   },
   {
     id: 'oratoria',
