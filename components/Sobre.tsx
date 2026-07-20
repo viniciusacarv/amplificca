@@ -126,7 +126,7 @@ const PARCEIROS = [
   },
   {
     nome: 'Gazeta do Povo',
-    logo: '/GAZETA-DO-POVO-LOGO.png',
+    logo: '/GAZETA-DO-POVO-LOGO-BLACK.png',
     url: 'https://www.gazetadopovo.com.br/',
     site: 'gazetadopovo.com.br',
     categoria: 'Mídia e jornalismo',
