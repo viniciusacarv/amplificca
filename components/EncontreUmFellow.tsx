@@ -95,7 +95,7 @@ export default function EncontreUmFellow() {
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabase.from('fellows').select('*').order('nome')
+      const { data } = await supabase.from('fellows').select('*').eq('arquivado', false).order('nome')
       if (data && data.length > 0) setFellows(data)
     }
     load()
