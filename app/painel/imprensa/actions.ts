@@ -14,14 +14,26 @@ export async function criarSubmissao(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/painel/login')
 
-  // Detecta se quem submete é admin ou fellow
+  // Política de autoria: quem tem cadastro de fellow submete SEMPRE como fellow
+  // (mesmo sendo admin — duplo papel). Só admin puro (sem cadastro de fellow) submete como equipe.
   const isAdmin = await isAdminUser(supabase, user.email)
 
   let fellowId: string | number | null = null
   let autorAdminId: string | number | null = null
   let autorNome = ''
 
-  if (isAdmin) {
+  const { data: fellow } = await supabase
+    .from('fellows')
+    .select('id, nome')
+    .eq('email', user.email)
+    .maybeSingle()
+
+  if (fellow) {
+    // Fellow (puro ou com duplo papel de admin): conta como submissão de fellow.
+    fellowId = fellow.id
+    autorNome = fellow.nome
+  } else if (isAdmin) {
+    // Admin puro, sem cadastro de fellow (ex.: Sara): submete em nome da equipe.
     const { data: adminRecord } = await supabase
       .from('admins')
       .select('id, nome, email')
@@ -35,19 +47,11 @@ export async function criarSubmissao(formData: FormData) {
     autorAdminId = adminRecord.id
     autorNome = adminRecord.nome ?? adminRecord.email ?? 'Admin'
   } else {
-    const { data: fellow } = await supabase
-      .from('fellows')
-      .select('id, nome')
-      .eq('email', user.email)
-      .maybeSingle()
-
-    if (!fellow) {
-      redirect('/painel/imprensa?erro=fellow_nao_encontrado')
-    }
-
-    fellowId = fellow.id
-    autorNome = fellow.nome
+    redirect('/painel/imprensa?erro=fellow_nao_encontrado')
   }
+
+  // Submissão é "de fellow" sempre que houver fellowId (inclui o duplo papel).
+  const submeteComoFellow = fellowId !== null
 
   const titulo = formData.get('titulo') as string
   const tipo = formData.get('tipo') as string
@@ -86,7 +90,7 @@ export async function criarSubmissao(formData: FormData) {
 
   if (error) {
     console.error('Erro ao criar submissão:', error)
-    if (isAdmin && /autor_admin_id/i.test(error.message)) {
+    if (autorAdminId !== null && /autor_admin_id/i.test(error.message)) {
       redirect('/painel/imprensa?erro=migration_pendente')
     }
     redirect('/painel/imprensa?erro=enviar_submissao')
@@ -104,8 +108,9 @@ export async function criarSubmissao(formData: FormData) {
     }
   }
 
-  // Notificação para admins (somente quando o autor é fellow — admin submetendo não precisa notificar a si mesmo)
-  if (!isAdmin) {
+  // Notificação para admins (somente quando a submissão é de fellow — inclui duplo papel;
+  // admin puro submetendo em nome da equipe não precisa notificar a si mesmo)
+  if (submeteComoFellow) {
     await supabase.from('notificacoes').insert({
       fellow_id: null,
       is_admin: true,
@@ -130,7 +135,7 @@ export async function criarSubmissao(formData: FormData) {
 
   revalidatePath('/painel/imprensa')
   revalidatePath('/painel/admin/imprensa')
-  redirect(isAdmin ? `/painel/admin/imprensa/${submissao.id}` : '/painel/imprensa')
+  redirect(submeteComoFellow ? '/painel/imprensa' : `/painel/admin/imprensa/${submissao.id}`)
 }
 
 export async function retirarSubmissao(formData: FormData) {

@@ -46,6 +46,14 @@ export async function getPanelUserProfile(supabase: any, user: any) {
 
   const isAdmin = await isAdminUser(supabase, email)
 
+  // Busca o cadastro de fellow por e-mail. Pode existir mesmo para quem é admin:
+  // uma pessoa pode acumular os dois papéis (fellow + admin jornalista).
+  const { data: fellow } = await supabase
+    .from('fellows')
+    .select('id, nome, foto_url, area, estado')
+    .eq('email', email)
+    .maybeSingle()
+
   if (isAdmin) {
     let equipeProfile: { nome?: string | null; foto_url?: string | null } | null = null
 
@@ -61,22 +69,17 @@ export async function getPanelUserProfile(supabase: any, user: any) {
       // Se a tabela equipe nao tiver coluna de email, mantemos o fallback.
     }
 
-    const nomeExibicao = equipeProfile?.nome?.trim() || fallbackName
+    // Nome/foto: prioriza o registro da equipe; cai para o de fellow (duplo papel); depois fallback.
+    const nomeExibicao = equipeProfile?.nome?.trim() || fellow?.nome?.trim() || fallbackName
 
     return {
       isAdmin,
-      fellow: null,
+      fellow: fellow ?? null, // duplo papel: mantém o cadastro de fellow, se houver
       nomeExibicao,
-      fotoUrl: equipeProfile?.foto_url ?? null,
+      fotoUrl: equipeProfile?.foto_url ?? fellow?.foto_url ?? null,
       iniciais: getInitials(nomeExibicao),
     }
   }
-
-  const { data: fellow } = await supabase
-    .from('fellows')
-    .select('id, nome, foto_url, area, estado')
-    .eq('email', email)
-    .maybeSingle()
 
   const nomeExibicao = fellow?.nome ?? fallbackName
 
