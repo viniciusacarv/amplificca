@@ -14,13 +14,6 @@ const EQUIPE = [
     foto: '/equipe/anne-dias.png',
   },
   {
-    nome: 'Vinícius Antunes de Carvalho',
-    cargo: 'COO / CTO',
-    desc: 'Advogado, ex-Gerente de tributos em Big4 e especialista em consultoria empresarial. Atuou como Chefe de Gabinete na Câmara Municipal de Curitiba e hoje é empreendedor, desenvolvendo projetos nas áreas jurídica, política e de novos negócios.',
-    instagram: 'viniciusacarv',
-    foto: '/equipe/vinicius-antunes.png',
-  },
-  {
     nome: 'Sara Ganime',
     cargo: 'Head de Comunicação',
     desc: 'Jornalista e editora-chefe do Boletim da Liberdade. Protagonizou o placar do Boletim que ajudou a barrar o "PL da Censura" em 2023. Colunista do Pleno.News e presidente do IFL Rio de Janeiro.',
@@ -33,6 +26,13 @@ const EQUIPE = [
     desc: 'Uma das vozes ativas da comunicação no movimento liberal brasileiro. Com atuação na Juventude Livre, LOLA Brasil, no Partido NOVO e para outras organizações e figuras políticas, constrói estratégias de conteúdo que traduzem ideias de liberdade em narrativas acessíveis e de alto alcance.',
     instagram: 'saraeduardaalmeida',
     foto: '/equipe/SARA-ALMEIDA.png',
+  },
+  {
+    nome: 'Lucas Studart',
+    cargo: 'Especialista em oratória',
+    desc: 'Professor de oratória, retórica e comunicação. Com formação pela University of Minnesota, atua no ensino de speech e linguagem aplicada à comunicação pública.',
+    instagram: 'lucasstudartoficial',
+    foto: '/LUCAS-STUDART.png',
   },
 ]
 
